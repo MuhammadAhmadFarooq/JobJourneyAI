@@ -77,10 +77,13 @@ export default function Resume() {
     setUserData(prev => ({
       ...prev,
       skills: foundSkills.length > 0 ? foundSkills : prev.skills,
-      // We can't easily extract experience structure without an LLM, so we keep the mock experience 
-      // or clearer: we could clear it to show "No structured experience found" if we wanted to be strict.
-      // For now, let's keep the mock experience but maybe update the name if we find one? 
-      // (Name extraction is hard with regex, so we'll skip it for this simple version)
+      // Clear mock experience and try to extract something relevant or show a placeholder
+      experience: text.length > 100 ? [{
+        role: "Experience Detected",
+        company: "Extracted from Resume",
+        duration: "See resume for details",
+        description: text.slice(0, 200) + "..."
+      }] : []
     }));
   };
 
