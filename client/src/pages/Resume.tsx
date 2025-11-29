@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { mockUser } from "@/lib/mockData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,20 +10,36 @@ import { Progress } from "@/components/ui/progress";
 export default function Resume() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isAnalyzed, setIsAnalyzed] = useState(true); // Default to analyzed for mockup
+  const [isAnalyzed, setIsAnalyzed] = useState(true);
+  const [fileName, setFileName] = useState("Alex_Chen_Resume_2024.pdf");
+  const [uploadDate, setUploadDate] = useState("Parsed 2 days ago");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = () => {
-    setIsUploading(true);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setIsUploading(false);
-        setIsAnalyzed(true);
-      }
-    }, 200);
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      setUploadDate("Just now");
+      setIsAnalyzed(false);
+      setIsUploading(true);
+      setUploadProgress(0);
+      
+      // Simulate upload and analysis delay
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 5;
+        setUploadProgress(progress);
+        if (progress >= 100) {
+          clearInterval(interval);
+          setIsUploading(false);
+          setIsAnalyzed(true);
+        }
+      }, 100);
+    }
   };
 
   return (
@@ -49,13 +65,22 @@ export default function Resume() {
                   Drag and drop your PDF here, or click to select.
                 </p>
               </div>
+              
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileChange}
+              />
+
               {isUploading ? (
                  <div className="w-full max-w-[200px] space-y-2">
                     <Progress value={uploadProgress} className="h-2" />
                     <p className="text-xs text-muted-foreground">Analyzing structure...</p>
                  </div>
               ) : (
-                <Button onClick={handleUpload} variant="outline">Select File</Button>
+                <Button onClick={handleUploadClick} variant="outline">Select File</Button>
               )}
             </CardContent>
           </Card>
@@ -69,8 +94,8 @@ export default function Resume() {
                  <FileText className="w-5 h-5" />
                </div>
                <div className="flex-1 overflow-hidden">
-                 <p className="text-sm font-medium truncate">Alex_Chen_Resume_2024.pdf</p>
-                 <p className="text-xs text-muted-foreground">Parsed 2 days ago</p>
+                 <p className="text-sm font-medium truncate">{fileName}</p>
+                 <p className="text-xs text-muted-foreground">{uploadDate}</p>
                </div>
                <Check className="w-4 h-4 text-green-500" />
             </CardContent>
