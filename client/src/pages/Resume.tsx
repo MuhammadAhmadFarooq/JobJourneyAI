@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from "react";
-import { mockUser as defaultMockUser } from "@/lib/mockData";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, Check, Loader2, Sparkles, AlertCircle } from "lucide-react";
+import { Upload, FileText, Check, Loader2, Sparkles, AlertCircle, Briefcase, GraduationCap, FolderGit2, Award, Target, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -11,22 +10,69 @@ import * as pdfjsLib from 'pdfjs-dist';
 // Configure worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
-// Simplified skill database for keyword matching
-const SKILL_KEYWORDS = {
-  Frontend: ["React", "Vue", "Angular", "Svelte", "HTML", "CSS", "Tailwind", "Redux", "Next.js", "JavaScript", "TypeScript", "jQuery"],
-  Backend: ["Node.js", "Express", "Python", "Django", "Flask", "Java", "Spring", "Go", "Rust", "Ruby", "Rails", "PHP"],
-  Database: ["SQL", "PostgreSQL", "MySQL", "MongoDB", "Redis", "DynamoDB", "Oracle"],
-  Cloud: ["AWS", "Azure", "Google Cloud", "GCP", "Docker", "Kubernetes", "Terraform", "CI/CD"],
-  Language: ["JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "Go", "Rust", "Swift", "Kotlin"]
+interface ParsedResumeData {
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  summary: string;
+  skills: {
+    name: string;
+    level: number;
+    category: string;
+  }[];
+  experience: {
+    role: string;
+    company: string;
+    duration: string;
+    description: string;
+    highlights: string[];
+  }[];
+  education: {
+    degree: string;
+    institution: string;
+    graduationDate?: string;
+    gpa?: string;
+    relevantCoursework: string[];
+  }[];
+  projects: {
+    name: string;
+    description: string;
+    technologies: string[];
+    link?: string;
+  }[];
+  certifications: string[];
+  profileSummary: string;
+  suggestedRoles: string[];
+  strengthAreas: string[];
+  improvementAreas: string[];
+}
+
+const defaultData: ParsedResumeData = {
+  name: "",
+  email: "",
+  phone: "",
+  location: "",
+  summary: "",
+  skills: [],
+  experience: [],
+  education: [],
+  projects: [],
+  certifications: [],
+  profileSummary: "",
+  suggestedRoles: [],
+  strengthAreas: [],
+  improvementAreas: [],
 };
 
 export default function Resume() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isAnalyzed, setIsAnalyzed] = useState(true);
-  const [fileName, setFileName] = useState("Alex_Chen_Resume_2024.pdf");
-  const [uploadDate, setUploadDate] = useState("Parsed 2 days ago");
-  const [userData, setUserData] = useState(defaultMockUser);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [uploadDate, setUploadDate] = useState<string | null>(null);
+  const [resumeData, setResumeData] = useState<ParsedResumeData>(defaultData);
   const [error, setError] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +91,7 @@ export default function Resume() {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map((item: any) => item.str).join(" ");
-        fullText += pageText + " ";
+        fullText += pageText + "\n";
       }
       
       return fullText;
@@ -55,36 +101,22 @@ export default function Resume() {
     }
   };
 
-  const analyzeText = (text: string) => {
-    const foundSkills: any[] = [];
-    const textLower = text.toLowerCase();
-    
-    // Extract skills
-    Object.entries(SKILL_KEYWORDS).forEach(([category, skills]) => {
-      skills.forEach(skill => {
-        if (textLower.includes(skill.toLowerCase())) {
-          // Simple randomization of level for demo purposes, but grounded in finding the skill
-          foundSkills.push({
-            name: skill,
-            level: 60 + Math.floor(Math.random() * 30), // Random score between 60-90
-            category
-          });
-        }
-      });
+  const parseResumeWithAI = async (text: string, fileName: string): Promise<ParsedResumeData> => {
+    const response = await fetch("/api/resumes/parse", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ rawText: text, fileName }),
     });
 
-    // Update user data
-    setUserData(prev => ({
-      ...prev,
-      skills: foundSkills.length > 0 ? foundSkills : prev.skills,
-      // Clear mock experience and try to extract something relevant or show a placeholder
-      experience: text.length > 100 ? [{
-        role: "Experience Detected",
-        company: "Extracted from Resume",
-        duration: "See resume for details",
-        description: text.slice(0, 200) + "..."
-      }] : []
-    }));
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to parse resume");
+    }
+
+    const result = await response.json();
+    return result.data;
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,50 +124,59 @@ export default function Resume() {
     if (!file) return;
 
     setFileName(file.name);
-    setUploadDate("Just now");
+    setUploadDate(new Date().toLocaleString());
     setIsAnalyzed(false);
     setIsUploading(true);
     setUploadProgress(0);
+    setUploadStatus("Reading file...");
     setError(null);
     
     try {
-      // 1. Parse PDF Text
-      // Simulate progress for UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
-      }, 200);
-
+      // Step 1: Extract text from PDF
+      setUploadProgress(20);
+      setUploadStatus("Extracting text from PDF...");
+      
       let text = "";
       if (file.type === "application/pdf") {
         text = await extractTextFromPdf(file);
       } else {
-        // Fallback for text files
         text = await file.text();
       }
       
-      clearInterval(progressInterval);
-      setUploadProgress(100);
+      if (!text || text.trim().length < 50) {
+        throw new Error("Could not extract enough text from the file. Please ensure your PDF contains selectable text.");
+      }
 
-      // 2. Analyze Text
-      analyzeText(text);
+      // Step 2: Send to AI for parsing
+      setUploadProgress(50);
+      setUploadStatus("🤖 AI is analyzing your resume...");
+      
+      const parsedData = await parseResumeWithAI(text, file.name);
+      
+      setUploadProgress(100);
+      setUploadStatus("Analysis complete!");
+      setResumeData(parsedData);
       
       setTimeout(() => {
         setIsUploading(false);
         setIsAnalyzed(true);
       }, 500);
 
-    } catch (err) {
-      setError("Could not parse file. Please try a simple PDF or Text file.");
+    } catch (err: any) {
+      console.error("Resume parsing error:", err);
+      setError(err.message || "Could not parse file. Please try again.");
       setIsUploading(false);
     }
   };
 
+  const skillCategories = ["Frontend", "Backend", "Language", "Database", "Cloud", "DevOps", "Other"];
+
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-6xl mx-auto">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Resume Intelligence</h1>
         <p className="text-muted-foreground">
-          Manage your profile and see how our AI interprets your experience.
+          Upload your resume and let our AI extract and analyze your professional profile.
         </p>
       </div>
 
@@ -143,14 +184,14 @@ export default function Resume() {
         {/* Upload Section */}
         <div className="md:col-span-1 space-y-6">
           <Card className="border-dashed border-2 border-muted-foreground/20 bg-muted/5">
-            <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[300px] text-center gap-4">
+            <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[280px] text-center gap-4">
               <div className="p-4 bg-primary/10 rounded-full text-primary">
                 <Upload className="w-8 h-8" />
               </div>
               <div className="space-y-2">
-                <h3 className="font-semibold">Upload new resume</h3>
+                <h3 className="font-semibold">Upload your resume</h3>
                 <p className="text-sm text-muted-foreground px-4">
-                  Drag and drop your PDF here, or click to select.
+                  PDF or text file supported. AI will extract all details.
                 </p>
               </div>
               
@@ -163,38 +204,95 @@ export default function Resume() {
               />
 
               {isUploading ? (
-                 <div className="w-full max-w-[200px] space-y-2">
+                 <div className="w-full max-w-[220px] space-y-3">
                     <Progress value={uploadProgress} className="h-2" />
-                    <p className="text-xs text-muted-foreground">Analyzing structure...</p>
+                    <p className="text-xs text-muted-foreground">{uploadStatus}</p>
                  </div>
               ) : (
                 <Button onClick={handleUploadClick} variant="outline">Select File</Button>
               )}
               
               {error && (
-                <div className="flex items-center gap-2 text-xs text-red-500 mt-2">
-                  <AlertCircle className="w-4 h-4" />
-                  {error}
+                <div className="flex items-center gap-2 text-xs text-red-500 mt-2 px-4">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-               <CardTitle className="text-base">Current File</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center gap-3">
-               <div className="p-2 bg-red-100 text-red-600 rounded">
-                 <FileText className="w-5 h-5" />
-               </div>
-               <div className="flex-1 overflow-hidden">
-                 <p className="text-sm font-medium truncate">{fileName}</p>
-                 <p className="text-xs text-muted-foreground">{uploadDate}</p>
-               </div>
-               <Check className="w-4 h-4 text-green-500" />
-            </CardContent>
-          </Card>
+          {fileName && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Current File</CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 text-red-600 rounded">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-sm font-medium truncate">{fileName}</p>
+                  <p className="text-xs text-muted-foreground">{uploadDate}</p>
+                </div>
+                {isAnalyzed && <Check className="w-4 h-4 text-green-500" />}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Suggested Roles */}
+          {isAnalyzed && resumeData.suggestedRoles.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-primary" />
+                  <CardTitle className="text-base">Suggested Roles</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {resumeData.suggestedRoles.map((role, i) => (
+                    <Badge key={i} variant="outline" className="text-xs">
+                      {role}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Strengths & Improvements */}
+          {isAnalyzed && (resumeData.strengthAreas.length > 0 || resumeData.improvementAreas.length > 0) && (
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  <CardTitle className="text-base">Analysis</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {resumeData.strengthAreas.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-green-600 mb-2">💪 Strengths</p>
+                    <ul className="text-xs space-y-1 text-muted-foreground">
+                      {resumeData.strengthAreas.map((s, i) => (
+                        <li key={i}>• {s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {resumeData.improvementAreas.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-orange-600 mb-2">📈 Areas to Improve</p>
+                    <ul className="text-xs space-y-1 text-muted-foreground">
+                      {resumeData.improvementAreas.map((s, i) => (
+                        <li key={i}>• {s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Analysis Result */}
@@ -206,85 +304,231 @@ export default function Resume() {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-6"
               >
-                {/* Profile Summary */}
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      <CardTitle className="text-base text-primary">AI Profile Summary</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm leading-relaxed">
-                      Strong candidate for <span className="font-semibold">Frontend and Full Stack Engineering</span> roles. 
-                      Demonstrated proficiency in the React ecosystem with solid academic foundations in Computer Science. 
-                      Experience indicates a self-starter capable of delivering production-ready UI components.
-                    </p>
-                  </CardContent>
-                </Card>
+                {/* Profile Header */}
+                {resumeData.name && (
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h2 className="text-2xl font-bold">{resumeData.name}</h2>
+                          <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
+                            {resumeData.email && <span>📧 {resumeData.email}</span>}
+                            {resumeData.phone && <span>📱 {resumeData.phone}</span>}
+                            {resumeData.location && <span>📍 {resumeData.location}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-                {/* Extracted Skills */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Detected Expertise</CardTitle>
-                    <CardDescription>Skills extracted and graded by relevance.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {['Frontend', 'Backend', 'Language', 'Database', 'Cloud'].map((category) => (
-                        <div key={category} className="space-y-3">
-                          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-xs">
-                            {category}
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {userData.skills
-                              .filter(s => s.category === category)
-                              .map((skill) => (
-                                <Badge 
-                                  key={skill.name} 
-                                  variant="secondary" 
-                                  className="px-3 py-1.5 text-sm font-normal bg-secondary hover:bg-secondary/80"
-                                >
-                                  {skill.name} 
-                                  <span className={`ml-2 w-2 h-2 rounded-full inline-block ${
-                                    skill.level > 80 ? "bg-green-500" : skill.level > 60 ? "bg-yellow-500" : "bg-gray-300"
-                                  }`} />
-                                </Badge>
-                              ))}
-                              {userData.skills.filter(s => s.category === category).length === 0 && (
-                                <span className="text-sm text-muted-foreground italic">No skills detected in this category</span>
-                              )}
+                {/* AI Profile Summary */}
+                {resumeData.profileSummary && (
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <CardTitle className="text-base text-primary">AI Profile Summary</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm leading-relaxed">{resumeData.profileSummary}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Skills */}
+                {resumeData.skills.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Detected Expertise</CardTitle>
+                      <CardDescription>Skills extracted and graded by AI based on your resume content.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        {skillCategories.map((category) => {
+                          const categorySkills = resumeData.skills.filter(s => s.category === category);
+                          if (categorySkills.length === 0) return null;
+                          
+                          return (
+                            <div key={category} className="space-y-3">
+                              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                {category}
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {categorySkills.map((skill, idx) => (
+                                  <Badge 
+                                    key={idx} 
+                                    variant="secondary" 
+                                    className="px-3 py-1.5 text-sm font-normal bg-secondary hover:bg-secondary/80"
+                                  >
+                                    {skill.name} 
+                                    <span className={`ml-2 w-2 h-2 rounded-full inline-block ${
+                                      skill.level > 80 ? "bg-green-500" : skill.level > 60 ? "bg-yellow-500" : "bg-gray-400"
+                                    }`} />
+                                    <span className="ml-1 text-xs text-muted-foreground">{skill.level}%</span>
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Experience */}
+                {resumeData.experience.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-5 h-5 text-primary" />
+                        <CardTitle>Work Experience</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {resumeData.experience.map((exp, i) => (
+                        <div key={i} className="flex gap-4 items-start group border-l-2 border-primary/20 pl-4 hover:border-primary transition-colors">
+                          <div className="space-y-2 flex-1">
+                            <div>
+                              <h4 className="font-semibold text-base">{exp.role}</h4>
+                              <p className="text-sm text-primary">{exp.company}</p>
+                              <p className="text-xs text-muted-foreground">{exp.duration}</p>
+                            </div>
+                            {exp.description && (
+                              <p className="text-sm text-muted-foreground">{exp.description}</p>
+                            )}
+                            {exp.highlights && exp.highlights.length > 0 && (
+                              <ul className="text-sm space-y-1 mt-2">
+                                {exp.highlights.map((h, idx) => (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="text-primary mt-1">•</span>
+                                    <span>{h}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
                         </div>
                       ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
-                {/* Experience Parsing */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Experience & Projects</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {userData.experience.map((exp, i) => (
-                      <div key={i} className="flex gap-4 items-start group">
-                        <div className="mt-1.5 w-2 h-2 rounded-full bg-primary group-hover:scale-125 transition-transform" />
-                        <div className="space-y-1">
-                           <h4 className="font-medium text-base">{exp.role} <span className="text-muted-foreground font-normal">at {exp.company}</span></h4>
-                           <p className="text-sm text-muted-foreground">{exp.duration}</p>
-                           <p className="text-sm mt-2">{exp.description}</p>
-                        </div>
+                {/* Education */}
+                {resumeData.education.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-5 h-5 text-primary" />
+                        <CardTitle>Education</CardTitle>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {resumeData.education.map((edu, i) => (
+                        <div key={i} className="border-l-2 border-primary/20 pl-4">
+                          <h4 className="font-semibold">{edu.degree}</h4>
+                          <p className="text-sm text-primary">{edu.institution}</p>
+                          <div className="flex gap-4 text-xs text-muted-foreground mt-1">
+                            {edu.graduationDate && <span>🎓 {edu.graduationDate}</span>}
+                            {edu.gpa && <span>GPA: {edu.gpa}</span>}
+                          </div>
+                          {edu.relevantCoursework && edu.relevantCoursework.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs text-muted-foreground">Relevant Coursework:</p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {edu.relevantCoursework.map((course, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    {course}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Projects */}
+                {resumeData.projects.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <FolderGit2 className="w-5 h-5 text-primary" />
+                        <CardTitle>Projects</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {resumeData.projects.map((project, i) => (
+                        <div key={i} className="border-l-2 border-primary/20 pl-4">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">{project.name}</h4>
+                            {project.link && (
+                              <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                                🔗 Link
+                              </a>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
+                          {project.technologies && project.technologies.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {project.technologies.map((tech, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs">
+                                  {tech}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Certifications */}
+                {resumeData.certifications && resumeData.certifications.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <Award className="w-5 h-5 text-primary" />
+                        <CardTitle>Certifications</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {resumeData.certifications.map((cert, i) => (
+                          <Badge key={i} variant="outline" className="px-3 py-1.5">
+                            {cert}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </motion.div>
             ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                <div className="text-center space-y-2">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto opacity-50" />
-                  <p>Waiting for resume...</p>
+              <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+                <div className="text-center space-y-4">
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
+                      <div>
+                        <p className="font-medium">Analyzing your resume...</p>
+                        <p className="text-sm">{uploadStatus}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-12 h-12 mx-auto opacity-30" />
+                      <div>
+                        <p className="font-medium">No resume uploaded</p>
+                        <p className="text-sm">Upload your resume to get AI-powered analysis</p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}
