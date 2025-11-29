@@ -1,11 +1,24 @@
-import { useState, useRef } from "react";
-import { mockUser } from "@/lib/mockData";
+import { useState, useRef, useEffect } from "react";
+import { mockUser as defaultMockUser } from "@/lib/mockData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, Check, Loader2, Sparkles } from "lucide-react";
+import { Upload, FileText, Check, Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+// Simplified skill database for keyword matching
+const SKILL_KEYWORDS = {
+  Frontend: ["React", "Vue", "Angular", "Svelte", "HTML", "CSS", "Tailwind", "Redux", "Next.js", "JavaScript", "TypeScript", "jQuery"],
+  Backend: ["Node.js", "Express", "Python", "Django", "Flask", "Java", "Spring", "Go", "Rust", "Ruby", "Rails", "PHP"],
+  Database: ["SQL", "PostgreSQL", "MySQL", "MongoDB", "Redis", "DynamoDB", "Oracle"],
+  Cloud: ["AWS", "Azure", "Google Cloud", "GCP", "Docker", "Kubernetes", "Terraform", "CI/CD"],
+  Language: ["JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "Go", "Rust", "Swift", "Kotlin"]
+};
 
 export default function Resume() {
   const [isUploading, setIsUploading] = useState(false);
@@ -13,32 +26,104 @@ export default function Resume() {
   const [isAnalyzed, setIsAnalyzed] = useState(true);
   const [fileName, setFileName] = useState("Alex_Chen_Resume_2024.pdf");
   const [uploadDate, setUploadDate] = useState("Parsed 2 days ago");
+  const [userData, setUserData] = useState(defaultMockUser);
+  const [error, setError] = useState<string | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
-      setUploadDate("Just now");
-      setIsAnalyzed(false);
-      setIsUploading(true);
-      setUploadProgress(0);
+  const extractTextFromPdf = async (file: File): Promise<string> => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = "";
       
-      // Simulate upload and analysis delay
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 5;
-        setUploadProgress(progress);
-        if (progress >= 100) {
-          clearInterval(interval);
-          setIsUploading(false);
-          setIsAnalyzed(true);
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(" ");
+        fullText += pageText + " ";
+      }
+      
+      return fullText;
+    } catch (err) {
+      console.error("Error parsing PDF:", err);
+      throw new Error("Failed to parse PDF file");
+    }
+  };
+
+  const analyzeText = (text: string) => {
+    const foundSkills: any[] = [];
+    const textLower = text.toLowerCase();
+    
+    // Extract skills
+    Object.entries(SKILL_KEYWORDS).forEach(([category, skills]) => {
+      skills.forEach(skill => {
+        if (textLower.includes(skill.toLowerCase())) {
+          // Simple randomization of level for demo purposes, but grounded in finding the skill
+          foundSkills.push({
+            name: skill,
+            level: 60 + Math.floor(Math.random() * 30), // Random score between 60-90
+            category
+          });
         }
-      }, 100);
+      });
+    });
+
+    // Update user data
+    setUserData(prev => ({
+      ...prev,
+      skills: foundSkills.length > 0 ? foundSkills : prev.skills,
+      // We can't easily extract experience structure without an LLM, so we keep the mock experience 
+      // or clearer: we could clear it to show "No structured experience found" if we wanted to be strict.
+      // For now, let's keep the mock experience but maybe update the name if we find one? 
+      // (Name extraction is hard with regex, so we'll skip it for this simple version)
+    }));
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    setUploadDate("Just now");
+    setIsAnalyzed(false);
+    setIsUploading(true);
+    setUploadProgress(0);
+    setError(null);
+    
+    try {
+      // 1. Parse PDF Text
+      // Simulate progress for UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+
+      let text = "";
+      if (file.type === "application/pdf") {
+        text = await extractTextFromPdf(file);
+      } else {
+        // Fallback for text files
+        text = await file.text();
+      }
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      // 2. Analyze Text
+      analyzeText(text);
+      
+      setTimeout(() => {
+        setIsUploading(false);
+        setIsAnalyzed(true);
+      }, 500);
+
+    } catch (err) {
+      setError("Could not parse file. Please try a simple PDF or Text file.");
+      setIsUploading(false);
     }
   };
 
@@ -70,7 +155,7 @@ export default function Resume() {
                 type="file" 
                 ref={fileInputRef} 
                 className="hidden" 
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,.txt"
                 onChange={handleFileChange}
               />
 
@@ -81,6 +166,13 @@ export default function Resume() {
                  </div>
               ) : (
                 <Button onClick={handleUploadClick} variant="outline">Select File</Button>
+              )}
+              
+              {error && (
+                <div className="flex items-center gap-2 text-xs text-red-500 mt-2">
+                  <AlertCircle className="w-4 h-4" />
+                  {error}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -142,7 +234,7 @@ export default function Resume() {
                             {category}
                           </h4>
                           <div className="flex flex-wrap gap-2">
-                            {mockUser.skills
+                            {userData.skills
                               .filter(s => s.category === category)
                               .map((skill) => (
                                 <Badge 
@@ -156,7 +248,7 @@ export default function Resume() {
                                   }`} />
                                 </Badge>
                               ))}
-                              {mockUser.skills.filter(s => s.category === category).length === 0 && (
+                              {userData.skills.filter(s => s.category === category).length === 0 && (
                                 <span className="text-sm text-muted-foreground italic">No skills detected in this category</span>
                               )}
                           </div>
@@ -172,7 +264,7 @@ export default function Resume() {
                     <CardTitle>Experience & Projects</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {mockUser.experience.map((exp, i) => (
+                    {userData.experience.map((exp, i) => (
                       <div key={i} className="flex gap-4 items-start group">
                         <div className="mt-1.5 w-2 h-2 rounded-full bg-primary group-hover:scale-125 transition-transform" />
                         <div className="space-y-1">
