@@ -9,9 +9,10 @@ import {
   Loader2, Search, BookOpen, BrainCircuit, Lightbulb, 
   Bookmark, Building2, MapPin, Sparkles, CheckCircle2, 
   AlertTriangle, Target, Calendar, ArrowLeft, Trash2,
-  GraduationCap, MessageSquare, Code, Users, Star
+  GraduationCap, MessageSquare, Code, Users, Star, Youtube, ExternalLink, RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 interface SavedJob {
   id: string;
@@ -56,6 +57,12 @@ interface InterviewPrepData {
     keyConceptsToReview: string[];
     commonMistakes: string[];
     resources: string[];
+    youtubeVideo?: {
+      title: string;
+      channel: string;
+      url: string;
+      thumbnail?: string;
+    };
     questions: Array<{
       question: string;
       difficulty: "Easy" | "Medium" | "Hard";
@@ -85,8 +92,10 @@ export default function Interview() {
   const [activeTab, setActiveTab] = useState("saved-jobs");
   const [error, setError] = useState<string | null>(null);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
+  const [savedPreps, setSavedPreps] = useState<Record<string, InterviewPrepData>>({});
+  const { toast } = useToast();
 
-  // Load saved jobs from MongoDB
+  // Load saved jobs and interview preps from MongoDB
   useEffect(() => {
     const loadSavedJobs = async () => {
       try {
@@ -112,6 +121,21 @@ export default function Interview() {
             savedAt: job.savedAt,
           }));
           setSavedJobs(transformedJobs);
+        }
+        
+        // Load saved interview preps
+        const prepsResponse = await fetch("/api/profile/interview-preps", {
+          credentials: "include",
+        });
+        
+        if (prepsResponse.ok) {
+          const preps = await prepsResponse.json();
+          // Create a lookup map by jobId
+          const prepsMap: Record<string, InterviewPrepData> = {};
+          preps.forEach((prep: any) => {
+            prepsMap[prep.jobId] = prep;
+          });
+          setSavedPreps(prepsMap);
         }
       } catch (err) {
         console.error("Failed to load saved jobs:", err);
@@ -142,12 +166,23 @@ export default function Interview() {
     }
   };
 
-  const generatePrep = async (job: SavedJob) => {
+  const generatePrep = async (job: SavedJob, forceRegenerate: boolean = false) => {
     setSelectedJob(job);
+    setActiveTab("prep-results");
+    
+    // Check if we already have prep data for this job
+    if (!forceRegenerate && savedPreps[job.id]) {
+      setPrepData(savedPreps[job.id]);
+      toast({
+        title: "Loaded Saved Prep",
+        description: "Using your previously generated interview prep materials.",
+      });
+      return;
+    }
+    
     setIsGenerating(true);
     setError(null);
     setPrepData(null);
-    setActiveTab("prep-results");
 
     const steps = [
       "Researching company culture and interview process...",
@@ -204,6 +239,35 @@ export default function Interview() {
 
       const result = await response.json();
       setPrepData(result.data);
+      
+      // Save the prep data to MongoDB
+      try {
+        const saveResponse = await fetch("/api/profile/interview-preps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            jobId: job.id,
+            jobTitle: job.title,
+            company: job.company,
+            ...result.data,
+          }),
+        });
+        
+        if (saveResponse.ok) {
+          // Update local cache
+          setSavedPreps(prev => ({
+            ...prev,
+            [job.id]: result.data,
+          }));
+          toast({
+            title: "Prep Materials Saved!",
+            description: "Your interview prep has been saved and will be available next time.",
+          });
+        }
+      } catch (saveErr) {
+        console.error("Failed to save prep:", saveErr);
+      }
     } catch (err: any) {
       console.error("Error generating prep:", err);
       setError(err.message);
@@ -294,11 +358,19 @@ export default function Interview() {
                             {job.company}
                           </CardDescription>
                         </div>
-                        {job.matchScore && (
-                          <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                            {job.matchScore}%
-                          </Badge>
-                        )}
+                        <div className="flex flex-col items-end gap-1">
+                          {job.matchScore && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                              {job.matchScore}%
+                            </Badge>
+                          )}
+                          {savedPreps[job.id] && (
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Prep Ready
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="flex-1">
@@ -320,9 +392,29 @@ export default function Interview() {
                     </CardContent>
                     <CardFooter className="pt-0 flex gap-2">
                       <Button className="flex-1" onClick={() => generatePrep(job)} disabled={isGenerating}>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Prepare
+                        {savedPreps[job.id] ? (
+                          <>
+                            <BookOpen className="w-4 h-4 mr-2" />
+                            View Prep
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Prepare
+                          </>
+                        )}
                       </Button>
+                      {savedPreps[job.id] && (
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => generatePrep(job, true)} 
+                          disabled={isGenerating}
+                          title="Regenerate prep materials"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button variant="outline" size="icon" onClick={() => removeSavedJob(job.id)}>
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
@@ -362,9 +454,22 @@ export default function Interview() {
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Saved Jobs
                   </Button>
-                  <div className="text-right">
-                    <h2 className="font-semibold">{prepData.jobTitle}</h2>
-                    <p className="text-sm text-muted-foreground">{prepData.company}</p>
+                  <div className="flex items-center gap-3">
+                    {selectedJob && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => generatePrep(selectedJob, true)} 
+                        disabled={isGenerating}
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Regenerate
+                      </Button>
+                    )}
+                    <div className="text-right">
+                      <h2 className="font-semibold">{prepData.jobTitle}</h2>
+                      <p className="text-sm text-muted-foreground">{prepData.company}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -539,6 +644,38 @@ export default function Interview() {
                                             <li key={i} className="flex items-start gap-2"><span className="text-destructive">•</span>{mistake}</li>
                                           ))}
                                         </ul>
+                                      </div>
+                                    )}
+                                    
+                                    {/* YouTube Video Recommendation */}
+                                    {topic.youtubeVideo && (
+                                      <div className="mt-3">
+                                        <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
+                                          <Youtube className="w-3 h-3 text-red-500" />Recommended Video
+                                        </h5>
+                                        <a 
+                                          href={topic.youtubeVideo.url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors group"
+                                        >
+                                          {topic.youtubeVideo.thumbnail && (
+                                            <img 
+                                              src={topic.youtubeVideo.thumbnail} 
+                                              alt={topic.youtubeVideo.title}
+                                              className="w-24 h-14 object-cover rounded"
+                                            />
+                                          )}
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-red-700 dark:text-red-400 line-clamp-2 group-hover:underline">
+                                              {topic.youtubeVideo.title}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                              {topic.youtubeVideo.channel}
+                                            </p>
+                                          </div>
+                                          <ExternalLink className="w-4 h-4 text-red-500 shrink-0" />
+                                        </a>
                                       </div>
                                     )}
                                   </div>

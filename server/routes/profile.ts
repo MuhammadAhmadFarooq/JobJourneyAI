@@ -296,4 +296,149 @@ router.put("/preferences", requireAuth, async (req, res) => {
   }
 });
 
+// ==================== Interview Prep Routes ====================
+
+// Get all interview preps for a user
+router.get("/interview-preps", requireAuth, async (req, res) => {
+  try {
+    const userId = getCurrentUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const profile = await UserProfile.findOne({ userId });
+    
+    if (!profile) {
+      return res.json([]);
+    }
+
+    // Return all interview preps, sorted by most recent
+    const preps = (profile.interviewPreps || []).sort(
+      (a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
+    );
+
+    res.json(preps);
+  } catch (error: any) {
+    console.error("Get interview preps error:", error);
+    res.status(500).json({ message: "Failed to get interview preps" });
+  }
+});
+
+// Get interview prep for a specific job
+router.get("/interview-preps/:jobId", requireAuth, async (req, res) => {
+  try {
+    const userId = getCurrentUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { jobId } = req.params;
+    const profile = await UserProfile.findOne({ userId });
+    
+    if (!profile) {
+      return res.status(404).json({ message: "No prep found" });
+    }
+
+    const prep = profile.interviewPreps?.find(p => p.jobId === jobId);
+    
+    if (!prep) {
+      return res.status(404).json({ message: "No prep found for this job" });
+    }
+
+    res.json(prep);
+  } catch (error: any) {
+    console.error("Get interview prep error:", error);
+    res.status(500).json({ message: "Failed to get interview prep" });
+  }
+});
+
+// Save interview prep for a job
+router.post("/interview-preps", requireAuth, async (req, res) => {
+  try {
+    const userId = getCurrentUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const prepData = req.body;
+    
+    if (!prepData.jobId || !prepData.jobTitle) {
+      return res.status(400).json({ message: "Job ID and title are required" });
+    }
+
+    let profile = await UserProfile.findOne({ userId });
+    if (!profile) {
+      profile = new UserProfile({
+        userId,
+        skills: [],
+        experience: [],
+        education: [],
+        projects: [],
+        savedJobs: [],
+        interviewPreps: [],
+        suggestedRoles: [],
+        strengthAreas: [],
+      });
+    }
+
+    // Initialize interviewPreps if not exists
+    if (!profile.interviewPreps) {
+      profile.interviewPreps = [];
+    }
+
+    // Check if prep already exists for this job - update it if so
+    const existingIndex = profile.interviewPreps.findIndex(p => p.jobId === prepData.jobId);
+    
+    const newPrep = {
+      ...prepData,
+      generatedAt: new Date(),
+    };
+
+    if (existingIndex >= 0) {
+      // Update existing prep
+      profile.interviewPreps[existingIndex] = newPrep;
+    } else {
+      // Add new prep
+      profile.interviewPreps.push(newPrep);
+    }
+
+    await profile.save();
+
+    res.status(201).json({ 
+      message: "Interview prep saved successfully",
+      prep: newPrep,
+    });
+  } catch (error: any) {
+    console.error("Save interview prep error:", error);
+    res.status(500).json({ message: "Failed to save interview prep" });
+  }
+});
+
+// Delete interview prep for a job
+router.delete("/interview-preps/:jobId", requireAuth, async (req, res) => {
+  try {
+    const userId = getCurrentUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { jobId } = req.params;
+    const profile = await UserProfile.findOne({ userId });
+    
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    if (profile.interviewPreps) {
+      profile.interviewPreps = profile.interviewPreps.filter(p => p.jobId !== jobId);
+      await profile.save();
+    }
+
+    res.json({ message: "Interview prep deleted successfully" });
+  } catch (error: any) {
+    console.error("Delete interview prep error:", error);
+    res.status(500).json({ message: "Failed to delete interview prep" });
+  }
+});
+
 export default router;

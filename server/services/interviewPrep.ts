@@ -30,6 +30,13 @@ interface InterviewQuestion {
   whyAsked: string;
 }
 
+interface YouTubeVideo {
+  title: string;
+  channel: string;
+  url: string;
+  thumbnail?: string;
+}
+
 interface InterviewTopic {
   title: string;
   description: string;
@@ -37,6 +44,7 @@ interface InterviewTopic {
   keyConceptsToReview: string[];
   commonMistakes: string[];
   resources: string[];
+  youtubeVideo?: YouTubeVideo;
   questions: InterviewQuestion[];
 }
 
@@ -111,6 +119,52 @@ async function searchWeb(query: string): Promise<string[]> {
   } catch (error) {
     console.error("Web search error:", error);
     return [];
+  }
+}
+
+// Search YouTube for the best tutorial/explanation video
+async function searchYouTubeVideo(topic: string, context: string): Promise<YouTubeVideo | null> {
+  if (!SERPER_API_KEY) {
+    return null;
+  }
+
+  try {
+    // Use Serper to search YouTube
+    const response = await axios.post(
+      "https://google.serper.dev/videos",
+      {
+        q: `${topic} ${context} tutorial interview`,
+        num: 5,
+      },
+      {
+        headers: {
+          "X-API-KEY": SERPER_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const videos = response.data.videos || [];
+    
+    // Find the best video (prefer longer, educational content)
+    for (const video of videos) {
+      const link = video.link || "";
+      
+      // Only return YouTube videos
+      if (link.includes("youtube.com") || link.includes("youtu.be")) {
+        return {
+          title: video.title || "Tutorial Video",
+          channel: video.channel || "YouTube",
+          url: link,
+          thumbnail: video.imageUrl || video.thumbnail,
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error("YouTube search error:", error);
+    return null;
   }
 }
 
@@ -277,13 +331,25 @@ Generate at least 4-5 topics with 3-5 questions each. Make questions realistic a
     
     const prepData = JSON.parse(text);
     
+    // Step 4: Search YouTube videos for each topic
+    console.log("🎬 Finding YouTube tutorials for each topic...");
+    const topicsWithVideos = await Promise.all(
+      prepData.topics.map(async (topic: InterviewTopic) => {
+        const video = await searchYouTubeVideo(topic.title, job.title);
+        return {
+          ...topic,
+          youtubeVideo: video,
+        };
+      })
+    );
+    
     return {
       jobTitle: job.title,
       company: job.company,
       companyInsights: prepData.companyInsights,
       roleInsights: prepData.roleInsights,
       techStackAnalysis: prepData.techStackAnalysis,
-      topics: prepData.topics,
+      topics: topicsWithVideos,
       studyPlan: prepData.studyPlan,
       tips: prepData.tips,
       redFlags: prepData.redFlags,

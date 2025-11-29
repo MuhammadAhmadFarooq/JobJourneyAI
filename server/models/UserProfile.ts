@@ -14,6 +14,61 @@ export interface ISavedJob {
   savedAt: Date;
 }
 
+export interface IInterviewPrepData {
+  jobId: string;
+  jobTitle: string;
+  company: string;
+  generatedAt: Date;
+  companyInsights: {
+    overview: string;
+    culture: string;
+    interviewProcess: string;
+    recentNews: string[];
+  };
+  roleInsights: {
+    overview: string;
+    dayToDay: string;
+    growthPath: string;
+    salaryRange: string;
+  };
+  techStackAnalysis: {
+    requiredTechnologies: string[];
+    niceToHave: string[];
+    trendingInField: string[];
+  };
+  topics: Array<{
+    title: string;
+    description: string;
+    importance: string;
+    keyConceptsToReview: string[];
+    commonMistakes: string[];
+    resources: string[];
+    youtubeVideo?: {
+      title: string;
+      channel: string;
+      url: string;
+      thumbnail?: string;
+    };
+    questions: Array<{
+      question: string;
+      difficulty: string;
+      type: string;
+      topic: string;
+      hints: string[];
+      sampleAnswer?: string;
+      whyAsked: string;
+    }>;
+  }>;
+  studyPlan: {
+    week1: string[];
+    week2: string[];
+    lastDays: string[];
+  };
+  tips: string[];
+  redFlags: string[];
+  questionsToAsk: string[];
+}
+
 export interface IUserProfile extends Document {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -75,6 +130,9 @@ export interface IUserProfile extends Document {
   // Saved jobs
   savedJobs: ISavedJob[];
   
+  // Saved interview prep materials
+  interviewPreps: IInterviewPrepData[];
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -91,6 +149,61 @@ const savedJobSchema = new Schema<ISavedJob>({
   matchScore: { type: Number },
   matchReasons: [{ type: String }],
   savedAt: { type: Date, default: Date.now },
+});
+
+const interviewPrepSchema = new Schema<IInterviewPrepData>({
+  jobId: { type: String, required: true },
+  jobTitle: { type: String, required: true },
+  company: { type: String, required: true },
+  generatedAt: { type: Date, default: Date.now },
+  companyInsights: {
+    overview: { type: String, default: "" },
+    culture: { type: String, default: "" },
+    interviewProcess: { type: String, default: "" },
+    recentNews: [{ type: String }],
+  },
+  roleInsights: {
+    overview: { type: String, default: "" },
+    dayToDay: { type: String, default: "" },
+    growthPath: { type: String, default: "" },
+    salaryRange: { type: String, default: "" },
+  },
+  techStackAnalysis: {
+    requiredTechnologies: [{ type: String }],
+    niceToHave: [{ type: String }],
+    trendingInField: [{ type: String }],
+  },
+  topics: [{
+    title: { type: String, required: true },
+    description: { type: String, default: "" },
+    importance: { type: String, default: "Medium" },
+    keyConceptsToReview: [{ type: String }],
+    commonMistakes: [{ type: String }],
+    resources: [{ type: String }],
+    youtubeVideo: {
+      title: { type: String },
+      channel: { type: String },
+      url: { type: String },
+      thumbnail: { type: String },
+    },
+    questions: [{
+      question: { type: String, required: true },
+      difficulty: { type: String, default: "Medium" },
+      type: { type: String, default: "Technical" },
+      topic: { type: String },
+      hints: [{ type: String }],
+      sampleAnswer: { type: String },
+      whyAsked: { type: String },
+    }],
+  }],
+  studyPlan: {
+    week1: [{ type: String }],
+    week2: [{ type: String }],
+    lastDays: [{ type: String }],
+  },
+  tips: [{ type: String }],
+  redFlags: [{ type: String }],
+  questionsToAsk: [{ type: String }],
 });
 
 const userProfileSchema = new Schema<IUserProfile>(
@@ -162,6 +275,8 @@ const userProfileSchema = new Schema<IUserProfile>(
     },
     
     savedJobs: [savedJobSchema],
+    
+    interviewPreps: [interviewPrepSchema],
   },
   {
     timestamps: true,
