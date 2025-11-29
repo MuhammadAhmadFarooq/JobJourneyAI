@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { parseResumeWithGemini } from "./services/gemini";
+import { searchAndMatchJobs, scrapeJobs } from "./services/jobScraper";
+import { generateInterviewPrep, generateQuickPrep } from "./services/interviewPrep";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -97,6 +99,76 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== Job Scraping & Discovery ====================
+  app.post("/api/jobs/discover", async (req, res) => {
+    try {
+      const { skills, experience, suggestedRoles, location, jobPreferences } = req.body;
+      
+      if (!skills || skills.length === 0) {
+        return res.status(400).json({ 
+          message: "Skills are required. Please upload your resume first." 
+        });
+      }
+
+      // Use location from request, or preferences, or default to Remote
+      let searchLocation = location || "Remote";
+      if (jobPreferences?.remotePreference === "remote") {
+        searchLocation = "Remote";
+      } else if (jobPreferences?.preferredLocations?.[0]) {
+        searchLocation = jobPreferences.preferredLocations[0];
+      }
+
+      console.log("🔍 Starting job discovery...");
+      console.log(`📝 Skills: ${skills.map((s: any) => s.name).join(", ")}`);
+      console.log(`📍 Location: ${searchLocation}`);
+      console.log(`💼 Suggested roles: ${suggestedRoles?.join(", ") || "None"}`);
+      console.log(`🎯 Target roles: ${jobPreferences?.targetRoles?.join(", ") || "None"}`);
+
+      const matchedJobs = await searchAndMatchJobs(
+        skills,
+        experience || [],
+        suggestedRoles || [],
+        searchLocation,
+        jobPreferences
+      );
+
+      console.log(`✅ Found ${matchedJobs.length} matched jobs`);
+
+      res.json({
+        success: true,
+        jobs: matchedJobs,
+        totalJobs: matchedJobs.length,
+      });
+    } catch (error: any) {
+      console.error("❌ Job discovery error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Simple search endpoint
+  app.get("/api/jobs/search", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      const location = req.query.location as string || "Remote";
+      
+      if (!query) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+
+      console.log(`🔍 Searching for jobs: ${query} in ${location}`);
+      const jobs = await scrapeJobs([query], location, true);
+
+      res.json({
+        success: true,
+        jobs: jobs,
+        totalJobs: jobs.length,
+      });
+    } catch (error: any) {
+      console.error("❌ Job search error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get("/api/jobs/:id", async (req, res) => {
     try {
       const job = await storage.jobs.getById(req.params.id);
@@ -155,6 +227,60 @@ export async function registerRoutes(
   });
 
   // ==================== Interview Prep Routes ====================
+  
+  // Generate comprehensive interview prep
+  app.post("/api/interview-prep/generate", async (req, res) => {
+    try {
+      const { job, userProfile } = req.body;
+      
+      if (!job || !job.title || !job.company) {
+        return res.status(400).json({ message: "Job details are required" });
+      }
+      
+      if (!userProfile || !userProfile.skills) {
+        return res.status(400).json({ message: "User profile with skills is required" });
+      }
+
+      console.log(`\n🎯 Generating interview prep for ${job.title} at ${job.company}`);
+      
+      const prepResult = await generateInterviewPrep(job, userProfile);
+      
+      console.log(`✅ Interview prep generated successfully`);
+      
+      res.json({
+        success: true,
+        data: prepResult,
+      });
+    } catch (error: any) {
+      console.error("❌ Interview prep generation error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Generate quick prep (15-minute version)
+  app.post("/api/interview-prep/quick", async (req, res) => {
+    try {
+      const { job, userProfile } = req.body;
+      
+      if (!job || !job.title) {
+        return res.status(400).json({ message: "Job details are required" });
+      }
+
+      console.log(`\n⚡ Generating quick prep for ${job.title}`);
+      
+      const quickPrep = await generateQuickPrep(job, userProfile || { skills: [], experience: [] });
+      
+      res.json({
+        success: true,
+        data: quickPrep,
+      });
+    } catch (error: any) {
+      console.error("❌ Quick prep error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get saved interview preps for a user
   app.get("/api/interview-prep/:userId", async (req, res) => {
     try {
       const preps = await storage.interviewPreps.getByUserId(req.params.userId);

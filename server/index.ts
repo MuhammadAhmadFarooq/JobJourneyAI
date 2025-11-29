@@ -1,9 +1,13 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import MongoStore from "connect-mongo";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { connectDB } from "./db";
+import authRoutes from "./routes/auth";
+import profileRoutes from "./routes/profile";
 
 const app = express();
 const httpServer = createServer(app);
@@ -64,6 +68,33 @@ app.use((req, res, next) => {
 (async () => {
   // Connect to MongoDB
   await connectDB();
+
+  // Session configuration with MongoDB store
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "jobjourney-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+        ttl: 7 * 24 * 60 * 60, // 7 days
+        autoRemove: "native",
+      }),
+      cookie: {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        sameSite: "lax",
+      },
+    })
+  );
+  console.log("✅ Session store configured");
+
+  // Auth routes
+  app.use("/api/auth", authRoutes);
+  
+  // Profile routes
+  app.use("/api/profile", profileRoutes);
 
   await registerRoutes(httpServer, app);
   console.log("✅ Routes registered");

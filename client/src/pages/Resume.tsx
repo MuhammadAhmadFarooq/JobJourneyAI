@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,8 +74,53 @@ export default function Resume() {
   const [uploadDate, setUploadDate] = useState<string | null>(null);
   const [resumeData, setResumeData] = useState<ParsedResumeData>(defaultData);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load existing profile on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetch("/api/profile", {
+          credentials: "include",
+        });
+        
+        if (response.ok) {
+          const profile = await response.json();
+          
+          // Check if profile has resume data
+          if (profile.resumeFileName) {
+            setFileName(profile.resumeFileName);
+            setUploadDate(profile.resumeUploadedAt ? new Date(profile.resumeUploadedAt).toLocaleString() : null);
+            setResumeData({
+              name: profile.name || "",
+              email: profile.email || "",
+              phone: profile.phone || "",
+              location: profile.location || "",
+              summary: profile.summary || "",
+              skills: profile.skills || [],
+              experience: profile.experience || [],
+              education: profile.education || [],
+              projects: profile.projects || [],
+              certifications: [],
+              profileSummary: profile.profileSummary || "",
+              suggestedRoles: profile.suggestedRoles || [],
+              strengthAreas: profile.strengthAreas || [],
+              improvementAreas: [],
+            });
+            setIsAnalyzed(true);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -153,9 +198,39 @@ export default function Resume() {
       
       const parsedData = await parseResumeWithAI(text, file.name);
       
+      setUploadProgress(80);
+      setUploadStatus("Saving profile...");
+      setResumeData(parsedData);
+      
+      // Save profile to MongoDB
+      try {
+        await fetch("/api/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            resumeFileName: file.name,
+            resumeUploadedAt: new Date(),
+            name: parsedData.name,
+            email: parsedData.email,
+            phone: parsedData.phone,
+            location: parsedData.location,
+            summary: parsedData.summary,
+            skills: parsedData.skills,
+            experience: parsedData.experience,
+            education: parsedData.education,
+            projects: parsedData.projects,
+            profileSummary: parsedData.profileSummary,
+            suggestedRoles: parsedData.suggestedRoles,
+            strengthAreas: parsedData.strengthAreas,
+          }),
+        });
+      } catch (saveErr) {
+        console.warn("Failed to save profile to server:", saveErr);
+      }
+      
       setUploadProgress(100);
       setUploadStatus("Analysis complete!");
-      setResumeData(parsedData);
       
       setTimeout(() => {
         setIsUploading(false);
