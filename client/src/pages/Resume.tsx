@@ -74,9 +74,10 @@ export default function Resume() {
   const [uploadDate, setUploadDate] = useState<string | null>(null);
   const [resumeData, setResumeData] = useState<ParsedResumeData>(defaultData);
   const [error, setError] = useState<string | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isParsingRef = useRef(false);
+  const lastParsedFileRef = useRef<string | null>(null);
 
   // Load existing profile on mount
   useEffect(() => {
@@ -114,8 +115,6 @@ export default function Resume() {
         }
       } catch (err) {
         console.error("Failed to load profile:", err);
-      } finally {
-        setIsLoadingProfile(false);
       }
     };
 
@@ -123,6 +122,7 @@ export default function Resume() {
   }, []);
 
   const handleUploadClick = () => {
+    if (isUploading || isParsingRef.current) return;
     fileInputRef.current?.click();
   };
 
@@ -167,6 +167,19 @@ export default function Resume() {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    const fileKey = `${file.name}:${file.size}:${file.lastModified}`;
+    if (isUploading || isParsingRef.current) {
+      event.target.value = "";
+      return;
+    }
+
+    if (lastParsedFileRef.current === fileKey && isAnalyzed) {
+      event.target.value = "";
+      return;
+    }
+
+    isParsingRef.current = true;
 
     setFileName(file.name);
     setUploadDate(new Date().toLocaleString());
@@ -235,16 +248,26 @@ export default function Resume() {
       setTimeout(() => {
         setIsUploading(false);
         setIsAnalyzed(true);
+        lastParsedFileRef.current = fileKey;
       }, 500);
 
     } catch (err: any) {
       console.error("Resume parsing error:", err);
       setError(err.message || "Could not parse file. Please try again.");
       setIsUploading(false);
+    } finally {
+      isParsingRef.current = false;
+      event.target.value = "";
     }
   };
 
   const skillCategories = ["Frontend", "Backend", "Language", "Database", "Cloud", "DevOps", "Other"];
+
+  const getSkillDotClass = (level: number) => {
+    if (level > 80) return "bg-green-500";
+    if (level > 60) return "bg-yellow-500";
+    return "bg-gray-400";
+  };
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
@@ -284,7 +307,7 @@ export default function Resume() {
                     <p className="text-xs text-muted-foreground">{uploadStatus}</p>
                  </div>
               ) : (
-                <Button onClick={handleUploadClick} variant="outline">Select File</Button>
+                <Button onClick={handleUploadClick} variant="outline" disabled={isUploading}>Select File</Button>
               )}
               
               {error && (
@@ -325,8 +348,8 @@ export default function Resume() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {resumeData.suggestedRoles.map((role, i) => (
-                    <Badge key={i} variant="outline" className="text-xs">
+                  {resumeData.suggestedRoles.map((role) => (
+                    <Badge key={role} variant="outline" className="text-xs">
                       {role}
                     </Badge>
                   ))}
@@ -349,8 +372,8 @@ export default function Resume() {
                   <div>
                     <p className="text-xs font-medium text-green-600 mb-2">💪 Strengths</p>
                     <ul className="text-xs space-y-1 text-muted-foreground">
-                      {resumeData.strengthAreas.map((s, i) => (
-                        <li key={i}>• {s}</li>
+                      {resumeData.strengthAreas.map((s) => (
+                        <li key={s}>• {s}</li>
                       ))}
                     </ul>
                   </div>
@@ -359,8 +382,8 @@ export default function Resume() {
                   <div>
                     <p className="text-xs font-medium text-orange-600 mb-2">📈 Areas to Improve</p>
                     <ul className="text-xs space-y-1 text-muted-foreground">
-                      {resumeData.improvementAreas.map((s, i) => (
-                        <li key={i}>• {s}</li>
+                      {resumeData.improvementAreas.map((s) => (
+                        <li key={s}>• {s}</li>
                       ))}
                     </ul>
                   </div>
@@ -431,16 +454,14 @@ export default function Resume() {
                                 {category}
                               </h4>
                               <div className="flex flex-wrap gap-2">
-                                {categorySkills.map((skill, idx) => (
+                                {categorySkills.map((skill) => (
                                   <Badge 
-                                    key={idx} 
+                                    key={`${category}-${skill.name}`} 
                                     variant="secondary" 
                                     className="px-3 py-1.5 text-sm font-normal bg-secondary hover:bg-secondary/80"
                                   >
                                     {skill.name} 
-                                    <span className={`ml-2 w-2 h-2 rounded-full inline-block ${
-                                      skill.level > 80 ? "bg-green-500" : skill.level > 60 ? "bg-yellow-500" : "bg-gray-400"
-                                    }`} />
+                                    <span className={`ml-2 w-2 h-2 rounded-full inline-block ${getSkillDotClass(skill.level)}`} />
                                     <span className="ml-1 text-xs text-muted-foreground">{skill.level}%</span>
                                   </Badge>
                                 ))}
@@ -463,8 +484,8 @@ export default function Resume() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {resumeData.experience.map((exp, i) => (
-                        <div key={i} className="flex gap-4 items-start group border-l-2 border-primary/20 pl-4 hover:border-primary transition-colors">
+                      {resumeData.experience.map((exp) => (
+                        <div key={`${exp.role}-${exp.company}-${exp.duration}`} className="flex gap-4 items-start group border-l-2 border-primary/20 pl-4 hover:border-primary transition-colors">
                           <div className="space-y-2 flex-1">
                             <div>
                               <h4 className="font-semibold text-base">{exp.role}</h4>
@@ -476,8 +497,8 @@ export default function Resume() {
                             )}
                             {exp.highlights && exp.highlights.length > 0 && (
                               <ul className="text-sm space-y-1 mt-2">
-                                {exp.highlights.map((h, idx) => (
-                                  <li key={idx} className="flex items-start gap-2">
+                                {exp.highlights.map((h) => (
+                                  <li key={h} className="flex items-start gap-2">
                                     <span className="text-primary mt-1">•</span>
                                     <span>{h}</span>
                                   </li>
@@ -501,8 +522,8 @@ export default function Resume() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {resumeData.education.map((edu, i) => (
-                        <div key={i} className="border-l-2 border-primary/20 pl-4">
+                      {resumeData.education.map((edu) => (
+                        <div key={`${edu.degree}-${edu.institution}`} className="border-l-2 border-primary/20 pl-4">
                           <h4 className="font-semibold">{edu.degree}</h4>
                           <p className="text-sm text-primary">{edu.institution}</p>
                           <div className="flex gap-4 text-xs text-muted-foreground mt-1">
@@ -513,8 +534,8 @@ export default function Resume() {
                             <div className="mt-2">
                               <p className="text-xs text-muted-foreground">Relevant Coursework:</p>
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {edu.relevantCoursework.map((course, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-xs">
+                                {edu.relevantCoursework.map((course) => (
+                                  <Badge key={course} variant="outline" className="text-xs">
                                     {course}
                                   </Badge>
                                 ))}
@@ -537,8 +558,8 @@ export default function Resume() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {resumeData.projects.map((project, i) => (
-                        <div key={i} className="border-l-2 border-primary/20 pl-4">
+                      {resumeData.projects.map((project) => (
+                        <div key={project.name} className="border-l-2 border-primary/20 pl-4">
                           <div className="flex items-center gap-2">
                             <h4 className="font-semibold">{project.name}</h4>
                             {project.link && (
@@ -550,8 +571,8 @@ export default function Resume() {
                           <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
                           {project.technologies && project.technologies.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-2">
-                              {project.technologies.map((tech, idx) => (
-                                <Badge key={idx} variant="secondary" className="text-xs">
+                              {project.technologies.map((tech) => (
+                                <Badge key={tech} variant="secondary" className="text-xs">
                                   {tech}
                                 </Badge>
                               ))}
@@ -574,8 +595,8 @@ export default function Resume() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {resumeData.certifications.map((cert, i) => (
-                          <Badge key={i} variant="outline" className="px-3 py-1.5">
+                        {resumeData.certifications.map((cert) => (
+                          <Badge key={cert} variant="outline" className="px-3 py-1.5">
                             {cert}
                           </Badge>
                         ))}

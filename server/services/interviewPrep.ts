@@ -3,6 +3,7 @@ import axios from "axios";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const SERPER_API_KEY = process.env.SERPER_API_KEY || "";
+const interviewPrepCooldownUntil = new Map<string, number>();
 
 interface JobDetails {
   title: string;
@@ -19,6 +20,8 @@ interface UserProfile {
   education?: Array<{ degree: string; institution: string }>;
   yearsOfExperience?: number;
 }
+
+type ExperienceLevel = "Entry" | "Mid" | "Senior";
 
 interface InterviewQuestion {
   question: string;
@@ -207,7 +210,7 @@ async function researchRole(title: string, company: string, skills: string[]): P
 }
 
 // Determine experience level
-function determineExperienceLevel(profile: UserProfile): "Entry" | "Mid" | "Senior" {
+function determineExperienceLevel(profile: UserProfile): ExperienceLevel {
   const years = profile.yearsOfExperience || profile.experience.length;
   if (years <= 2) return "Entry";
   if (years <= 5) return "Mid";
@@ -235,8 +238,13 @@ export async function generateInterviewPrep(
   
   // Step 3: Use Gemini to generate comprehensive prep materials
   console.log("🤖 Generating interview preparation with AI...");
-  
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const cooldownKey = `interview-prep:${job.company}:${job.title}`;
+  const cooldownUntil = interviewPrepCooldownUntil.get(cooldownKey) || 0;
+  if (cooldownUntil > Date.now()) {
+    console.warn("Interview prep is in Gemini cooldown. Returning fallback prep immediately.");
+    return buildFallbackInterviewPrep(job, userProfile, experienceLevel, jobSkills, companyResearch, roleResearch);
+  }
   
   const prompt = `You are an expert career coach and interview preparation specialist. Generate a comprehensive interview preparation guide based on the following information.
 
@@ -327,7 +335,7 @@ Generate at least 4-5 topics with 3-5 questions each. Make questions realistic a
     let text = response.text();
     
     // Clean up the response
-    text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    text = text.replaceAll("```json\n", "").replaceAll("```\n", "").replaceAll("```", "").trim();
     
     const prepData = JSON.parse(text);
     
@@ -355,8 +363,18 @@ Generate at least 4-5 topics with 3-5 questions each. Make questions realistic a
       redFlags: prepData.redFlags,
       questionsToAsk: prepData.questionsToAsk,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating interview prep:", error);
+
+    const isQuotaError = error?.status === 429;
+    const isInvalidKey = error?.status === 400 && JSON.stringify(error).includes("API_KEY_INVALID");
+
+    if (isQuotaError || isInvalidKey) {
+      interviewPrepCooldownUntil.set(cooldownKey, Date.now() + 5 * 60 * 1000);
+      console.warn("Falling back to local interview prep generator due to Gemini error.");
+      return buildFallbackInterviewPrep(job, userProfile, experienceLevel, jobSkills, companyResearch, roleResearch);
+    }
+
     throw new Error("Failed to generate interview preparation materials");
   }
 }
@@ -398,10 +416,207 @@ Generate 5 top questions and 5 quick tips.`;
   try {
     const result = await model.generateContent(prompt);
     let text = result.response.text();
-    text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    text = text.replaceAll("```json\n", "").replaceAll("```\n", "").replaceAll("```", "").trim();
     return JSON.parse(text);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating quick prep:", error);
+
+    const isQuotaError = error?.status === 429;
+    const isInvalidKey = error?.status === 400 && JSON.stringify(error).includes("API_KEY_INVALID");
+
+    if (isQuotaError || isInvalidKey) {
+      return buildFallbackQuickPrep(job, userProfile);
+    }
+
     throw new Error("Failed to generate quick prep");
   }
+}
+
+function buildFallbackInterviewPrep(
+  job: JobDetails,
+  userProfile: UserProfile,
+  experienceLevel: "Entry" | "Mid" | "Senior",
+  jobSkills: string[],
+  companyResearch: string[],
+  roleResearch: string[]
+): InterviewPrepResult {
+  const topSkills = userProfile.skills.map((s) => s.name).slice(0, 5);
+  const requiredTechnologies = jobSkills.length > 0 ? jobSkills : topSkills.slice(0, 3);
+  const topicSeed = requiredTechnologies[0] || job.title || "Interview Prep";
+
+  return {
+    jobTitle: job.title,
+    company: job.company,
+    companyInsights: {
+      overview: summarizeResearch(companyResearch, `${job.company} is a company hiring for ${job.title}.`),
+      culture: "Focus on teamwork, product thinking, and demonstrating practical impact.",
+      interviewProcess: "Expect an initial screen, technical discussion, and behavioral round.",
+      recentNews: takeResearchItems(companyResearch, 3),
+    },
+    roleInsights: {
+      overview: `This ${job.title} role focuses on delivering reliable, maintainable solutions aligned with ${job.company}'s needs.`,
+      dayToDay: "Building features, debugging issues, reviewing code, and collaborating with teammates.",
+      growthPath: "Grow into senior ownership, technical leadership, or architecture-focused roles.",
+      salaryRange: `Varies by region and experience level; benchmark against similar ${experienceLevel.toLowerCase()} roles.`,
+    },
+    techStackAnalysis: {
+      requiredTechnologies,
+      niceToHave: topSkills.filter((skill) => !requiredTechnologies.includes(skill)).slice(0, 4),
+      trendingInField: uniqueList(["TypeScript", "Automation", "Testing", "Cloud-native tooling", "AI-assisted workflows"]),
+    },
+    topics: buildFallbackTopics(requiredTechnologies, topicSeed, experienceLevel, roleResearch),
+    studyPlan: {
+      week1: [
+        `Review ${requiredTechnologies.join(", ") || job.title} fundamentals`,
+        `Practice 2-3 behavioral questions for a ${experienceLevel.toLowerCase()} candidate`,
+        "Prepare a concise 'tell me about yourself' answer",
+      ],
+      week2: [
+        "Solve common role-specific interview questions",
+        "Do a mock interview with timed answers",
+        "Review the company and questions to ask the interviewer",
+      ],
+      lastDays: [
+        "Rehearse your strongest project stories",
+        "Review weak areas and quick facts",
+      ],
+    },
+    tips: [
+      "Answer with structure: situation, action, result.",
+      "Show impact with metrics whenever possible.",
+      "If you do not know an answer, explain your reasoning clearly.",
+    ],
+    redFlags: [
+      "Overly vague answers with no examples.",
+      "Not being able to explain your own projects.",
+      "Ignoring fundamentals in favor of buzzwords.",
+    ],
+    questionsToAsk: [
+      `What does success look like for this ${job.title} role in the first 90 days?`,
+      `How does ${job.company} support learning and growth on the team?`,
+      "What are the biggest challenges the team is facing right now?",
+    ],
+  };
+}
+
+function buildFallbackQuickPrep(job: JobDetails, userProfile: UserProfile): {
+  topQuestions: InterviewQuestion[];
+  quickTips: string[];
+  mustKnow: string[];
+} {
+  const skills = userProfile.skills.map((s) => s.name).slice(0, 4);
+  const primarySkill = skills[0] || job.skills?.[0] || job.title;
+
+  return {
+    topQuestions: [
+      createQuestion(`Tell me about yourself for a ${job.title} role.`, primarySkill),
+      createQuestion(`Explain a project where you used ${primarySkill}.`, primarySkill, "Technical"),
+      createQuestion(`How do you handle conflict or disagreement on a team?`, "teamwork", "Behavioral"),
+      createQuestion(`What would you do if you had to learn ${job.title} skills quickly?`, primarySkill, "Situational"),
+      createQuestion(`Describe a challenge you solved end-to-end.`, "problem-solving", "Behavioral"),
+    ],
+    quickTips: [
+      "Use short structured answers.",
+      "Have one project story ready.",
+      "Mention tradeoffs and lessons learned.",
+      "Review the job description before the interview.",
+      "Ask one thoughtful question at the end.",
+    ],
+    mustKnow: uniqueList([
+      ...skills,
+      ...(job.skills || []),
+      "core responsibilities",
+      "company basics",
+      "your own resume stories",
+    ]),
+  };
+}
+
+function buildFallbackTopics(
+  requiredTechnologies: string[],
+  topicSeed: string,
+  experienceLevel: "Entry" | "Mid" | "Senior",
+  roleResearch: string[]
+): InterviewTopic[] {
+  const techTopics = uniqueList(requiredTechnologies.length > 0 ? requiredTechnologies : [topicSeed]).slice(0, 4);
+
+  const techBasedTopics: InterviewTopic[] = techTopics.map((tech) => ({
+      title: `${tech} Fundamentals`,
+      description: `Core knowledge you should know for a ${experienceLevel.toLowerCase()} role.`,
+      importance: "High",
+      keyConceptsToReview: [
+        `${tech} syntax and core ideas`,
+        `${tech} best practices`,
+        `Common ${tech} interview pitfalls`,
+      ],
+      commonMistakes: [
+        `Not explaining why you chose ${tech}`,
+        `Skipping fundamentals and jumping to advanced details`,
+      ],
+      resources: takeResearchItems(roleResearch, 2),
+      questions: [
+        createQuestion(`What are the core concepts of ${tech}?`, tech, "Technical"),
+        createQuestion(`How have you used ${tech} in a real project?`, tech, "Technical"),
+        createQuestion(`What is one challenge you faced with ${tech} and how did you solve it?`, tech, "Technical"),
+      ],
+    }));
+
+  const behavioralTopic: InterviewTopic = {
+    title: "Behavioral Interview",
+    description: "Questions about teamwork, conflict, ownership, and communication.",
+    importance: "High",
+    keyConceptsToReview: ["STAR method", "Conflict resolution", "Ownership", "Communication"],
+    commonMistakes: ["Rambling without structure", "No real examples", "Blaming others"],
+    resources: ["Use STAR stories from your own experience"],
+    questions: [
+      createQuestion("Tell me about a time you handled a difficult teammate.", "behavioral", "Behavioral"),
+      createQuestion("Tell me about a time you failed and what you learned.", "behavioral", "Behavioral"),
+      createQuestion("Tell me about a time you took ownership of a problem.", "behavioral", "Behavioral"),
+    ],
+  };
+
+  const problemSolvingTopic: InterviewTopic = {
+    title: "Problem Solving",
+    description: "How you think through ambiguous problems and debugging tasks.",
+    importance: "High",
+    keyConceptsToReview: ["Breaking down problems", "Debugging", "Tradeoffs", "Communication"],
+    commonMistakes: ["Jumping to conclusions", "Not clarifying requirements", "No structure"],
+    resources: ["Practice explaining your thinking out loud"],
+    questions: [
+      createQuestion("How would you approach a system or code issue you have never seen before?", "problem-solving", "Situational"),
+      createQuestion("Walk me through how you debug production issues.", "problem-solving", "Situational"),
+      createQuestion("How do you prioritize tasks when everything feels urgent?", "problem-solving", "Situational"),
+    ],
+  };
+
+  return [...techBasedTopics, behavioralTopic, problemSolvingTopic];
+}
+
+function createQuestion(
+  question: string,
+  topic: string,
+  type: InterviewQuestion["type"] = "Technical"
+): InterviewQuestion {
+  return {
+    question,
+    difficulty: "Medium",
+    type,
+    topic,
+    hints: ["Explain your reasoning", "Use a real example if possible"],
+    sampleAnswer: "Start with a short explanation, then give a concrete example and finish with the result.",
+    whyAsked: "Interviewers want to see your understanding, communication, and practical experience.",
+  };
+}
+
+function summarizeResearch(items: string[], fallback: string): string {
+  const firstTwo = takeResearchItems(items, 2);
+  return firstTwo.length > 0 ? firstTwo.join(" ") : fallback;
+}
+
+function takeResearchItems(items: string[], count: number): string[] {
+  return items.slice(0, count).map((item) => item.trim()).filter(Boolean);
+}
+
+function uniqueList(items: string[]): string[] {
+  return Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)));
 }

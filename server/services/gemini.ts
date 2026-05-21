@@ -1,6 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const parsedResumeCache = new Map<string, { expiresAt: number; value: ParsedResume }>();
+const inflightResumeParses = new Map<string, Promise<ParsedResume>>();
+const geminiCooldownUntil = new Map<string, number>();
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
 export interface ParsedResume {
   name: string;
@@ -109,11 +113,43 @@ RESUME TEXT:
 `;
 
 export async function parseResumeWithGemini(resumeText: string): Promise<ParsedResume> {
+  const cacheKey = normalizeResumeText(resumeText);
+  const cached = parsedResumeCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
+  const inflight = inflightResumeParses.get(cacheKey);
+  if (inflight) {
+    return inflight;
+  }
+
+  const parsePromise = parseResumeWithGeminiInternal(resumeText)
+    .then((result) => {
+      parsedResumeCache.set(cacheKey, { value: result, expiresAt: Date.now() + CACHE_TTL_MS });
+      return result;
+    })
+    .finally(() => {
+      inflightResumeParses.delete(cacheKey);
+    });
+
+  inflightResumeParses.set(cacheKey, parsePromise);
+  return parsePromise;
+}
+
+async function parseResumeWithGeminiInternal(resumeText: string): Promise<ParsedResume> {
   try {
     // Use gemini-2.0-flash as the model (or gemini-pro as fallback)
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    // Retry with exponential backoff on rate-limit (429) or transient errors
-    const maxAttempts = 4;
+    const cooldownKey = "gemini-2.0-flash";
+
+    const cooldownUntil = geminiCooldownUntil.get(cooldownKey) || 0;
+    if (cooldownUntil > Date.now()) {
+      throw createGeminiCooldownError(cooldownUntil - Date.now());
+    }
+
+    // Retry only for non-rate-limit transient errors; 429 should fall back immediately.
+    const maxAttempts = 2;
     let attempt = 0;
     let lastError: any = null;
     let text: string | undefined = undefined;
@@ -127,18 +163,16 @@ export async function parseResumeWithGemini(resumeText: string): Promise<ParsedR
       } catch (err: any) {
         lastError = err;
         attempt += 1;
-        // If it's a rate limit, wait and retry; otherwise fail fast after attempts
+        // If it's a rate limit, wait using the API-provided retry delay; otherwise use a short exponential backoff.
         const status = err?.status || err?.statusCode;
         if (status === 429 && attempt < maxAttempts) {
-          const backoff = Math.pow(2, attempt) * 1000;
-          console.warn(`Gemini rate-limited (attempt ${attempt}). Retrying in ${backoff}ms.`);
-          await new Promise((r) => setTimeout(r, backoff));
-          continue;
+          geminiCooldownUntil.set(cooldownKey, Date.now() + 5 * 60 * 1000);
+          throw err;
         }
         if (attempt < maxAttempts) {
-          const backoff = Math.pow(2, attempt) * 500;
+          const backoff = Math.min(Math.pow(2, attempt) * 500, 4000);
           console.warn(`Transient Gemini error (attempt ${attempt}). Retrying in ${backoff}ms.`);
-          await new Promise((r) => setTimeout(r, backoff));
+          await delay(backoff);
           continue;
         }
         break;
@@ -189,12 +223,42 @@ export async function parseResumeWithGemini(resumeText: string): Promise<ParsedR
     const isInvalidKey = (error?.status === 400) && JSON.stringify(error).includes("API_KEY_INVALID");
 
     if (isQuotaError || isInvalidKey) {
+      geminiCooldownUntil.set("gemini-2.0-flash", Date.now() + 5 * 60 * 1000);
       console.warn("Falling back to local resume parser due to Gemini error.");
       return parseResumeFallback(resumeText);
     }
 
     throw new Error("Failed to parse resume with AI. Please try again.");
   }
+}
+
+function createGeminiCooldownError(msRemaining: number): Error {
+  const seconds = Math.max(1, Math.ceil(msRemaining / 1000));
+  return new Error(`Gemini temporarily rate-limited. Retry in about ${seconds}s.`);
+}
+
+function normalizeResumeText(resumeText: string): string {
+  return resumeText
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function getRetryDelayMs(error: any): number | null {
+  const retryDelay = error?.errorDetails?.find?.((detail: any) => detail?.retryDelay)?.retryDelay;
+  if (typeof retryDelay === "string") {
+    const match = retryDelay.match(/^(\d+)(ms|s)$/i);
+    if (match) {
+      const value = Number(match[1]);
+      return match[2].toLowerCase() === "s" ? value * 1000 : value;
+    }
+  }
+  return null;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function parseResumeFallback(resumeText: string): ParsedResume {
