@@ -112,10 +112,42 @@ export async function parseResumeWithGemini(resumeText: string): Promise<ParsedR
   try {
     // Use gemini-2.0-flash as the model (or gemini-pro as fallback)
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    
-    const result = await model.generateContent(RESUME_PARSE_PROMPT + resumeText);
-    const response = await result.response;
-    const text = response.text();
+    // Retry with exponential backoff on rate-limit (429) or transient errors
+    const maxAttempts = 4;
+    let attempt = 0;
+    let lastError: any = null;
+    let text: string | undefined = undefined;
+
+    while (attempt < maxAttempts) {
+      try {
+        const result = await model.generateContent(RESUME_PARSE_PROMPT + resumeText);
+        const response = await result.response;
+        text = response.text();
+        break;
+      } catch (err: any) {
+        lastError = err;
+        attempt += 1;
+        // If it's a rate limit, wait and retry; otherwise fail fast after attempts
+        const status = err?.status || err?.statusCode;
+        if (status === 429 && attempt < maxAttempts) {
+          const backoff = Math.pow(2, attempt) * 1000;
+          console.warn(`Gemini rate-limited (attempt ${attempt}). Retrying in ${backoff}ms.`);
+          await new Promise((r) => setTimeout(r, backoff));
+          continue;
+        }
+        if (attempt < maxAttempts) {
+          const backoff = Math.pow(2, attempt) * 500;
+          console.warn(`Transient Gemini error (attempt ${attempt}). Retrying in ${backoff}ms.`);
+          await new Promise((r) => setTimeout(r, backoff));
+          continue;
+        }
+        break;
+      }
+    }
+
+    if (!text) {
+      throw lastError || new Error("No response from Gemini");
+    }
     
     // Clean up the response - remove any markdown code blocks if present
     let cleanedText = text.trim();
@@ -149,8 +181,53 @@ export async function parseResumeWithGemini(resumeText: string): Promise<ParsedR
       strengthAreas: parsedData.strengthAreas || [],
       improvementAreas: parsedData.improvementAreas || [],
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error parsing resume with Gemini:", error);
+
+    // If the error is a quota or invalid-key issue, fall back to a lightweight local parser
+    const isQuotaError = error?.status === 429;
+    const isInvalidKey = (error?.status === 400) && JSON.stringify(error).includes("API_KEY_INVALID");
+
+    if (isQuotaError || isInvalidKey) {
+      console.warn("Falling back to local resume parser due to Gemini error.");
+      return parseResumeFallback(resumeText);
+    }
+
     throw new Error("Failed to parse resume with AI. Please try again.");
   }
+}
+
+function parseResumeFallback(resumeText: string): ParsedResume {
+  // Very small heuristic parser: extract name (first non-empty line), email, phone and common tech keywords
+  const lines = resumeText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const name = lines.length ? lines[0] : "";
+
+  const emailMatch = resumeText.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  const phoneMatch = resumeText.match(/\+?[0-9][0-9()\- .]{6,}[0-9]/);
+
+  const techKeywords = [
+    "react", "node", "express", "typescript", "javascript", "python", "java", "aws", "docker", "kubernetes", "mongo", "postgres", "sql", "html", "css", "next", "vite",
+  ];
+
+  const foundSkills = Array.from(new Set(
+    techKeywords.filter((kw) => new RegExp(`\\b${kw}\\b`, "i").test(resumeText))
+  )).map((s) => ({ name: s, level: 50, category: "Other" as const }));
+
+  return {
+    name: name || "",
+    email: emailMatch ? emailMatch[0] : "",
+    phone: phoneMatch ? phoneMatch[0] : "",
+    location: "",
+    summary: lines.slice(0, 3).join(" ") || "",
+    skills: foundSkills,
+    experience: [],
+    education: [],
+    projects: [],
+    certifications: [],
+    languages: [],
+    profileSummary: "",
+    suggestedRoles: [],
+    strengthAreas: [],
+    improvementAreas: [],
+  };
 }
