@@ -67,66 +67,65 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to MongoDB
-const dbConnected = await connectDB();
+async function startup() {
+  try {
+    const dbConnected = await connectDB();
 
-const sessionStore = dbConnected && process.env.MONGODB_URI
-  ? MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
-      ttl: 7 * 24 * 60 * 60, // 7 days
-      autoRemove: "native",
-    })
-  : new MemoryStore({ checkPeriod: 24 * 60 * 60 * 1000 });
+    const sessionStore = dbConnected && process.env.MONGODB_URI
+      ? MongoStore.create({
+          mongoUrl: process.env.MONGODB_URI,
+          ttl: 7 * 24 * 60 * 60,
+          autoRemove: "native",
+        })
+      : new MemoryStore({ checkPeriod: 24 * 60 * 60 * 1000 });
 
-// Session configuration with MongoDB store
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "jobjourney-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    store: sessionStore,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: "lax",
-    },
-  })
-);
-console.log("✅ Session store configured");
+    app.use(
+      session({
+        secret: process.env.SESSION_SECRET || "jobjourney-secret-key",
+        resave: false,
+        saveUninitialized: false,
+        store: sessionStore,
+        cookie: {
+          secure: process.env.NODE_ENV === "production",
+          httpOnly: true,
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          sameSite: "lax",
+        },
+      })
+    );
+    console.log("✅ Session store configured");
 
-// Auth routes
-app.use("/api/auth", authRoutes);
+    app.use("/api/auth", authRoutes);
+    app.use("/api/profile", profileRoutes);
 
-// Profile routes
-app.use("/api/profile", profileRoutes);
+    await registerRoutes(httpServer, app);
+    console.log("✅ Routes registered");
 
-await registerRoutes(httpServer, app);
-console.log("✅ Routes registered");
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
+      res.status(status).json({ message });
+      throw err;
+    });
 
-  res.status(status).json({ message });
-  throw err;
-});
+    if (process.env.NODE_ENV === "production") {
+      serveStatic(app);
+    } else {
+      console.log("⚠️  Run frontend separately: npm run dev:client");
+    }
 
-// importantly only setup vite in development and after
-// setting up all the other routes so the catch-all route
-// doesn't interfere with the other routes
-if (process.env.NODE_ENV === "production") {
-  serveStatic(app);
-} else {
-  // Skip Vite integration - run frontend separately with npm run dev:client
-  console.log("⚠️  Run frontend separately: npm run dev:client");
+    const port = Number.parseInt(process.env.PORT || "5000", 10);
+    httpServer.listen(port, () => {
+      log(`serving on port ${port}`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
 }
 
-// ALWAYS serve the app on the port specified in the environment variable PORT
-// Other ports are firewalled. Default to 5000 if not specified.
-// this serves both the API and the client.
-// It is the only port that is not firewalled.
-const port = Number.parseInt(process.env.PORT || "5000", 10);
-httpServer.listen(port, () => {
-  log(`serving on port ${port}`);
-});
+// eslint-disable-next-line @typescript-eslint/prefer-top-level-await
+(async () => {
+  await startup();
+})();
