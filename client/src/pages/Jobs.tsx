@@ -724,10 +724,15 @@ export default function Jobs() {
                             {job.matchScore}% Match
                           </div>
                         )}
-                        {job.isExpired && (
+                        {job.isExpired ? (
                           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50">
                             <AlertCircle className="w-3 h-3" />
-                            Possibly Expired
+                            No Longer Accepting Applications
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/40">
+                            <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
+                            Accepting Applications
                           </div>
                         )}
                         <span className="text-xs text-muted-foreground">{formatDate(job.postedAt, job.postedAtText)}</span>

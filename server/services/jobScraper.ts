@@ -282,13 +282,91 @@ export async function scrapeJobs(
     )
   );
 
-  // Mark expired jobs
+  // 1. Static expiration check (dates and snippet text cues)
   for (const job of uniqueJobs) {
     job.isExpired = isJobLikelyExpired(job);
   }
+
+  // 2. Live network verification for remaining unflagged jobs
+  console.log("⚡ Verifying live availability of job postings...");
+  await Promise.allSettled(
+    uniqueJobs.map(async (job) => {
+      if (!job.isExpired) {
+        const isLive = await verifyJobLiveAvailability(job);
+        if (!isLive) {
+          job.isExpired = true;
+        }
+      }
+    })
+  );
   
-  console.log(`✅ Total unique jobs scraped: ${uniqueJobs.length} (${uniqueJobs.filter(j => j.isExpired).length} possibly expired)`);
+  console.log(`✅ Total unique jobs scraped: ${uniqueJobs.length} (${uniqueJobs.filter(j => j.isExpired).length} unavailable/expired)`);
   return uniqueJobs;
+}
+
+// Live URL availability checker for LinkedIn, Indeed, Lever, Greenhouse, etc.
+export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolean> {
+  if (job.isExpired) return false;
+  if (!job.sourceUrl) return true;
+
+  try {
+    const isLinkedIn = job.sourceUrl.includes("linkedin.com");
+    const isIndeed = job.sourceUrl.includes("indeed.com");
+    const isLever = job.sourceUrl.includes("lever.co");
+    const isGreenhouse = job.sourceUrl.includes("greenhouse.io");
+
+    // Only do network verification for major job platform URLs
+    if (!isLinkedIn && !isIndeed && !isLever && !isGreenhouse) {
+      return true;
+    }
+
+    const response = await axios.get(job.sourceUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+      timeout: 3000,
+      maxRedirects: 4,
+      validateStatus: () => true, // Don't throw on HTTP errors
+    });
+
+    if (response.status === 404 || response.status === 410) {
+      return false; // Expired / Not available
+    }
+
+    // Check if redirected to search or login page
+    const finalUrl = (response.request?.res?.responseUrl || response.config?.url || "").toLowerCase();
+    if (finalUrl.includes("/jobs/search") || finalUrl.includes("/login") || finalUrl.includes("/expired")) {
+      return false;
+    }
+
+    const html = (response.data || "").toString().toLowerCase();
+    const closedPhrases = [
+      "no longer accepting applications",
+      "not accepting applications",
+      "applications are no longer",
+      "this job is no longer available",
+      "position has been filled",
+      "position filled",
+      "this job has expired",
+      "job is closed",
+      "no longer hiring",
+      "topcard__flavor--closed",
+      "job-closed",
+    ];
+
+    for (const phrase of closedPhrases) {
+      if (html.includes(phrase)) {
+        return false; // Closed / Expired
+      }
+    }
+
+    return true; // Live and accepting applications
+  } catch (err) {
+    // If request fails (timeout or rate limit), preserve static status
+    return !job.isExpired;
+  }
 }
 
 // Helper function to parse relative dates like "2 months ago", "3 weeks ago", "45 days ago" into valid Date objects
