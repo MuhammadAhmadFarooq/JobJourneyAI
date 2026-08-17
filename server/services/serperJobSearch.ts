@@ -127,6 +127,7 @@ export async function searchJobsWithSerper(
         {
           q: query,
           gl: getCountryCode(location),
+          tbs: "qdr:w", // Search ONLY jobs posted in the past week!
           num: 10,
         },
         {
@@ -199,6 +200,7 @@ export async function searchJobsOnPlatform(
         {
           q: query,
           gl: getCountryCode(location),
+          tbs: "qdr:w", // Search ONLY jobs posted in the past week!
           num: 10,
         },
         {

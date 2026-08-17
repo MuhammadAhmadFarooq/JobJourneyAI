@@ -259,20 +259,19 @@ export async function scrapeJobs(
     }
   }
   
-  // Fallback to free APIs if Serper didn't return results or isn't configured
-  if (allJobs.length < 10) {
-    console.log("📡 Fetching additional jobs from free APIs...");
-    
-    // Scrape from multiple sources in parallel
+  // Fetch active open jobs from free APIs (Remotive, Arbeitnow, Jobicy) to guarantee high volume of verified active jobs
+  console.log("📡 Fetching active jobs from job APIs...");
+  try {
     for (const query of searchQueries.slice(0, 3)) {
       const [remotiveJobs, arbeitnowJobs, jobicyJobs] = await Promise.all([
         scrapeRemotiveJobs(query, 10),
         scrapeArbeitnowJobs(query, 10),
         scrapeJobicyJobs(query, 10),
       ]);
-      
       allJobs.push(...remotiveJobs, ...arbeitnowJobs, ...jobicyJobs);
     }
+  } catch (err: any) {
+    console.error("Error fetching from secondary APIs:", err.message);
   }
   
   // Remove duplicates based on title + company
@@ -301,8 +300,10 @@ export async function scrapeJobs(
     })
   );
   
-  console.log(`✅ Total unique jobs scraped: ${uniqueJobs.length} (${uniqueJobs.filter(j => j.isExpired).length} unavailable/expired)`);
-  return uniqueJobs;
+  // EXCLUDE expired/unavailable jobs so ONLY 100% OPEN & ACTIVE JOBS ARE RETURNED TO THE USER!
+  const activeJobs = uniqueJobs.filter(job => !job.isExpired);
+  console.log(`✅ Returning ${activeJobs.length} active, open jobs with working apply options out of ${uniqueJobs.length} scraped`);
+  return activeJobs;
 }
 
 // Live URL availability checker for LinkedIn, Indeed, Lever, Greenhouse, etc.
