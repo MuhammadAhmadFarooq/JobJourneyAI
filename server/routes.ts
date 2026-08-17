@@ -9,9 +9,19 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // ==================== Health Check ====================
+  // ==================== Health Check & System Diagnostics ====================
   app.get("/api/health", (_req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
+    res.json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      env: {
+        groqConfigured: Boolean(process.env.GROQ_API_KEY),
+        serperConfigured: Boolean(process.env.SERPER_API_KEY),
+        mongoConfigured: Boolean(process.env.MONGODB_URI),
+        sessionSecretConfigured: Boolean(process.env.SESSION_SECRET),
+        nodeEnv: process.env.NODE_ENV || "development",
+      },
+    });
   });
 
   // ==================== Resume Parsing with AI ====================
