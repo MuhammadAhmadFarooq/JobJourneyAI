@@ -124,7 +124,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col md:flex-row">
       {/* Desktop Sidebar */}
       <div className="hidden md:block w-64 shrink-0">
         <div className="fixed inset-y-0 left-0 w-64 z-30">
@@ -132,21 +132,38 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
-      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden fixed top-4 left-4 z-50 bg-background/80 backdrop-blur-md border shadow-sm">
-            <Menu className="w-5 h-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border">
-          <NavContent />
-        </SheetContent>
-      </Sheet>
+      {/* Mobile Top Navigation Header Bar */}
+      <div className="md:hidden sticky top-0 z-40 w-full bg-background/90 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-3">
+          <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
+                <Menu className="w-4 h-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border">
+              <NavContent />
+            </SheetContent>
+          </Sheet>
 
-      {/* Main Content */}
+          <div className="flex items-center gap-2">
+            <img src={logoImage} alt="JobJourneyAI" className="w-7 h-7 rounded-lg shadow-xs" />
+            <span className="font-bold text-base tracking-tight text-foreground">JobJourneyAI</span>
+          </div>
+        </div>
+
+        {user && (
+          <Avatar className="w-8 h-8 ring-2 ring-primary/20">
+            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-xs font-bold">
+              {getInitials(user.username)}
+            </AvatarFallback>
+          </Avatar>
+        )}
+      </div>
+
+      {/* Main Content Area */}
       <main className="flex-1 w-full md:pl-0 pb-10 overflow-x-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-14 md:mt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           {children}
         </div>
       </main>
