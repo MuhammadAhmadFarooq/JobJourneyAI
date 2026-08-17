@@ -5,8 +5,10 @@ import MongoStore from "connect-mongo";
 import MemoryStoreFactory from "memorystore";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
+import { setupVite } from "./vite";
 import { createServer } from "node:http";
 import { connectDB } from "./db";
+import mongoose from "mongoose";
 import authRoutes from "./routes/auth";
 import profileRoutes from "./routes/profile";
 
@@ -71,13 +73,33 @@ async function startup() {
   try {
     const dbConnected = await connectDB();
 
-    const sessionStore = dbConnected && process.env.MONGODB_URI
-      ? MongoStore.create({
-          mongoUrl: process.env.MONGODB_URI,
+    // Create session store with fallback
+    let sessionStore: session.Store;
+    if (dbConnected && process.env.MONGODB_URI) {
+      try {
+        sessionStore = MongoStore.create({
+          client: mongoose.connection.getClient(),
           ttl: 7 * 24 * 60 * 60,
           autoRemove: "native",
-        })
-      : new MemoryStore({ checkPeriod: 24 * 60 * 60 * 1000 });
+          touchAfter: 24 * 3600, // Only update session once per 24h to reduce DB writes
+        });
+        console.log("✅ Session store: MongoDB");
+      } catch (storeErr: any) {
+        console.warn("⚠️ Failed to create MongoStore, falling back to MemoryStore:", storeErr?.message);
+        sessionStore = new MemoryStore({ checkPeriod: 24 * 60 * 60 * 1000 });
+        console.log("✅ Session store: MemoryStore (fallback)");
+      }
+    } else {
+      sessionStore = new MemoryStore({ checkPeriod: 24 * 60 * 60 * 1000 });
+      console.log("✅ Session store: MemoryStore");
+    }
+
+    // Attach error handler (non-fatal — just log warnings)
+    if (typeof sessionStore.on === "function") {
+      sessionStore.on("error", (err: any) => {
+        console.warn("⚠️ Session store warning:", err?.message || err);
+      });
+    }
 
     app.use(
       session({
@@ -93,7 +115,7 @@ async function startup() {
         },
       })
     );
-    console.log("✅ Session store configured");
+    console.log("✅ Session middleware configured");
 
     app.use("/api/auth", authRoutes);
     app.use("/api/profile", profileRoutes);
@@ -104,15 +126,14 @@ async function startup() {
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
-
+      console.error(`[Error] ${status}: ${message}`);
       res.status(status).json({ message });
-      throw err;
     });
 
     if (process.env.NODE_ENV === "production") {
       serveStatic(app);
     } else {
-      console.log("⚠️  Run frontend separately: npm run dev:client");
+      await setupVite(httpServer, app);
     }
 
     const port = Number.parseInt(process.env.PORT || "5000", 10);

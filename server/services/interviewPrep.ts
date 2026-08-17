@@ -1,7 +1,6 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateContentWithAI } from "./aiProvider";
 import axios from "axios";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const SERPER_API_KEY = process.env.SERPER_API_KEY || "";
 const interviewPrepCooldownUntil = new Map<string, number>();
 
@@ -236,15 +235,8 @@ export async function generateInterviewPrep(
   console.log("🔍 Researching role and technologies...");
   const roleResearch = await researchRole(job.title, job.company, jobSkills);
   
-  // Step 3: Use Gemini to generate comprehensive prep materials
+  // Step 3: Use AI to generate comprehensive prep materials
   console.log("🤖 Generating interview preparation with AI...");
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-  const cooldownKey = `interview-prep:${job.company}:${job.title}`;
-  const cooldownUntil = interviewPrepCooldownUntil.get(cooldownKey) || 0;
-  if (cooldownUntil > Date.now()) {
-    console.warn("Interview prep is in Gemini cooldown. Returning fallback prep immediately.");
-    return buildFallbackInterviewPrep(job, userProfile, experienceLevel, jobSkills, companyResearch, roleResearch);
-  }
   
   const prompt = `You are an expert career coach and interview preparation specialist. Generate a comprehensive interview preparation guide based on the following information.
 
@@ -330,9 +322,7 @@ Return ONLY valid JSON (no markdown, no code blocks):
 Generate at least 4-5 topics with 3-5 questions each. Make questions realistic and commonly asked in real interviews.`;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    let text = response.text();
+    let text = await generateContentWithAI(prompt);
     
     // Clean up the response
     text = text.replaceAll("```json\n", "").replaceAll("```\n", "").replaceAll("```", "").trim();
@@ -364,18 +354,9 @@ Generate at least 4-5 topics with 3-5 questions each. Make questions realistic a
       questionsToAsk: prepData.questionsToAsk,
     };
   } catch (error: any) {
-    console.error("Error generating interview prep:", error);
-
-    const isQuotaError = error?.status === 429;
-    const isInvalidKey = error?.status === 400 && JSON.stringify(error).includes("API_KEY_INVALID");
-
-    if (isQuotaError || isInvalidKey) {
-      interviewPrepCooldownUntil.set(cooldownKey, Date.now() + 5 * 60 * 1000);
-      console.warn("Falling back to local interview prep generator due to Gemini error.");
-      return buildFallbackInterviewPrep(job, userProfile, experienceLevel, jobSkills, companyResearch, roleResearch);
-    }
-
-    throw new Error("Failed to generate interview preparation materials");
+    console.error("Error generating interview prep with AI:", error?.message || error);
+    console.warn("Falling back to local interview prep generator.");
+    return buildFallbackInterviewPrep(job, userProfile, experienceLevel, jobSkills, companyResearch, roleResearch);
   }
 }
 
@@ -384,8 +365,6 @@ export async function generateQuickPrep(
   job: JobDetails,
   userProfile: UserProfile
 ): Promise<{ topQuestions: InterviewQuestion[]; quickTips: string[]; mustKnow: string[] }> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-  
   const experienceLevel = determineExperienceLevel(userProfile);
   const jobSkills = job.skills || [];
   
@@ -414,21 +393,13 @@ Return ONLY valid JSON:
 Generate 5 top questions and 5 quick tips.`;
 
   try {
-    const result = await model.generateContent(prompt);
-    let text = result.response.text();
+    let text = await generateContentWithAI(prompt);
     text = text.replaceAll("```json\n", "").replaceAll("```\n", "").replaceAll("```", "").trim();
     return JSON.parse(text);
   } catch (error: any) {
-    console.error("Error generating quick prep:", error);
-
-    const isQuotaError = error?.status === 429;
-    const isInvalidKey = error?.status === 400 && JSON.stringify(error).includes("API_KEY_INVALID");
-
-    if (isQuotaError || isInvalidKey) {
-      return buildFallbackQuickPrep(job, userProfile);
-    }
-
-    throw new Error("Failed to generate quick prep");
+    console.error("Error generating quick prep with AI:", error?.message || error);
+    console.warn("Falling back to local quick prep generator.");
+    return buildFallbackQuickPrep(job, userProfile);
   }
 }
 

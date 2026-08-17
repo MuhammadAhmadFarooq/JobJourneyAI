@@ -219,7 +219,7 @@ router.get("/preferences", requireAuth, async (req, res) => {
         preferredLocations: [],
         remotePreference: "any",
         experienceLevel: "any",
-        jobTypes: ["full-time"],
+        jobTypes: ["Full-time"],
         minSalary: 0,
         industries: [],
       });
@@ -230,7 +230,7 @@ router.get("/preferences", requireAuth, async (req, res) => {
       preferredLocations: [],
       remotePreference: "any",
       experienceLevel: "any",
-      jobTypes: ["full-time"],
+      jobTypes: ["Full-time"],
       minSalary: 0,
       industries: [],
     });
@@ -279,7 +279,7 @@ router.put("/preferences", requireAuth, async (req, res) => {
       preferredLocations: preferredLocations || [],
       remotePreference: remotePreference || "any",
       experienceLevel: experienceLevel || "any",
-      jobTypes: jobTypes || ["full-time"],
+      jobTypes: jobTypes || ["Full-time"],
       minSalary: minSalary || 0,
       industries: industries || [],
     };

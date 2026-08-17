@@ -1,9 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateContentWithAI } from "./aiProvider";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const parsedResumeCache = new Map<string, { expiresAt: number; value: ParsedResume }>();
 const inflightResumeParses = new Map<string, Promise<ParsedResume>>();
-const geminiCooldownUntil = new Map<string, number>();
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 export interface ParsedResume {
@@ -139,50 +137,8 @@ export async function parseResumeWithGemini(resumeText: string): Promise<ParsedR
 
 async function parseResumeWithGeminiInternal(resumeText: string): Promise<ParsedResume> {
   try {
-    // Use gemini-2.0-flash as the model (or gemini-pro as fallback)
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const cooldownKey = "gemini-2.0-flash";
+    const text = await generateContentWithAI(RESUME_PARSE_PROMPT + resumeText);
 
-    const cooldownUntil = geminiCooldownUntil.get(cooldownKey) || 0;
-    if (cooldownUntil > Date.now()) {
-      throw createGeminiCooldownError(cooldownUntil - Date.now());
-    }
-
-    // Retry only for non-rate-limit transient errors; 429 should fall back immediately.
-    const maxAttempts = 2;
-    let attempt = 0;
-    let lastError: any = null;
-    let text: string | undefined = undefined;
-
-    while (attempt < maxAttempts) {
-      try {
-        const result = await model.generateContent(RESUME_PARSE_PROMPT + resumeText);
-        const response = await result.response;
-        text = response.text();
-        break;
-      } catch (err: any) {
-        lastError = err;
-        attempt += 1;
-        // If it's a rate limit, wait using the API-provided retry delay; otherwise use a short exponential backoff.
-        const status = err?.status || err?.statusCode;
-        if (status === 429 && attempt < maxAttempts) {
-          geminiCooldownUntil.set(cooldownKey, Date.now() + 5 * 60 * 1000);
-          throw err;
-        }
-        if (attempt < maxAttempts) {
-          const backoff = Math.min(Math.pow(2, attempt) * 500, 4000);
-          console.warn(`Transient Gemini error (attempt ${attempt}). Retrying in ${backoff}ms.`);
-          await delay(backoff);
-          continue;
-        }
-        break;
-      }
-    }
-
-    if (!text) {
-      throw lastError || new Error("No response from Gemini");
-    }
-    
     // Clean up the response - remove any markdown code blocks if present
     let cleanedText = text.trim();
     if (cleanedText.startsWith("```json")) {
@@ -194,9 +150,9 @@ async function parseResumeWithGeminiInternal(resumeText: string): Promise<Parsed
       cleanedText = cleanedText.slice(0, -3);
     }
     cleanedText = cleanedText.trim();
-    
+
     const parsedData = JSON.parse(cleanedText) as ParsedResume;
-    
+
     // Validate and set defaults for missing fields
     return {
       name: parsedData.name || "",
@@ -216,19 +172,9 @@ async function parseResumeWithGeminiInternal(resumeText: string): Promise<Parsed
       improvementAreas: parsedData.improvementAreas || [],
     };
   } catch (error: any) {
-    console.error("Error parsing resume with Gemini:", error);
-
-    // If the error is a quota or invalid-key issue, fall back to a lightweight local parser
-    const isQuotaError = error?.status === 429;
-    const isInvalidKey = (error?.status === 400) && JSON.stringify(error).includes("API_KEY_INVALID");
-
-    if (isQuotaError || isInvalidKey) {
-      geminiCooldownUntil.set("gemini-2.0-flash", Date.now() + 5 * 60 * 1000);
-      console.warn("Falling back to local resume parser due to Gemini error.");
-      return parseResumeFallback(resumeText);
-    }
-
-    throw new Error("Failed to parse resume with AI. Please try again.");
+    console.error("Error parsing resume with AI:", error?.message || error);
+    console.warn("Falling back to local resume parser.");
+    return parseResumeFallback(resumeText);
   }
 }
 

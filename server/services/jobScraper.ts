@@ -23,6 +23,8 @@ export interface ScrapedJob {
   sourceUrl: string;
   sourcePlatform: string;
   postedAt?: Date;
+  postedAtText?: string;
+  isExpired?: boolean;
 }
 
 // Common tech skills to look for in job descriptions
@@ -231,6 +233,8 @@ export async function scrapeJobs(
       
       // Convert SerperJobResult to ScrapedJob format
       for (const job of serperJobs) {
+        const rawDate = job.postedAt;
+        const parsedDate = parseRelativeDate(rawDate);
         allJobs.push({
           title: job.title,
           company: job.company,
@@ -243,7 +247,8 @@ export async function scrapeJobs(
           experienceLevel: serperDetermineLevel(`${job.title} ${job.description}`),
           sourceUrl: job.sourceUrl,
           sourcePlatform: job.sourcePlatform,
-          postedAt: job.postedAt ? new Date(job.postedAt) : new Date(),
+          postedAt: parsedDate,
+          postedAtText: rawDate,
         });
       }
       
@@ -276,9 +281,119 @@ export async function scrapeJobs(
       j.company.toLowerCase() === job.company.toLowerCase()
     )
   );
+
+  // Mark expired jobs
+  for (const job of uniqueJobs) {
+    job.isExpired = isJobLikelyExpired(job);
+  }
   
-  console.log(`✅ Total unique jobs scraped: ${uniqueJobs.length}`);
+  console.log(`✅ Total unique jobs scraped: ${uniqueJobs.length} (${uniqueJobs.filter(j => j.isExpired).length} possibly expired)`);
   return uniqueJobs;
+}
+
+// Helper function to parse relative dates like "2 months ago", "3 weeks ago", "45 days ago" into valid Date objects
+export function parseRelativeDate(dateStr?: string): Date {
+  if (!dateStr) return new Date();
+  
+  const str = dateStr.toLowerCase().trim();
+  const now = new Date();
+
+  const minutesMatch = str.match(/(\d+)\s*min/);
+  if (minutesMatch) return new Date(now.getTime() - parseInt(minutesMatch[1]) * 60 * 1000);
+
+  const hoursMatch = str.match(/(\d+)\s*hour/);
+  if (hoursMatch) return new Date(now.getTime() - parseInt(hoursMatch[1]) * 60 * 60 * 1000);
+
+  const daysMatch = str.match(/(\d+)\s*day/);
+  if (daysMatch) return new Date(now.getTime() - parseInt(daysMatch[1]) * 24 * 60 * 60 * 1000);
+
+  const weeksMatch = str.match(/(\d+)\s*week/);
+  if (weeksMatch) return new Date(now.getTime() - parseInt(weeksMatch[1]) * 7 * 24 * 60 * 60 * 1000);
+
+  const monthsMatch = str.match(/(\d+)\s*month/);
+  if (monthsMatch) return new Date(now.getTime() - parseInt(monthsMatch[1]) * 30 * 24 * 60 * 60 * 1000);
+
+  const yearsMatch = str.match(/(\d+)\s*year/);
+  if (yearsMatch) return new Date(now.getTime() - parseInt(yearsMatch[1]) * 365 * 24 * 60 * 60 * 1000);
+
+  if (str.includes("yesterday")) return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  const parsed = new Date(dateStr);
+  if (!isNaN(parsed.getTime())) {
+    return parsed;
+  }
+
+  return new Date();
+}
+
+// Detect if a job is likely expired based on posting date, date text, and text cues
+function isJobLikelyExpired(job: ScrapedJob): boolean {
+  // 1. Check posting date (if parsed date is older than 30 days)
+  if (job.postedAt) {
+    const postedTime = new Date(job.postedAt).getTime();
+    if (!isNaN(postedTime)) {
+      const now = new Date();
+      const daysSincePosted = Math.floor((now.getTime() - postedTime) / (1000 * 60 * 60 * 24));
+      if (daysSincePosted > 30) {
+        return true;
+      }
+    }
+  }
+
+  // 2. Check raw date string (e.g. "1 month ago", "2 months ago", "30+ days ago", "over 30 days ago", "4 weeks ago")
+  const dateText = (job.postedAtText || "").toLowerCase();
+  if (dateText) {
+    if (
+      dateText.includes("month") ||
+      dateText.includes("year") ||
+      dateText.includes("30+") ||
+      dateText.includes("over 30")
+    ) {
+      return true;
+    }
+    const weeksMatch = dateText.match(/(\d+)\s*weeks?/);
+    if (weeksMatch && parseInt(weeksMatch[1]) >= 4) {
+      return true;
+    }
+    const daysMatch = dateText.match(/(\d+)\s*days?/);
+    if (daysMatch && parseInt(daysMatch[1]) > 30) {
+      return true;
+    }
+  }
+
+  // 3. Check text cues in title & description (especially for LinkedIn / Indeed snippet matches)
+  const textToCheck = `${job.title} ${job.description}`.toLowerCase();
+  const expiredIndicators = [
+    "no longer accepting",
+    "not accepting applications",
+    "applications are no longer",
+    "position filled",
+    "position has been filled",
+    "this job has expired",
+    "job expired",
+    "listing expired",
+    "application closed",
+    "applications closed",
+    "no longer available",
+    "this position is closed",
+    "role has been filled",
+    "vacancy closed",
+    "recruitment closed",
+    "hiring complete",
+    "this job is no longer",
+    "no longer hiring",
+    "[closed]",
+    "(closed)",
+    "job closed",
+  ];
+
+  for (const indicator of expiredIndicators) {
+    if (textToCheck.includes(indicator)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // Normalize skill names for better matching
@@ -654,8 +769,14 @@ export async function searchAndMatchJobs(
     };
   });
   
-  // Sort by match score (highest first)
-  matchedJobs.sort((a, b) => b.matchScore - a.matchScore);
+  // Sort: active jobs first by match score, expired jobs at the bottom
+  matchedJobs.sort((a, b) => {
+    // Expired jobs go to the bottom
+    if (a.isExpired && !b.isExpired) return 1;
+    if (!a.isExpired && b.isExpired) return -1;
+    // Within same group, sort by match score
+    return b.matchScore - a.matchScore;
+  });
   
   return matchedJobs;
 }

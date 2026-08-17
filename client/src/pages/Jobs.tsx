@@ -38,6 +38,9 @@ interface Job {
   matchReasons: string[];
   matchedSkills: string[];
   missingSkills: string[];
+  postedAt?: string | Date;
+  postedAtText?: string;
+  isExpired?: boolean;
 }
 
 interface UserProfile {
@@ -72,6 +75,7 @@ export default function Jobs() {
   const [minMatchScore, setMinMatchScore] = useState<number>(0);
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [showRemoteOnly, setShowRemoteOnly] = useState(false);
+  const [hideExpired, setHideExpired] = useState(false);
   
   // Job preferences
   const [jobPreferences, setJobPreferences] = useState<JobPreferences>({
@@ -79,7 +83,7 @@ export default function Jobs() {
     preferredLocations: [],
     remotePreference: "any",
     experienceLevel: "any",
-    jobTypes: ["full-time"],
+    jobTypes: ["Full-time"],
     minSalary: 0,
     industries: [],
   });
@@ -132,7 +136,7 @@ export default function Jobs() {
             preferredLocations: prefs.preferredLocations || [],
             remotePreference: prefs.remotePreference || "any",
             experienceLevel: prefs.experienceLevel || "any",
-            jobTypes: prefs.jobTypes || ["full-time"],
+            jobTypes: prefs.jobTypes || ["Full-time"],
             minSalary: prefs.minSalary || 0,
             industries: prefs.industries || [],
           });
@@ -383,7 +387,8 @@ export default function Jobs() {
   const filteredJobs = jobs.filter(job => {
     if (minMatchScore > 0 && job.matchScore < minMatchScore) return false;
     if (showRemoteOnly && !job.location.toLowerCase().includes("remote")) return false;
-    if (selectedJobTypes.length > 0 && !selectedJobTypes.includes(job.jobType)) return false;
+    if (selectedJobTypes.length > 0 && !selectedJobTypes.some(t => t.toLowerCase() === job.jobType.toLowerCase())) return false;
+    if (hideExpired && job.isExpired) return false;
     return true;
   });
 
@@ -394,12 +399,14 @@ export default function Jobs() {
     return "bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 border-gray-100 dark:border-gray-900/50";
   };
 
-  const formatDate = (date: string | Date | undefined) => {
+  const formatDate = (date?: string | Date, postedAtText?: string) => {
+    if (postedAtText) return postedAtText;
     if (!date) return "Recently";
     const d = new Date(date);
+    if (isNaN(d.getTime())) return "Recently";
     const now = new Date();
     const diff = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-    if (diff === 0) return "Today";
+    if (diff <= 0) return "Today";
     if (diff === 1) return "Yesterday";
     if (diff < 7) return `${diff} days ago`;
     if (diff < 30) return `${Math.floor(diff / 7)} weeks ago`;
@@ -567,7 +574,7 @@ export default function Jobs() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Job Type</label>
                 <div className="flex flex-col gap-2">
-                  {["Full-time", "Contract", "Internship", "Remote"].map((type) => (
+                  {["Full-time", "Part-time", "Contract", "Internship", "Remote"].map((type) => (
                     <div key={type} className="flex items-center gap-2 text-sm">
                       <input 
                         type="checkbox"
@@ -584,6 +591,20 @@ export default function Jobs() {
                       <span>{type}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <input 
+                      type="checkbox"
+                      checked={hideExpired}
+                      onChange={(e) => setHideExpired(e.target.checked)}
+                      className="rounded border-gray-300" 
+                    />
+                    <span>Hide Expired Jobs</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -680,7 +701,7 @@ export default function Jobs() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="overflow-hidden hover:shadow-md transition-all duration-300 group border-l-4 border-l-transparent hover:border-l-primary">
+                <Card className={`overflow-hidden transition-all duration-300 group border-l-4 ${job.isExpired ? 'opacity-55 border-l-muted-foreground/30 bg-muted/30' : 'border-l-transparent hover:border-l-primary hover:shadow-md'}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex gap-4">
@@ -703,7 +724,13 @@ export default function Jobs() {
                             {job.matchScore}% Match
                           </div>
                         )}
-                        <span className="text-xs text-muted-foreground">{formatDate(job.sourceUrl)}</span>
+                        {job.isExpired && (
+                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50">
+                            <AlertCircle className="w-3 h-3" />
+                            Possibly Expired
+                          </div>
+                        )}
+                        <span className="text-xs text-muted-foreground">{formatDate(job.postedAt, job.postedAtText)}</span>
                       </div>
                     </div>
                   </CardHeader>
@@ -911,10 +938,10 @@ export default function Jobs() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="any">Any Level</SelectItem>
-                  <SelectItem value="entry">Entry Level / Junior</SelectItem>
-                  <SelectItem value="mid">Mid Level</SelectItem>
-                  <SelectItem value="senior">Senior Level</SelectItem>
-                  <SelectItem value="lead">Lead / Manager</SelectItem>
+                  <SelectItem value="Entry">Entry Level / Junior</SelectItem>
+                  <SelectItem value="Mid">Mid Level</SelectItem>
+                  <SelectItem value="Senior">Senior Level</SelectItem>
+                  <SelectItem value="Lead">Lead / Manager</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -923,7 +950,7 @@ export default function Jobs() {
             <div className="space-y-3">
               <Label className="text-sm font-medium">Job Types</Label>
               <div className="flex flex-wrap gap-3">
-                {["full-time", "part-time", "contract", "internship"].map((type) => (
+                {["Full-time", "Part-time", "Contract", "Internship"].map((type) => (
                   <label key={type} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -937,7 +964,7 @@ export default function Jobs() {
                       }}
                       className="rounded border-gray-300"
                     />
-                    <span className="text-sm capitalize">{type.replace("-", " ")}</span>
+                    <span className="text-sm">{type}</span>
                   </label>
                 ))}
               </div>
