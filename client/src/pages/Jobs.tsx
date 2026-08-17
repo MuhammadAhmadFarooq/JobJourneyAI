@@ -429,13 +429,57 @@ export default function Jobs() {
     );
   };
 
+  const isJobRemote = (job: Job) => {
+    const loc = (job.location || "").toLowerCase();
+    const title = (job.title || "").toLowerCase();
+    const desc = (job.description || "").toLowerCase();
+    const type = (job.jobType || "").toLowerCase();
+
+    return (
+      loc.includes("remote") ||
+      loc.includes("anywhere") ||
+      loc.includes("work from home") ||
+      loc.includes("wfh") ||
+      type.includes("remote") ||
+      title.includes("remote") ||
+      desc.includes("remote")
+    );
+  };
+
+  const matchesJobType = (job: Job, selectedTypes: string[]) => {
+    if (selectedTypes.length === 0) return true;
+
+    const typeLower = (job.jobType || "").toLowerCase();
+
+    return selectedTypes.some(selected => {
+      const s = selected.toLowerCase();
+
+      if (s === "remote") {
+        return isJobRemote(job);
+      }
+      if (s === "full-time" || s === "fulltime") {
+        return typeLower.includes("full") || typeLower.includes("ft");
+      }
+      if (s === "part-time" || s === "parttime") {
+        return typeLower.includes("part") || typeLower.includes("pt");
+      }
+      if (s === "contract") {
+        return typeLower.includes("contract") || typeLower.includes("freelance") || typeLower.includes("temp");
+      }
+      if (s === "internship") {
+        return typeLower.includes("intern") || typeLower.includes("trainee");
+      }
+      return typeLower.includes(s);
+    });
+  };
+
   // Filter jobs based on selected filters
   const filteredJobs = jobs.filter(job => {
     const expired = checkIsJobExpired(job);
-    if (minMatchScore > 0 && job.matchScore < minMatchScore) return false;
-    if (showRemoteOnly && !job.location.toLowerCase().includes("remote")) return false;
-    if (selectedJobTypes.length > 0 && !selectedJobTypes.some(t => t.toLowerCase() === job.jobType.toLowerCase())) return false;
     if (!showExpired && expired) return false;
+    if (minMatchScore > 0 && (job.matchScore || 0) < minMatchScore) return false;
+    if (showRemoteOnly && !isJobRemote(job)) return false;
+    if (!matchesJobType(job, selectedJobTypes)) return false;
     return true;
   });
 
@@ -577,52 +621,84 @@ export default function Jobs() {
         {/* Filters Sidebar */}
         <div className="lg:col-span-3 space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between py-3">
               <CardTitle className="text-base">Filters</CardTitle>
+              {(minMatchScore > 0 || showRemoteOnly || selectedJobTypes.length > 0 || showExpired) && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setMinMatchScore(0);
+                    setShowRemoteOnly(false);
+                    setSelectedJobTypes([]);
+                    setShowExpired(false);
+                  }}
+                  className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
+                >
+                  Reset
+                </Button>
+              )}
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
+              {/* Match Score */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Match Score</label>
+                <label className="text-sm font-medium text-foreground">Match Score</label>
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input 
-                      type="checkbox" 
-                      checked={minMatchScore >= 80}
-                      onChange={(e) => setMinMatchScore(e.target.checked ? 80 : 0)}
-                      className="rounded border-gray-300" 
+                      type="radio" 
+                      name="matchScore"
+                      checked={minMatchScore === 0}
+                      onChange={() => setMinMatchScore(0)}
+                      className="accent-primary" 
                     />
-                    <span>80%+ Match</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
+                    <span>All Match Scores</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input 
-                      type="checkbox" 
-                      checked={minMatchScore >= 60 && minMatchScore < 80}
-                      onChange={(e) => setMinMatchScore(e.target.checked ? 60 : 0)}
-                      className="rounded border-gray-300" 
+                      type="radio" 
+                      name="matchScore"
+                      checked={minMatchScore === 80}
+                      onChange={() => setMinMatchScore(80)}
+                      className="accent-primary" 
                     />
-                    <span>60%+ Match</span>
-                  </div>
+                    <span className="font-medium text-green-600 dark:text-green-400">80%+ Match</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="matchScore"
+                      checked={minMatchScore === 60}
+                      onChange={() => setMinMatchScore(60)}
+                      className="accent-primary" 
+                    />
+                    <span className="font-medium text-blue-600 dark:text-blue-400">60%+ Match</span>
+                  </label>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Location</label>
+
+              {/* Location */}
+              <div className="space-y-2 pt-2 border-t">
+                <label className="text-sm font-medium text-foreground">Location</label>
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input 
                       type="checkbox"
                       checked={showRemoteOnly}
                       onChange={(e) => setShowRemoteOnly(e.target.checked)}
-                      className="rounded border-gray-300" 
+                      className="rounded accent-primary" 
                     />
                     <span>Remote Only</span>
-                  </div>
+                  </label>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Job Type</label>
+
+              {/* Job Type */}
+              <div className="space-y-2 pt-2 border-t">
+                <label className="text-sm font-medium text-foreground">Job Type</label>
                 <div className="flex flex-col gap-2">
                   {["Full-time", "Part-time", "Contract", "Internship", "Remote"].map((type) => (
-                    <div key={type} className="flex items-center gap-2 text-sm">
+                    <label key={type} className="flex items-center gap-2 text-sm cursor-pointer">
                       <input 
                         type="checkbox"
                         checked={selectedJobTypes.includes(type)}
@@ -633,25 +709,27 @@ export default function Jobs() {
                             setSelectedJobTypes(selectedJobTypes.filter(t => t !== type));
                           }
                         }}
-                        className="rounded border-gray-300" 
+                        className="rounded accent-primary" 
                       />
                       <span>{type}</span>
-                    </div>
+                    </label>
                   ))}
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
+
+              {/* Status */}
+              <div className="space-y-2 pt-2 border-t">
+                <label className="text-sm font-medium text-foreground">Status</label>
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input 
                       type="checkbox"
                       checked={showExpired}
                       onChange={(e) => setShowExpired(e.target.checked)}
-                      className="rounded border-gray-300" 
+                      className="rounded accent-primary" 
                     />
-                    <span>Show Closed / Expired Jobs</span>
-                  </div>
+                    <span className="text-xs text-muted-foreground">Show Closed / Expired Jobs</span>
+                  </label>
                 </div>
               </div>
             </CardContent>
