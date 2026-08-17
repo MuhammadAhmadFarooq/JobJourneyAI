@@ -5,7 +5,6 @@ import MongoStore from "connect-mongo";
 import MemoryStoreFactory from "memorystore";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
-import { setupVite } from "./vite";
 import { createServer } from "node:http";
 import { connectDB } from "./db";
 import mongoose from "mongoose";
@@ -133,6 +132,7 @@ async function startup() {
     if (process.env.NODE_ENV === "production") {
       serveStatic(app);
     } else {
+      const { setupVite } = await import("./vite");
       await setupVite(httpServer, app);
     }
 
