@@ -309,7 +309,7 @@ export async function scrapeJobs(
 // Live URL availability checker for LinkedIn, Indeed, Lever, Greenhouse, etc.
 export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolean> {
   if (job.isExpired) return false;
-  if (!job.sourceUrl) return true;
+  if (!job.sourceUrl) return false;
 
   try {
     const isLinkedIn = job.sourceUrl.includes("linkedin.com");
@@ -336,7 +336,7 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
         "Accept-Language": "en-US,en;q=0.9",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
-      timeout: 4000,
+      timeout: 5000,
       maxRedirects: 4,
       validateStatus: () => true, // Don't throw on HTTP errors
     });
@@ -353,23 +353,27 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
 
     const html = (response.data || "").toString().toLowerCase();
 
-    // Check live date text from LinkedIn Guest HTML (e.g. "1 month ago", "3 weeks ago")
+    // 1. Check live date text from LinkedIn Guest HTML (e.g. "1 month ago", "2 weeks ago", "3 weeks ago")
     const liveDateMatch = html.match(/posted-time-ago__text[\s\S]*?>\s*([\w\s]+)/i);
     if (liveDateMatch) {
       const liveDateText = liveDateMatch[1].trim().toLowerCase();
+      job.postedAtText = liveDateText;
+      job.postedAt = parseRelativeDate(liveDateText);
+
       if (
         liveDateText.includes("month") ||
         liveDateText.includes("year") ||
+        liveDateText.includes("2 weeks") ||
         liveDateText.includes("3 weeks") ||
         liveDateText.includes("4 weeks") ||
-        liveDateText.includes("2 weeks") ||
         liveDateText.includes("30+") ||
         liveDateText.includes("14+")
       ) {
-        return false; // Expired by live posting age (>14 days)
+        return false; // Expired by live posting age (>= 2 weeks)
       }
     }
 
+    // 2. Check for explicit closed text indicators
     const closedPhrases = [
       "no longer accepting applications",
       "no longer accepting",
@@ -392,10 +396,24 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
       }
     }
 
-    return true; // Live and accepting applications
+    // 3. REVERSE VERIFICATION LOGIC: MUST HAVE ACTIVE APPLY OPTION
+    if (isLinkedIn) {
+      const hasApplyOption = 
+        html.includes("topcard__btn--apply") || 
+        html.includes("apply-button") || 
+        html.includes("easy apply") ||
+        html.includes("data-tracking-control-name=\"public_jobs_apply-link-offsite\"") ||
+        html.includes("apply on company website");
+
+      if (!hasApplyOption) {
+        return false; // Missing active apply button -> Closed/Expired!
+      }
+    }
+
+    return true; // Live and verified active!
   } catch (err) {
-    // If request fails (timeout or rate limit), preserve static status
-    return !job.isExpired;
+    // If live check fails or times out for a job, default to false (exclude to be safe)
+    return false;
   }
 }
 
