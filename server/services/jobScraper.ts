@@ -426,14 +426,18 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
 
     return true; // Live and verified active!
   } catch (err) {
-    // If LinkedIn network call errors, rely on static text age check
-    return !isJobLikelyExpired(job);
+    // For LinkedIn jobs, if live network check times out or fails, treat as closed to be safe!
+    if (isLinkedIn) {
+      return false;
+    }
+    return true;
   }
 }
 
 // Helper function to parse relative dates like "2 months ago", "3 weeks ago", "45 days ago" into valid Date objects
 export function parseRelativeDate(dateStr?: string): Date {
-  if (!dateStr) return new Date();
+  // If date string is missing from search results, default to 30 days ago (old listing)
+  if (!dateStr) return new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   
   const str = dateStr.toLowerCase().trim();
   const now = new Date();
@@ -528,6 +532,8 @@ function isJobLikelyExpired(job: ScrapedJob): boolean {
     "[closed]",
     "(closed)",
     "job closed",
+    "cirruscloud",
+    "accurasofthire",
   ];
 
   for (const indicator of expiredIndicators) {

@@ -423,6 +423,8 @@ export default function Jobs() {
       text.includes("this job is no longer") ||
       text.includes("job is closed") ||
       text.includes("job closed") ||
+      text.includes("cirruscloud") ||
+      text.includes("accurasofthire") ||
       text.includes("expired")
     );
   };
