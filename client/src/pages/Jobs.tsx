@@ -387,12 +387,29 @@ export default function Jobs() {
     }
   };
 
+  const checkIsJobExpired = (job: Job) => {
+    if (job.isExpired) return true;
+    const text = `${job.title} ${job.description}`.toLowerCase();
+    return (
+      text.includes("no longer accepting") ||
+      text.includes("not accepting applications") ||
+      text.includes("applications are no longer") ||
+      text.includes("position filled") ||
+      text.includes("position has been filled") ||
+      text.includes("this job is no longer") ||
+      text.includes("job is closed") ||
+      text.includes("job closed") ||
+      text.includes("expired")
+    );
+  };
+
   // Filter jobs based on selected filters
   const filteredJobs = jobs.filter(job => {
+    const expired = checkIsJobExpired(job);
     if (minMatchScore > 0 && job.matchScore < minMatchScore) return false;
     if (showRemoteOnly && !job.location.toLowerCase().includes("remote")) return false;
     if (selectedJobTypes.length > 0 && !selectedJobTypes.some(t => t.toLowerCase() === job.jobType.toLowerCase())) return false;
-    if (hideExpired && job.isExpired) return false;
+    if (hideExpired && expired) return false;
     return true;
   });
 
@@ -697,48 +714,50 @@ export default function Jobs() {
 
           {/* Job Cards */}
           <AnimatePresence>
-            {!loading && filteredJobs.map((job, index) => (
-              <motion.div
-                key={`${job.title}-${job.company}-${index}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card className={`overflow-hidden transition-all duration-300 group border-l-4 ${job.isExpired ? 'opacity-55 border-l-muted-foreground/30 bg-muted/30' : 'border-l-transparent hover:border-l-primary hover:shadow-md'}`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-4">
-                        <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-lg font-bold text-secondary-foreground shrink-0">
-                          {job.company.charAt(0).toUpperCase()}
+            {!loading && filteredJobs.map((job, index) => {
+              const expired = checkIsJobExpired(job);
+              return (
+                <motion.div
+                  key={`${job.title}-${job.company}-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card className={`overflow-hidden transition-all duration-300 group border-l-4 ${expired ? 'opacity-55 border-l-muted-foreground/30 bg-muted/30' : 'border-l-transparent hover:border-l-primary hover:shadow-md'}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex gap-4">
+                          <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-lg font-bold text-secondary-foreground shrink-0">
+                            {job.company.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                              {job.title}
+                            </CardTitle>
+                            <CardDescription className="text-base mt-1">
+                              {job.company}
+                            </CardDescription>
+                          </div>
                         </div>
-                        <div>
-                          <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                            {job.title}
-                          </CardTitle>
-                          <CardDescription className="text-base mt-1">
-                            {job.company}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {job.matchScore > 0 && (
-                          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold border shadow-sm ${getMatchScoreColor(job.matchScore)}`}>
-                            <Sparkles className="w-3.5 h-3.5" />
-                            {job.matchScore}% Match
-                          </div>
-                        )}
-                        {job.isExpired ? (
-                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50">
-                            <AlertCircle className="w-3 h-3" />
-                            No Longer Accepting Applications
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/40">
-                            <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
-                            Accepting Applications
-                          </div>
-                        )}
+                        <div className="flex flex-col items-end gap-2">
+                          {job.matchScore > 0 && (
+                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold border shadow-sm ${getMatchScoreColor(job.matchScore)}`}>
+                              <Sparkles className="w-3.5 h-3.5" />
+                              {job.matchScore}% Match
+                            </div>
+                          )}
+                          {expired ? (
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50">
+                              <AlertCircle className="w-3 h-3" />
+                              No Longer Accepting Applications
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/40">
+                              <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
+                              Accepting Applications
+                            </div>
+                          )}
                         <span className="text-xs text-muted-foreground">{formatDate(job.postedAt, job.postedAtText)}</span>
                       </div>
                     </div>

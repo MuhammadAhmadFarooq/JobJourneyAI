@@ -323,31 +323,37 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
 
     const response = await axios.get(job.sourceUrl, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
       },
-      timeout: 3000,
+      timeout: 4000,
       maxRedirects: 4,
       validateStatus: () => true, // Don't throw on HTTP errors
     });
 
-    if (response.status === 404 || response.status === 410) {
+    if (response.status === 404 || response.status === 410 || response.status === 400) {
       return false; // Expired / Not available
     }
 
-    // Check if redirected to search or login page
+    // Check if redirected to search, login, or authwall page
     const finalUrl = (response.request?.res?.responseUrl || response.config?.url || "").toLowerCase();
-    if (finalUrl.includes("/jobs/search") || finalUrl.includes("/login") || finalUrl.includes("/expired")) {
+    if (finalUrl.includes("/jobs/search") || finalUrl.includes("/login") || finalUrl.includes("/expired") || finalUrl.includes("/authwall")) {
       return false;
     }
 
     const html = (response.data || "").toString().toLowerCase();
     const closedPhrases = [
       "no longer accepting applications",
+      "no longer accepting",
       "not accepting applications",
       "applications are no longer",
       "this job is no longer available",
+      "this job is no longer accepting",
       "position has been filled",
       "position filled",
       "this job has expired",
