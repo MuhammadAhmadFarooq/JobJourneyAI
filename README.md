@@ -1,4 +1,4 @@
-# 🚀 Heka_Peka (JobJourney)
+# 🚀 JobJourneyAI
 
 An AI-powered job search, resume analyzer, and interview preparation platform built with React, Node.js, Express, MongoDB/Drizzle, and Google Gemini AI.
 
