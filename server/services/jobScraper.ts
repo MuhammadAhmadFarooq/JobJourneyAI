@@ -249,6 +249,7 @@ export async function scrapeJobs(
           sourcePlatform: job.sourcePlatform,
           postedAt: parsedDate,
           postedAtText: rawDate,
+          isExpired: job.isExpired,
         });
       }
       

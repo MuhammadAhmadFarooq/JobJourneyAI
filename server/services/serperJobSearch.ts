@@ -13,6 +13,7 @@ export interface SerperJobResult {
   postedAt?: string;
   jobType?: string;
   highlights?: string[];
+  isExpired?: boolean;
 }
 
 // Common tech skills to extract
@@ -499,6 +500,32 @@ function parseSerperResult(result: any, defaultLocation: string): SerperJobResul
     }
   }
   
+  // Check for expired keywords in raw title, snippet, and link
+  const rawTextLower = `${title} ${snippet} ${url}`.toLowerCase();
+  const isExpired = [
+    "no longer accepting",
+    "not accepting applications",
+    "applications are no longer",
+    "position filled",
+    "position has been filled",
+    "this job has expired",
+    "job expired",
+    "listing expired",
+    "application closed",
+    "applications closed",
+    "no longer available",
+    "this position is closed",
+    "role has been filled",
+    "vacancy closed",
+    "recruitment closed",
+    "hiring complete",
+    "no longer hiring",
+    "[closed]",
+    "(closed)",
+    "job closed",
+    "expired",
+  ].some(phrase => rawTextLower.includes(phrase));
+
   return {
     title: cleanedTitle,
     company: company || "Company",
@@ -510,6 +537,7 @@ function parseSerperResult(result: any, defaultLocation: string): SerperJobResul
     postedAt: result.date,
     jobType: determineJobType(`${title} ${snippet}`),
     highlights: result.sitelinks?.map((s: any) => s.title) || [],
+    isExpired,
   };
 }
 

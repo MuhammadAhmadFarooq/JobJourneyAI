@@ -75,7 +75,7 @@ export default function Jobs() {
   const [minMatchScore, setMinMatchScore] = useState<number>(0);
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [showRemoteOnly, setShowRemoteOnly] = useState(false);
-  const [hideExpired, setHideExpired] = useState(false);
+  const [hideExpired, setHideExpired] = useState(true);
   
   // Job preferences
   const [jobPreferences, setJobPreferences] = useState<JobPreferences>({
@@ -365,7 +365,11 @@ export default function Jobs() {
             matchReasons: matchedSkills.length > 0 ? [`Skills match: ${matchedSkills.slice(0, 3).join(", ")}`] : [],
           };
         });
-        jobsWithScores.sort((a: Job, b: Job) => b.matchScore - a.matchScore);
+        jobsWithScores.sort((a: Job, b: Job) => {
+          if (a.isExpired && !b.isExpired) return 1;
+          if (!a.isExpired && b.isExpired) return -1;
+          return b.matchScore - a.matchScore;
+        });
         setJobs(jobsWithScores);
       } else {
         setJobs(data.jobs.map((job: any) => ({
