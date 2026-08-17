@@ -30,6 +30,7 @@ interface Stats {
     experience: number;
     education: number;
     projects: number;
+    preferences: number;
   };
 }
 
@@ -241,44 +242,51 @@ export default function Dashboard() {
               <div className="p-3 bg-background rounded-lg border space-y-1">
                 <div className="flex justify-between font-semibold">
                   <span>Skills Depth</span>
-                  <span className="text-primary">{stats.breakdown.skills} / 25 pts</span>
+                  <span className="text-primary">{stats.breakdown.skills} / 20 pts</span>
                 </div>
-                <p className="text-muted-foreground">10+ skills = 25 pts, 6+ = 18 pts</p>
+                <p className="text-muted-foreground">15+ skills = 20 pts, 10+ = 15 pts</p>
               </div>
               <div className="p-3 bg-background rounded-lg border space-y-1">
                 <div className="flex justify-between font-semibold">
                   <span>Work Experience</span>
                   <span className="text-primary">{stats.breakdown.experience} / 20 pts</span>
                 </div>
-                <p className="text-muted-foreground">3+ roles = 20 pts, 2 roles = 14 pts</p>
+                <p className="text-muted-foreground">4+ roles = 20 pts, 3 roles = 16 pts</p>
+              </div>
+              <div className="p-3 bg-background rounded-lg border space-y-1">
+                <div className="flex justify-between font-semibold">
+                  <span>Contact & Socials</span>
+                  <span className="text-primary">{stats.breakdown.contact} / 15 pts</span>
+                </div>
+                <p className="text-muted-foreground">Contact details & LinkedIn/GitHub</p>
               </div>
               <div className="p-3 bg-background rounded-lg border space-y-1">
                 <div className="flex justify-between font-semibold">
                   <span>Resume File</span>
-                  <span className="text-primary">{stats.breakdown.resume} / 15 pts</span>
+                  <span className="text-primary">{stats.breakdown.resume} / 10 pts</span>
                 </div>
                 <p className="text-muted-foreground">Parsed PDF/DOCX file uploaded</p>
-              </div>
-              <div className="p-3 bg-background rounded-lg border space-y-1">
-                <div className="flex justify-between font-semibold">
-                  <span>Contact & Info</span>
-                  <span className="text-primary">{stats.breakdown.contact} / 15 pts</span>
-                </div>
-                <p className="text-muted-foreground">Name, Email, Location & Phone</p>
               </div>
               <div className="p-3 bg-background rounded-lg border space-y-1">
                 <div className="flex justify-between font-semibold">
                   <span>Education</span>
                   <span className="text-primary">{stats.breakdown.education} / 10 pts</span>
                 </div>
-                <p className="text-muted-foreground">Degree & Academic history</p>
+                <p className="text-muted-foreground">Degrees & Certifications</p>
               </div>
               <div className="p-3 bg-background rounded-lg border space-y-1">
                 <div className="flex justify-between font-semibold">
                   <span>Summary</span>
                   <span className="text-primary">{stats.breakdown.summary} / 10 pts</span>
                 </div>
-                <p className="text-muted-foreground">Detailed bio & career objective</p>
+                <p className="text-muted-foreground">Detailed bio (&gt;150 characters)</p>
+              </div>
+              <div className="p-3 bg-background rounded-lg border space-y-1">
+                <div className="flex justify-between font-semibold">
+                  <span>Job Preferences</span>
+                  <span className="text-primary">{stats.breakdown.preferences} / 10 pts</span>
+                </div>
+                <p className="text-muted-foreground">Target roles & locations configured</p>
               </div>
               <div className="p-3 bg-background rounded-lg border space-y-1">
                 <div className="flex justify-between font-semibold">

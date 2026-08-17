@@ -178,63 +178,91 @@ router.get("/stats", requireAuth, async (req, res) => {
       });
     }
 
-    // Calculate realistic, multi-factor profile strength (Max 100%)
+    // Calculate strict multi-factor profile strength (Max 100%)
     let profileStrength = 0;
 
-    // 1. Resume File Uploaded (15%)
-    if (profile.resumeFileName) {
-      profileStrength += 15;
+    // 1. Resume File Uploaded (10%)
+    const hasResume = !!profile.resumeFileName;
+    if (hasResume) profileStrength += 10;
+
+    // 2. Personal & Contact Info + Online Profiles (15%)
+    let contactScore = 0;
+    if (profile.name) contactScore += 3;
+    if (profile.email) contactScore += 3;
+    if (profile.location) contactScore += 3;
+    if (profile.phone) contactScore += 3;
+    // Check summary or description for LinkedIn / GitHub / Portfolio links
+    const fullProfileText = `${profile.summary || ""} ${profile.profileSummary || ""}`.toLowerCase();
+    if (fullProfileText.includes("linkedin.com") || fullProfileText.includes("github.com") || fullProfileText.includes("http")) {
+      contactScore += 3;
     }
+    profileStrength += contactScore;
 
-    // 2. Personal & Contact Info (15%)
-    if (profile.name) profileStrength += 4;
-    if (profile.email) profileStrength += 4;
-    if (profile.location) profileStrength += 4;
-    if (profile.phone) profileStrength += 3;
-
-    // 3. Professional Summary (10%)
+    // 3. Professional Bio / Summary (10%)
     const summaryText = profile.summary || profile.profileSummary || "";
-    if (summaryText.length > 80) {
-      profileStrength += 10;
-    } else if (summaryText.length > 20) {
-      profileStrength += 5;
+    let summaryScore = 0;
+    if (summaryText.length > 150) {
+      summaryScore = 10;
+    } else if (summaryText.length > 40) {
+      summaryScore = 5;
     }
+    profileStrength += summaryScore;
 
-    // 4. Technical Skills Depth (25%)
+    // 4. Technical & Core Skills Depth (20%)
     const skillsCount = Array.isArray(profile.skills) ? profile.skills.length : 0;
-    if (skillsCount >= 10) {
-      profileStrength += 25;
-    } else if (skillsCount >= 6) {
-      profileStrength += 18;
-    } else if (skillsCount >= 3) {
-      profileStrength += 12;
+    let skillsScore = 0;
+    if (skillsCount >= 15) {
+      skillsScore = 20;
+    } else if (skillsCount >= 10) {
+      skillsScore = 15;
+    } else if (skillsCount >= 5) {
+      skillsScore = 10;
     } else if (skillsCount >= 1) {
-      profileStrength += 6;
+      skillsScore = 5;
     }
+    profileStrength += skillsScore;
 
-    // 5. Work Experience Detail (20%)
+    // 5. Work Experience Depth (20%)
     const expCount = Array.isArray(profile.experience) ? profile.experience.length : 0;
-    if (expCount >= 3) {
-      profileStrength += 20;
+    let expScore = 0;
+    if (expCount >= 4) {
+      expScore = 20;
+    } else if (expCount === 3) {
+      expScore = 16;
     } else if (expCount === 2) {
-      profileStrength += 14;
+      expScore = 12;
     } else if (expCount === 1) {
-      profileStrength += 8;
+      expScore = 6;
     }
+    profileStrength += expScore;
 
     // 6. Education & Credentials (10%)
     const eduCount = Array.isArray(profile.education) ? profile.education.length : 0;
-    if (eduCount >= 1) {
-      profileStrength += 10;
+    let eduScore = 0;
+    if (eduCount >= 2) {
+      eduScore = 10;
+    } else if (eduCount === 1) {
+      eduScore = 7;
     }
+    profileStrength += eduScore;
 
-    // 7. Projects & Portfolio (5%)
+    // 7. Projects & Portfolio Showcase (5%)
     const projCount = Array.isArray(profile.projects) ? profile.projects.length : 0;
-    if (projCount >= 2) {
-      profileStrength += 5;
-    } else if (projCount === 1) {
-      profileStrength += 3;
+    let projScore = 0;
+    if (projCount >= 3) {
+      projScore = 5;
+    } else if (projCount >= 1) {
+      projScore = 3;
     }
+    profileStrength += projScore;
+
+    // 8. Job Preferences Configured (10%)
+    const prefs = profile.jobPreferences || {};
+    let prefScore = 0;
+    if (Array.isArray(prefs.targetRoles) && prefs.targetRoles.length > 0) prefScore += 4;
+    if (Array.isArray(prefs.preferredLocations) && prefs.preferredLocations.length > 0) prefScore += 3;
+    if (prefs.remotePreference && prefs.remotePreference !== "any") prefScore += 3;
+    profileStrength += prefScore;
 
     const finalStrength = Math.min(Math.round(profileStrength), 100);
 
@@ -242,17 +270,18 @@ router.get("/stats", requireAuth, async (req, res) => {
       profileStrength: finalStrength,
       savedJobsCount: profile.savedJobs.length,
       skillsCount: profile.skills.length,
-      hasResume: !!profile.resumeFileName,
+      hasResume,
       topSkills: profile.skills.slice(0, 6),
       suggestedRoles: profile.suggestedRoles.slice(0, 3),
       breakdown: {
-        resume: profile.resumeFileName ? 15 : 0,
-        contact: (profile.name ? 4 : 0) + (profile.email ? 4 : 0) + (profile.location ? 4 : 0) + (profile.phone ? 3 : 0),
-        summary: summaryText.length > 80 ? 10 : summaryText.length > 20 ? 5 : 0,
-        skills: skillsCount >= 10 ? 25 : skillsCount >= 6 ? 18 : skillsCount >= 3 ? 12 : skillsCount >= 1 ? 6 : 0,
-        experience: expCount >= 3 ? 20 : expCount === 2 ? 14 : expCount === 1 ? 8 : 0,
-        education: eduCount >= 1 ? 10 : 0,
-        projects: projCount >= 2 ? 5 : projCount === 1 ? 3 : 0,
+        resume: hasResume ? 10 : 0,
+        contact: contactScore,
+        summary: summaryScore,
+        skills: skillsScore,
+        experience: expScore,
+        education: eduScore,
+        projects: projScore,
+        preferences: prefScore,
       }
     });
   } catch (error: any) {
