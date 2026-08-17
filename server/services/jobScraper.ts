@@ -324,7 +324,7 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
 
     let urlToCheck = job.sourceUrl;
     if (isLinkedIn) {
-      const jobIdMatch = job.sourceUrl.match(/\/view\/(\d+)/);
+      const jobIdMatch = job.sourceUrl.match(/(?:view\/|jobs\/|currentJobId=)(\d{8,})/i) || job.sourceUrl.match(/-(\d{8,})/);
       if (jobIdMatch) {
         urlToCheck = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${jobIdMatch[1]}`;
       }
@@ -352,6 +352,24 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
     }
 
     const html = (response.data || "").toString().toLowerCase();
+
+    // Check live date text from LinkedIn Guest HTML (e.g. "1 month ago", "3 weeks ago")
+    const liveDateMatch = html.match(/posted-time-ago__text[\s\S]*?>\s*([\w\s]+)/i);
+    if (liveDateMatch) {
+      const liveDateText = liveDateMatch[1].trim().toLowerCase();
+      if (
+        liveDateText.includes("month") ||
+        liveDateText.includes("year") ||
+        liveDateText.includes("3 weeks") ||
+        liveDateText.includes("4 weeks") ||
+        liveDateText.includes("2 weeks") ||
+        liveDateText.includes("30+") ||
+        liveDateText.includes("14+")
+      ) {
+        return false; // Expired by live posting age (>14 days)
+      }
+    }
+
     const closedPhrases = [
       "no longer accepting applications",
       "no longer accepting",
@@ -418,35 +436,38 @@ export function parseRelativeDate(dateStr?: string): Date {
 
 // Detect if a job is likely expired based on posting date, date text, and text cues
 function isJobLikelyExpired(job: ScrapedJob): boolean {
-  // 1. Check posting date (if parsed date is older than 30 days)
+  // 1. Check posting date (jobs older than 14 days are considered expired)
   if (job.postedAt) {
     const postedTime = new Date(job.postedAt).getTime();
     if (!isNaN(postedTime)) {
       const now = new Date();
       const daysSincePosted = Math.floor((now.getTime() - postedTime) / (1000 * 60 * 60 * 24));
-      if (daysSincePosted > 30) {
+      if (daysSincePosted >= 14) {
         return true;
       }
     }
   }
 
-  // 2. Check raw date string (e.g. "1 month ago", "2 months ago", "30+ days ago", "over 30 days ago", "4 weeks ago")
+  // 2. Check raw date string (e.g. "1 month ago", "2 months ago", "3 weeks ago", "4 weeks ago")
   const dateText = (job.postedAtText || "").toLowerCase();
   if (dateText) {
     if (
       dateText.includes("month") ||
       dateText.includes("year") ||
+      dateText.includes("3 weeks") ||
+      dateText.includes("4 weeks") ||
+      dateText.includes("2 weeks") ||
       dateText.includes("30+") ||
-      dateText.includes("over 30")
+      dateText.includes("over 14")
     ) {
       return true;
     }
     const weeksMatch = dateText.match(/(\d+)\s*weeks?/);
-    if (weeksMatch && parseInt(weeksMatch[1]) >= 4) {
+    if (weeksMatch && parseInt(weeksMatch[1]) >= 2) {
       return true;
     }
     const daysMatch = dateText.match(/(\d+)\s*days?/);
-    if (daysMatch && parseInt(daysMatch[1]) > 30) {
+    if (daysMatch && parseInt(daysMatch[1]) >= 14) {
       return true;
     }
   }

@@ -391,6 +391,28 @@ export default function Jobs() {
 
   const checkIsJobExpired = (job: Job) => {
     if (job.isExpired) return true;
+
+    const dateText = (job.postedAtText || "").toLowerCase();
+    if (
+      dateText.includes("month") ||
+      dateText.includes("year") ||
+      dateText.includes("3 weeks") ||
+      dateText.includes("4 weeks") ||
+      dateText.includes("2 weeks") ||
+      dateText.includes("30+") ||
+      dateText.includes("over 14")
+    ) {
+      return true;
+    }
+
+    if (job.postedAt) {
+      const postedTime = new Date(job.postedAt).getTime();
+      if (!isNaN(postedTime)) {
+        const days = Math.floor((new Date().getTime() - postedTime) / (1000 * 60 * 60 * 24));
+        if (days >= 14) return true;
+      }
+    }
+
     const text = `${job.title} ${job.description}`.toLowerCase();
     return (
       text.includes("no longer accepting") ||
