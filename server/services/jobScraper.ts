@@ -306,28 +306,44 @@ export async function scrapeJobs(
   return activeJobs;
 }
 
-// Live URL availability checker for LinkedIn, Indeed, Lever, Greenhouse, etc.
 export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolean> {
   if (job.isExpired) return false;
-  if (!job.sourceUrl) return false;
+  if (!job.sourceUrl) return true;
+
+  const isLinkedIn = job.sourceUrl.includes("linkedin.com");
+  const isIndeed = job.sourceUrl.includes("indeed.com");
+
+  // INDEED JOBS ARE ALWAYS OPEN & ACTIVE - Do not hide or run network checks on Indeed!
+  if (isIndeed) {
+    return true;
+  }
+
+  // Non-LinkedIn platforms (Remotive, Arbeitnow, Jobicy) are active by default
+  if (!isLinkedIn) {
+    return true;
+  }
+
+  // For LinkedIn jobs: check title, description, and posted date text before HTTP call
+  const textToCheck = `${job.title} ${job.description} ${job.postedAtText || ""}`.toLowerCase();
+  if (
+    textToCheck.includes("1 month") ||
+    textToCheck.includes("2 month") ||
+    textToCheck.includes("month") ||
+    textToCheck.includes("year") ||
+    textToCheck.includes("2 weeks") ||
+    textToCheck.includes("3 weeks") ||
+    textToCheck.includes("4 weeks") ||
+    textToCheck.includes("no longer accepting") ||
+    textToCheck.includes("position filled")
+  ) {
+    return false; // Expired by text or age (>= 2 weeks)
+  }
 
   try {
-    const isLinkedIn = job.sourceUrl.includes("linkedin.com");
-    const isIndeed = job.sourceUrl.includes("indeed.com");
-    const isLever = job.sourceUrl.includes("lever.co");
-    const isGreenhouse = job.sourceUrl.includes("greenhouse.io");
-
-    // Only do network verification for major job platform URLs
-    if (!isLinkedIn && !isIndeed && !isLever && !isGreenhouse) {
-      return true;
-    }
-
     let urlToCheck = job.sourceUrl;
-    if (isLinkedIn) {
-      const jobIdMatch = job.sourceUrl.match(/(?:view\/|jobs\/|currentJobId=)(\d{8,})/i) || job.sourceUrl.match(/-(\d{8,})/);
-      if (jobIdMatch) {
-        urlToCheck = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${jobIdMatch[1]}`;
-      }
+    const jobIdMatch = job.sourceUrl.match(/(?:view\/|jobs\/|currentJobId=)(\d{8,})/i) || job.sourceUrl.match(/-(\d{8,})/);
+    if (jobIdMatch) {
+      urlToCheck = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${jobIdMatch[1]}`;
     }
 
     const response = await axios.get(urlToCheck, {
@@ -396,24 +412,22 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
       }
     }
 
-    // 3. REVERSE VERIFICATION LOGIC: MUST HAVE ACTIVE APPLY OPTION
-    if (isLinkedIn) {
-      const hasApplyOption = 
-        html.includes("topcard__btn--apply") || 
-        html.includes("apply-button") || 
-        html.includes("easy apply") ||
-        html.includes("data-tracking-control-name=\"public_jobs_apply-link-offsite\"") ||
-        html.includes("apply on company website");
+    // 3. REVERSE VERIFICATION LOGIC FOR LINKEDIN: MUST HAVE ACTIVE APPLY OPTION
+    const hasApplyOption = 
+      html.includes("topcard__btn--apply") || 
+      html.includes("apply-button") || 
+      html.includes("easy apply") ||
+      html.includes("data-tracking-control-name=\"public_jobs_apply-link-offsite\"") ||
+      html.includes("apply on company website");
 
-      if (!hasApplyOption) {
-        return false; // Missing active apply button -> Closed/Expired!
-      }
+    if (!hasApplyOption) {
+      return false; // Missing active apply button -> Closed/Expired!
     }
 
     return true; // Live and verified active!
   } catch (err) {
-    // If live check fails or times out for a job, default to false (exclude to be safe)
-    return false;
+    // If LinkedIn network call errors, rely on static text age check
+    return !isJobLikelyExpired(job);
   }
 }
 
