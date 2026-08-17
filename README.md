@@ -1,6 +1,6 @@
 # 🚀 JobJourneyAI
 
-An AI-powered, real-time job discovery platform, resume intelligence engine, and automated interview preparation assistant. Built with **React 19**, **Vite**, **Tailwind CSS**, **Node.js**, **Express**, **MongoDB**, and **Google Gemini AI**.
+An AI-powered, real-time job discovery platform, resume intelligence engine, and automated interview preparation assistant. Built with **React 19**, **Vite**, **Tailwind CSS**, **Node.js**, **Express**, **MongoDB**, **Groq AI Engine** (high-speed LLM inference), and **Google Gemini AI** (fallback).
 
 ---
 
@@ -39,8 +39,8 @@ Evaluates applicant profile completeness and competitiveness using a transparent
 - **Instant Reset**: One-click filter reset control.
 
 ### 📄 Resume Intelligence & AI Interview Preparation
-- **PDF & DOCX Parsing**: Extracts skills, experience timeline, education, and contact details via `pdfjs-dist` and Google Gemini AI.
-- **Tailored Interview Prep**: Generates role-specific technical, behavioral, and situational questions, hints, sample answers, and company insights.
+- **PDF & DOCX Parsing**: Extracts skills, experience timeline, education, and contact details via `pdfjs-dist` and **Groq AI Engine**.
+- **Tailored Interview Prep**: Generates role-specific technical, behavioral, and situational questions, hints, sample answers, and company insights using Groq API.
 
 ---
 
@@ -56,7 +56,7 @@ Evaluates applicant profile completeness and competitiveness using a transparent
 ### Backend
 - **Runtime**: Node.js + Express (TypeScript)
 - **Database**: MongoDB (via Mongoose)
-- **AI Models**: Google Gemini AI (`@google/generative-ai`)
+- **AI Models**: **Groq API** (`openai/gpt-oss-120b` high-speed LLM) + **Google Gemini AI** (fallback)
 - **Scraper & Fetchers**: Axios + Cheerio + Serper API
 - **Document Parsing**: `pdfjs-dist` + `mammoth`
 
@@ -70,7 +70,8 @@ Create a `.env` file in the project root directory:
 PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/jobjourneyai
 SESSION_SECRET=your_super_secret_session_key
-GEMINI_API_KEY=your_google_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_google_gemini_api_key_optional
 SERPER_API_KEY=your_serper_dev_api_key
 ```
 
@@ -79,7 +80,8 @@ SERPER_API_KEY=your_serper_dev_api_key
 | `PORT` | Web server port (Default: `5000`) |
 | `MONGODB_URI` | Connection URI for MongoDB database |
 | `SESSION_SECRET` | Secret key for Express session encryption |
-| `GEMINI_API_KEY` | Google Gemini API key ([Get API Key](https://aistudio.google.com/)) |
+| `GROQ_API_KEY` | Groq API Key for primary AI inference ([Get API Key](https://console.groq.com)) |
+| `GEMINI_API_KEY` | Google Gemini API key (Optional fallback, [Get API Key](https://aistudio.google.com/)) |
 | `SERPER_API_KEY` | Serper API key for Google job search indexing ([Get API Key](https://serper.dev)) |
 
 ---
@@ -135,7 +137,7 @@ JobJourneyAI/
 ├── server/                 # Express TypeScript Backend
 │   ├── models/             # Mongoose schemas (UserProfile, Job, SavedJobs)
 │   ├── routes/             # REST endpoints (auth, profile, jobs, interview)
-│   ├── services/           # Gemini AI, Serper scraper & availability checker
+│   ├── services/           # Groq AI, Gemini fallback, Serper scraper & availability checker
 │   ├── db.ts               # Resilient MongoDB connection manager
 │   └── index.ts            # Server entry point
 ├── shared/                 # Shared TypeScript types and schemas
