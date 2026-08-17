@@ -76,6 +76,7 @@ export default function Jobs() {
   // Filter states
   const [minMatchScore, setMinMatchScore] = useState<number>(0);
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+  const [showRemoteOnly, setShowRemoteOnly] = useState(false);
   const [showExpired, setShowExpired] = useState(false);
   
   // Job preferences
@@ -850,7 +851,8 @@ export default function Jobs() {
                   </CardFooter>
                 </Card>
               </motion.div>
-            ); })}
+            );
+          })}
           </AnimatePresence>
         </div>
       </div>
