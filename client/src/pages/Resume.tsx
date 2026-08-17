@@ -75,7 +75,7 @@ export default function Resume() {
   const [resumeData, setResumeData] = useState<ParsedResumeData>(defaultData);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isParsingRef = useRef(false);
   const lastParsedFileRef = useRef<string | null>(null);
@@ -87,10 +87,10 @@ export default function Resume() {
         const response = await fetch("/api/profile", {
           credentials: "include",
         });
-        
+
         if (response.ok) {
           const profile = await response.json();
-          
+
           if (profile.resumeFileName) {
             setFileName(profile.resumeFileName);
             setUploadDate(profile.resumeUploadedAt ? new Date(profile.resumeUploadedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : null);
@@ -131,14 +131,14 @@ export default function Resume() {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let fullText = "";
-      
+
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map((item: any) => item.str).join(" ");
         fullText += pageText + "\n";
       }
-      
+
       return fullText;
     } catch (err) {
       console.error("Error parsing PDF:", err);
@@ -179,31 +179,31 @@ export default function Resume() {
     setUploadProgress(15);
     setUploadStatus("Reading file content...");
     setError(null);
-    
+
     try {
       setUploadProgress(35);
       setUploadStatus("Extracting text structure...");
-      
+
       let text = "";
       if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
         text = await extractTextFromPdf(file);
       } else {
         text = await file.text();
       }
-      
+
       if (!text || text.trim().length < 50) {
         throw new Error("Could not extract enough text from the file. Please upload a PDF or text file with selectable text.");
       }
 
       setUploadProgress(65);
       setUploadStatus("⚡ Groq AI is analyzing skills & experience...");
-      
+
       const parsedData = await parseResumeWithAI(text, file.name);
-      
+
       setUploadProgress(85);
       setUploadStatus("Saving your profile analysis...");
       setResumeData(parsedData);
-      
+
       try {
         await fetch("/api/profile", {
           method: "PUT",
@@ -229,10 +229,10 @@ export default function Resume() {
       } catch (saveErr) {
         console.warn("Failed to save profile to server:", saveErr);
       }
-      
+
       setUploadProgress(100);
       setUploadStatus("Analysis complete!");
-      
+
       setTimeout(() => {
         setIsUploading(false);
         setIsAnalyzed(true);
@@ -300,9 +300,9 @@ export default function Resume() {
         </div>
 
         {isAnalyzed && (
-          <Button 
-            onClick={handleUploadClick} 
-            variant="outline" 
+          <Button
+            onClick={handleUploadClick}
+            variant="outline"
             className="self-start sm:self-center gap-2 border-primary/30 hover:bg-primary/5"
           >
             <RefreshCw className="w-4 h-4 text-primary" /> Update Resume
@@ -314,15 +314,14 @@ export default function Resume() {
         {/* Left Column: Upload Zone & Document Meta */}
         <div className="md:col-span-1 space-y-6">
           {/* Interactive Upload Box */}
-          <Card 
+          <Card
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-dashed border-2 transition-all duration-300 ${
-              isDragOver 
-                ? "border-primary bg-primary/10 scale-[1.02]" 
+            className={`border-dashed border-2 transition-all duration-300 ${isDragOver
+                ? "border-primary bg-primary/10 scale-[1.02]"
                 : "border-muted-foreground/30 hover:border-primary/60 bg-muted/5 hover:shadow-md"
-            }`}
+              }`}
           >
             <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[260px] text-center gap-4">
               <div className={`p-4 rounded-full transition-transform ${isUploading ? 'bg-primary/10 text-primary animate-pulse' : 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400'}`}>
@@ -341,11 +340,11 @@ export default function Resume() {
                 <Badge variant="outline" className="text-[10px]">PDF</Badge>
                 <Badge variant="outline" className="text-[10px]">TXT</Badge>
               </div>
-              
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
                 accept=".pdf,.txt"
                 onChange={handleFileChange}
               />
@@ -358,16 +357,16 @@ export default function Resume() {
                   </p>
                 </div>
               ) : (
-                <Button 
-                  onClick={handleUploadClick} 
-                  variant="default" 
+                <Button
+                  onClick={handleUploadClick}
+                  variant="default"
                   disabled={isUploading}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/10"
                 >
                   Choose File
                 </Button>
               )}
-              
+
               {error && (
                 <div className="flex items-center gap-2 text-xs text-rose-600 dark:text-rose-400 mt-2 px-4 p-2 bg-rose-50 dark:bg-rose-950/30 rounded-lg">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -452,7 +451,7 @@ export default function Resume() {
         <div className="md:col-span-2">
           <AnimatePresence mode="wait">
             {isAnalyzed ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
@@ -518,7 +517,7 @@ export default function Resume() {
                         {skillCategories.map((category) => {
                           const categorySkills = resumeData.skills.filter(s => s.category === category);
                           if (categorySkills.length === 0) return null;
-                          
+
                           return (
                             <div key={category} className="space-y-2">
                               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -526,12 +525,12 @@ export default function Resume() {
                               </h4>
                               <div className="flex flex-wrap gap-2">
                                 {categorySkills.map((skill) => (
-                                  <Badge 
-                                    key={`${category}-${skill.name}`} 
-                                    variant="outline" 
+                                  <Badge
+                                    key={`${category}-${skill.name}`}
+                                    variant="outline"
                                     className={`px-3 py-1.5 text-xs font-medium border ${getSkillBadgeColor(skill.level)}`}
                                   >
-                                    {skill.name} 
+                                    {skill.name}
                                     <span className="ml-1.5 text-[10px] font-bold opacity-80">{skill.level}%</span>
                                   </Badge>
                                 ))}
