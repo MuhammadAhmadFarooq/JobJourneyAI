@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Lock, User, Sparkles } from "lucide-react";
+import { Loader2, Mail, Lock, User, Sparkles, ShieldCheck, Briefcase, BrainCircuit, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import logoImage from "@assets/generated_images/minimalist_abstract_logo_for_career_navigation_app.png";
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -20,7 +21,6 @@ export default function Register() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already logged in
   if (isAuthenticated) {
     setLocation("/");
     return null;
@@ -30,7 +30,6 @@ export default function Register() {
     e.preventDefault();
     setError("");
 
-    // Validation
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -59,132 +58,182 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-            <Sparkles className="w-8 h-8 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">JobJourneyAI</h1>
-          <p className="text-muted-foreground mt-1">Start your AI-powered job search</p>
+    <div className="min-h-screen grid lg:grid-cols-12 bg-background">
+      {/* Left Feature Hero Banner */}
+      <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 relative bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 p-12 text-white flex-col justify-between overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent pointer-events-none" />
+        
+        {/* Brand Header */}
+        <div className="relative z-10 flex items-center gap-3">
+          <img src={logoImage} alt="JobJourneyAI" className="w-10 h-10 rounded-xl shadow-lg ring-2 ring-white/20" />
+          <span className="font-bold text-xl tracking-tight">JobJourneyAI</span>
         </div>
 
-        <Card className="border-border/50 shadow-xl">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl text-center">Create an account</CardTitle>
-            <CardDescription className="text-center">
-              Enter your details to get started
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+        {/* Hero Copy */}
+        <div className="relative z-10 space-y-6 max-w-lg">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-indigo-300 backdrop-blur-md border border-white/10">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Join 10,000+ Job Seekers
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="johndoe"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="pl-10"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+          <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
+            Build your AI profile & unlock verified job opportunities.
+          </h2>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+          <p className="text-indigo-100/80 leading-relaxed text-sm">
+            Extract skill matrices from your resume, track application scores, and generate customized AI interview question kits.
+          </p>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
-                  "Create account"
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Already have an account? </span>
-              <Link href="/login">
-                <span className="text-primary hover:underline font-medium cursor-pointer">
-                  Sign in
-                </span>
-              </Link>
+          {/* Feature Badges Grid */}
+          <div className="grid grid-cols-2 gap-3 pt-4 text-xs">
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Anti-Expired Job Protection</span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-2.5">
+              <Briefcase className="w-4 h-4 text-blue-400 shrink-0" />
+              <span>Multi-Source Platform Aggregation</span>
+            </div>
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-2.5">
+              <BrainCircuit className="w-4 h-4 text-purple-400 shrink-0" />
+              <span>Resume Skill Intelligence</span>
+            </div>
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>AI Interview Simulator</span>
+            </div>
+          </div>
+        </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          By creating an account, you agree to our Terms of Service and Privacy Policy.
-        </p>
-      </motion.div>
+        {/* Footer info */}
+        <div className="relative z-10 text-xs text-indigo-200/60">
+          © 2026 JobJourneyAI • Enterprise Career Intelligence Engine
+        </div>
+      </div>
+
+      {/* Right Register Form */}
+      <div className="col-span-12 lg:col-span-6 xl:col-span-5 flex items-center justify-center p-6 sm:p-12">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-md space-y-6"
+        >
+          <div className="text-center lg:text-left space-y-2">
+            <div className="inline-flex lg:hidden items-center justify-center gap-2.5 mb-2">
+              <img src={logoImage} alt="JobJourneyAI" className="w-9 h-9 rounded-lg" />
+              <span className="font-bold text-xl">JobJourneyAI</span>
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">Create Account</h2>
+            <p className="text-sm text-muted-foreground">Start your personalized career preparation journey today.</p>
+          </div>
+
+          <Card className="border-border/80 shadow-xl bg-card">
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive" className="py-2.5 text-xs">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-xs font-semibold">Username</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="username"
+                      type="text"
+                      placeholder="johndoe"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="pl-10 h-11 text-sm bg-background"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-xs font-semibold">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@company.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-11 text-sm bg-background"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-xs font-semibold">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 h-11 text-sm bg-background"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-xs font-semibold">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 h-11 text-sm bg-background"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 font-semibold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/10 mt-2" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      Get Started <ArrowRight className="ml-2 w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center text-xs text-muted-foreground border-t pt-4">
+                Already have an account?{" "}
+                <Link href="/login">
+                  <span className="text-primary hover:underline font-semibold cursor-pointer">
+                    Sign in to your account
+                  </span>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 }
