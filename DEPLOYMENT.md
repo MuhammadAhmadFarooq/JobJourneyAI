@@ -1,6 +1,6 @@
 # 🚀 JobJourneyAI Deployment Guide
 
-JobJourneyAI is production-ready. Follow the instructions below to deploy to **Render**, **Railway**, **Fly.io**, or any **Node.js Cloud Provider**.
+JobJourneyAI is production-ready. Follow the instructions below to deploy to **Render**, **Railway**, **Fly.io**, or any **Node.js Cloud Provider**, and to attach your custom **`.tech`** domain on Render.
 
 ---
 
@@ -40,6 +40,31 @@ Your app will be served on `http://localhost:5000`.
    - `GEMINI_API_KEY` (Optional): Google Gemini API key
    - `NODE_ENV`: `production`
 6. Click **Create Web Service**.
+
+---
+
+## 🔑 Step 2: Attach your Custom `.tech` Domain on Render
+
+Follow these exact steps to connect your custom `.tech` domain (purchased from Namecheap, GoDaddy, Hostinger, Domain.com, etc.) to your Render app:
+
+### 1. Add Domain in Render Dashboard
+1. Go to your web service on [Render Dashboard](https://dashboard.render.com/).
+2. Click **Settings** in the left sidebar.
+3. Scroll down to **Custom Domains** and click **+ Add Custom Domain**.
+4. Type your domain (e.g. `yourdomain.tech`) and click **Save**.
+5. Repeat for `www.yourdomain.tech`.
+
+### 2. Configure DNS Records at your `.tech` Registrar
+Log into your domain provider's DNS Management panel (Namecheap, Hostinger, GoDaddy, Cloudflare, etc.) and add the following records:
+
+| Record Type | Host / Name | Value / Target | Notes |
+| :--- | :---: | :--- | :--- |
+| **ALIAS** / **ANAME** or **A** | `@` | `your-app-name.onrender.com` (or IP `216.24.57.1`) | Root Domain (`yourdomain.tech`) |
+| **CNAME** | `www` | `your-app-name.onrender.com` | Subdomain (`www.yourdomain.tech`) |
+
+### 3. Automatic SSL Certificate Activation
+- Render will automatically verify DNS propagation (takes 2–15 minutes) and issue a **free Let's Encrypt SSL/TLS Certificate**.
+- All HTTP traffic automatically redirects to secure `https://yourdomain.tech`.
 
 ---
 
@@ -93,4 +118,5 @@ docker run -p 5000:5000 \
 - [x] Verified static client asset serving in production (`dist/public`)
 - [x] Configured MongoDB session fallback store
 - [x] Added `Dockerfile` multi-stage container build
+- [x] Added custom `.tech` domain guide for Render
 - [x] Pushed latest main branch to GitHub
