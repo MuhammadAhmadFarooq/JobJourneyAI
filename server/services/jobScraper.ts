@@ -321,23 +321,27 @@ export async function verifyJobLiveAvailability(job: ScrapedJob): Promise<boolea
       return true;
     }
 
-    const response = await axios.get(job.sourceUrl, {
+    let urlToCheck = job.sourceUrl;
+    if (isLinkedIn) {
+      const jobIdMatch = job.sourceUrl.match(/\/view\/(\d+)/);
+      if (jobIdMatch) {
+        urlToCheck = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${jobIdMatch[1]}`;
+      }
+    }
+
+    const response = await axios.get(urlToCheck, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
       },
       timeout: 4000,
       maxRedirects: 4,
       validateStatus: () => true, // Don't throw on HTTP errors
     });
 
-    if (response.status === 404 || response.status === 410 || response.status === 400) {
-      return false; // Expired / Not available
+    if (response.status === 404 || response.status === 410 || response.status === 400 || response.status === 403 || response.status === 999) {
+      return false; // Expired / Closed / Unavailable
     }
 
     // Check if redirected to search, login, or authwall page

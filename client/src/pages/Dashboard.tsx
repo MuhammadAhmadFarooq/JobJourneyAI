@@ -89,7 +89,7 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Welcome back, {user?.name?.split(" ")[0] || "there"}
+            Welcome back, {user?.name?.split(" ")[0] || user?.username || "there"}
           </h1>
           <p className="text-muted-foreground mt-1">
             {savedJobsCount > 0 

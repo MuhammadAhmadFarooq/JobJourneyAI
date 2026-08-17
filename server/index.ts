@@ -78,7 +78,7 @@ async function startup() {
     if (dbConnected && process.env.MONGODB_URI) {
       try {
         sessionStore = MongoStore.create({
-          client: mongoose.connection.getClient(),
+          client: mongoose.connection.getClient() as any,
           ttl: 7 * 24 * 60 * 60,
           autoRemove: "native",
           touchAfter: 24 * 3600, // Only update session once per 24h to reduce DB writes

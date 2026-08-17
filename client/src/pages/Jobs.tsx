@@ -24,6 +24,8 @@ import {
 import { Label } from "@/components/ui/label";
 
 interface Job {
+  jobId?: string;
+  savedAt?: Date | string;
   title: string;
   company: string;
   location: string;
@@ -74,8 +76,7 @@ export default function Jobs() {
   // Filter states
   const [minMatchScore, setMinMatchScore] = useState<number>(0);
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
-  const [showRemoteOnly, setShowRemoteOnly] = useState(false);
-  const [hideExpired, setHideExpired] = useState(true);
+  const [showExpired, setShowExpired] = useState(false);
   
   // Job preferences
   const [jobPreferences, setJobPreferences] = useState<JobPreferences>({
@@ -208,7 +209,7 @@ export default function Jobs() {
         });
 
         if (response.ok) {
-          setSavedJobs([...savedJobs, { ...jobData, savedAt: new Date() }]);
+          setSavedJobs([...savedJobs, { ...job, ...jobData, savedAt: new Date() }]);
           toast({
             title: "Job Saved!",
             description: `${job.title} at ${job.company} saved for interview prep.`,
@@ -409,7 +410,7 @@ export default function Jobs() {
     if (minMatchScore > 0 && job.matchScore < minMatchScore) return false;
     if (showRemoteOnly && !job.location.toLowerCase().includes("remote")) return false;
     if (selectedJobTypes.length > 0 && !selectedJobTypes.some(t => t.toLowerCase() === job.jobType.toLowerCase())) return false;
-    if (hideExpired && expired) return false;
+    if (!showExpired && expired) return false;
     return true;
   });
 
@@ -620,11 +621,11 @@ export default function Jobs() {
                   <div className="flex items-center gap-2 text-sm">
                     <input 
                       type="checkbox"
-                      checked={hideExpired}
-                      onChange={(e) => setHideExpired(e.target.checked)}
+                      checked={showExpired}
+                      onChange={(e) => setShowExpired(e.target.checked)}
                       className="rounded border-gray-300" 
                     />
-                    <span>Hide Expired Jobs</span>
+                    <span>Show Closed / Expired Jobs</span>
                   </div>
                 </div>
               </div>
@@ -849,7 +850,7 @@ export default function Jobs() {
                   </CardFooter>
                 </Card>
               </motion.div>
-            ))}
+            ); })}
           </AnimatePresence>
         </div>
       </div>
