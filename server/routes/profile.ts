@@ -178,24 +178,82 @@ router.get("/stats", requireAuth, async (req, res) => {
       });
     }
 
-    // Calculate profile strength
+    // Calculate realistic, multi-factor profile strength (Max 100%)
     let profileStrength = 0;
-    if (profile.name) profileStrength += 10;
-    if (profile.email) profileStrength += 10;
-    if (profile.location) profileStrength += 10;
-    if (profile.summary) profileStrength += 15;
-    if (profile.skills.length > 0) profileStrength += 20;
-    if (profile.experience.length > 0) profileStrength += 20;
-    if (profile.education.length > 0) profileStrength += 10;
-    if (profile.projects.length > 0) profileStrength += 5;
+
+    // 1. Resume File Uploaded (15%)
+    if (profile.resumeFileName) {
+      profileStrength += 15;
+    }
+
+    // 2. Personal & Contact Info (15%)
+    if (profile.name) profileStrength += 4;
+    if (profile.email) profileStrength += 4;
+    if (profile.location) profileStrength += 4;
+    if (profile.phone) profileStrength += 3;
+
+    // 3. Professional Summary (10%)
+    const summaryText = profile.summary || profile.profileSummary || "";
+    if (summaryText.length > 80) {
+      profileStrength += 10;
+    } else if (summaryText.length > 20) {
+      profileStrength += 5;
+    }
+
+    // 4. Technical Skills Depth (25%)
+    const skillsCount = Array.isArray(profile.skills) ? profile.skills.length : 0;
+    if (skillsCount >= 10) {
+      profileStrength += 25;
+    } else if (skillsCount >= 6) {
+      profileStrength += 18;
+    } else if (skillsCount >= 3) {
+      profileStrength += 12;
+    } else if (skillsCount >= 1) {
+      profileStrength += 6;
+    }
+
+    // 5. Work Experience Detail (20%)
+    const expCount = Array.isArray(profile.experience) ? profile.experience.length : 0;
+    if (expCount >= 3) {
+      profileStrength += 20;
+    } else if (expCount === 2) {
+      profileStrength += 14;
+    } else if (expCount === 1) {
+      profileStrength += 8;
+    }
+
+    // 6. Education & Credentials (10%)
+    const eduCount = Array.isArray(profile.education) ? profile.education.length : 0;
+    if (eduCount >= 1) {
+      profileStrength += 10;
+    }
+
+    // 7. Projects & Portfolio (5%)
+    const projCount = Array.isArray(profile.projects) ? profile.projects.length : 0;
+    if (projCount >= 2) {
+      profileStrength += 5;
+    } else if (projCount === 1) {
+      profileStrength += 3;
+    }
+
+    const finalStrength = Math.min(Math.round(profileStrength), 100);
 
     res.json({
-      profileStrength: Math.min(profileStrength, 100),
+      profileStrength: finalStrength,
       savedJobsCount: profile.savedJobs.length,
       skillsCount: profile.skills.length,
       hasResume: !!profile.resumeFileName,
-      topSkills: profile.skills.slice(0, 5),
+      topSkills: profile.skills.slice(0, 6),
       suggestedRoles: profile.suggestedRoles.slice(0, 3),
+      breakdown: {
+        resume: profile.resumeFileName ? 15 : 0,
+        contact: (profile.name ? 4 : 0) + (profile.email ? 4 : 0) + (profile.location ? 4 : 0) + (profile.phone ? 3 : 0),
+        summary: summaryText.length > 80 ? 10 : summaryText.length > 20 ? 5 : 0,
+        skills: skillsCount >= 10 ? 25 : skillsCount >= 6 ? 18 : skillsCount >= 3 ? 12 : skillsCount >= 1 ? 6 : 0,
+        experience: expCount >= 3 ? 20 : expCount === 2 ? 14 : expCount === 1 ? 8 : 0,
+        education: eduCount >= 1 ? 10 : 0,
+        projects: projCount >= 2 ? 5 : projCount === 1 ? 3 : 0,
+      }
     });
   } catch (error: any) {
     console.error("Get stats error:", error);
