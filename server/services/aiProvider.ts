@@ -4,11 +4,15 @@ import axios from "axios";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
-// Official production Groq API models in priority order
+// Official active Groq API models in priority order
 const GROQ_MODELS = [
-  "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant",
-  "mixtral-8x7b-32768",
+  "llama3-70b-8192",
+  "llama3-8b-8192",
+  "llama-3.3-70b-specdec",
+  "llama-3.1-70b-versatile",
+  "gemma2-9b-it",
+  "deepseek-r1-distill-llama-70b",
+  "qwen-2.5-coder-32b",
 ];
 
 /**

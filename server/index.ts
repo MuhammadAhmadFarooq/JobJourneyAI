@@ -12,6 +12,7 @@ import authRoutes from "./routes/auth";
 import profileRoutes from "./routes/profile";
 
 const app = express();
+app.set("trust proxy", 1);
 const httpServer = createServer(app);
 const MemoryStore = MemoryStoreFactory(session);
 
