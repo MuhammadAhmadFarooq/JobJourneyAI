@@ -9,7 +9,7 @@ import {
   Loader2, Search, BookOpen, BrainCircuit, Lightbulb, 
   Bookmark, Building2, MapPin, Sparkles, CheckCircle2, 
   AlertTriangle, Target, Calendar, ArrowLeft, Trash2,
-  GraduationCap, MessageSquare, Code, Users, Star, Youtube, ExternalLink, RefreshCw
+  GraduationCap, MessageSquare, Code, Users, Star, Youtube, ExternalLink, RefreshCw, Layers, ShieldCheck, DollarSign, HelpCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -95,7 +95,6 @@ export default function Interview() {
   const [savedPreps, setSavedPreps] = useState<Record<string, InterviewPrepData>>({});
   const { toast } = useToast();
 
-  // Load saved jobs and interview preps from MongoDB
   useEffect(() => {
     const loadSavedJobs = async () => {
       try {
@@ -105,7 +104,6 @@ export default function Interview() {
         
         if (response.ok) {
           const jobs = await response.json();
-          // Transform the data to match SavedJob interface
           const transformedJobs = jobs.map((job: any) => ({
             id: job.jobId,
             title: job.title,
@@ -123,14 +121,12 @@ export default function Interview() {
           setSavedJobs(transformedJobs);
         }
         
-        // Load saved interview preps
         const prepsResponse = await fetch("/api/profile/interview-preps", {
           credentials: "include",
         });
         
         if (prepsResponse.ok) {
           const preps = await prepsResponse.json();
-          // Create a lookup map by jobId
           const prepsMap: Record<string, InterviewPrepData> = {};
           preps.forEach((prep: any) => {
             prepsMap[prep.jobId] = prep;
@@ -149,60 +145,60 @@ export default function Interview() {
 
   const removeSavedJob = async (jobId: string) => {
     try {
-      await fetch(`/api/profile/saved-jobs/${jobId}`, {
+      const response = await fetch(`/api/profile/saved-jobs/${jobId}`, {
         method: "DELETE",
         credentials: "include",
       });
-      
-      const updated = savedJobs.filter(j => j.id !== jobId);
-      setSavedJobs(updated);
-      
-      if (selectedJob?.id === jobId) {
-        setSelectedJob(null);
-        setPrepData(null);
+
+      if (response.ok) {
+        setSavedJobs(savedJobs.filter(j => j.id !== jobId));
+        if (selectedJob?.id === jobId) {
+          setSelectedJob(null);
+          setPrepData(null);
+        }
+        toast({
+          title: "Job Removed",
+          description: "Job removed from saved list.",
+        });
       }
     } catch (err) {
       console.error("Failed to remove job:", err);
     }
   };
 
-  const generatePrep = async (job: SavedJob, forceRegenerate: boolean = false) => {
+  const generatePrep = async (job: SavedJob, forceRegenerate = false) => {
     setSelectedJob(job);
     setActiveTab("prep-results");
-    
-    // Check if we already have prep data for this job
+    setError(null);
+
     if (!forceRegenerate && savedPreps[job.id]) {
       setPrepData(savedPreps[job.id]);
-      toast({
-        title: "Loaded Saved Prep",
-        description: "Using your previously generated interview prep materials.",
-      });
       return;
     }
-    
+
     setIsGenerating(true);
-    setError(null);
     setPrepData(null);
 
     const steps = [
-      "Researching company culture and interview process...",
-      "Analyzing role requirements and tech stack...",
-      "Searching for recent interview experiences...",
-      "Identifying trending topics and best practices...",
-      "Generating personalized interview questions...",
-      "Creating your study guide..."
+      `Analyzing role requirements for ${job.title}...`,
+      `Researching company culture for ${job.company}...`,
+      `Mapping technical stack competencies...`,
+      `Generating technical & behavioral interview questions...`,
+      `Finding recommended learning resources & videos...`,
+      `Building personalized 2-week study plan...`,
     ];
 
     let stepIndex = 0;
+    setGenerationStep(steps[0]);
+
     const stepInterval = setInterval(() => {
-      if (stepIndex < steps.length) {
-        setGenerationStep(steps[stepIndex]);
+      if (stepIndex < steps.length - 1) {
         stepIndex++;
+        setGenerationStep(steps[stepIndex]);
       }
-    }, 2000);
+    }, 1800);
 
     try {
-      // Fetch user profile from MongoDB
       let userProfile = { skills: [], experience: [] };
       try {
         const profileRes = await fetch("/api/profile", { credentials: "include" });
@@ -240,7 +236,6 @@ export default function Interview() {
       const result = await response.json();
       setPrepData(result.data);
       
-      // Save the prep data to MongoDB
       try {
         const saveResponse = await fetch("/api/profile/interview-preps", {
           method: "POST",
@@ -255,14 +250,13 @@ export default function Interview() {
         });
         
         if (saveResponse.ok) {
-          // Update local cache
           setSavedPreps(prev => ({
             ...prev,
             [job.id]: result.data,
           }));
           toast({
-            title: "Prep Materials Saved!",
-            description: "Your interview prep has been saved and will be available next time.",
+            title: "Prep Kit Saved!",
+            description: "Your customized interview preparation material has been saved.",
           });
         }
       } catch (saveErr) {
@@ -279,128 +273,122 @@ export default function Interview() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Easy": return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
-      case "Medium": return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
-      case "Hard": return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
-      default: return "bg-gray-100 text-gray-700";
+      case "Easy": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
+      case "Medium": return "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800";
+      case "Hard": return "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800";
+      default: return "bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400";
     }
   };
 
   const getImportanceColor = (importance: string) => {
     switch (importance) {
-      case "High": return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
-      case "Medium": return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
-      case "Low": return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
-      default: return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "Technical": return <Code className="w-3 h-3" />;
-      case "Behavioral": return <Users className="w-3 h-3" />;
-      case "System Design": return <Target className="w-3 h-3" />;
-      case "Coding": return <Code className="w-3 h-3" />;
-      default: return <MessageSquare className="w-3 h-3" />;
+      case "High": return "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800";
+      case "Medium": return "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800";
+      case "Low": return "bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400";
+      default: return "bg-slate-100 text-slate-700";
     }
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <BrainCircuit className="w-8 h-8 text-primary" />
-          Interview Preparation
-        </h1>
-        <p className="text-muted-foreground">
-          AI-powered deep research to help you ace your interviews. Select a saved job to generate personalized prep materials.
-        </p>
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 mb-2">
+            <Sparkles className="w-3.5 h-3.5" /> AI Interview Simulator & Research Coach
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            Interview Preparation Kit
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Deep role research, technical questions, hints, sample answers, and structured study plans powered by Groq AI.
+          </p>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="saved-jobs" className="flex items-center gap-2">
-            <Bookmark className="w-4 h-4" />
+        <TabsList className="grid w-full max-w-md grid-cols-2 p-1 bg-muted rounded-xl">
+          <TabsTrigger value="saved-jobs" className="flex items-center gap-2 rounded-lg text-xs font-semibold">
+            <Bookmark className="w-3.5 h-3.5" />
             Saved Jobs ({savedJobs.length})
           </TabsTrigger>
-          <TabsTrigger value="prep-results" className="flex items-center gap-2" disabled={!selectedJob}>
-            <GraduationCap className="w-4 h-4" />
-            Prep Materials
+          <TabsTrigger value="prep-results" className="flex items-center gap-2 rounded-lg text-xs font-semibold" disabled={!selectedJob}>
+            <GraduationCap className="w-3.5 h-3.5" />
+            Prep Kit {selectedJob && `(${selectedJob.company})`}
           </TabsTrigger>
         </TabsList>
 
+        {/* Saved Jobs Tab */}
         <TabsContent value="saved-jobs" className="mt-6">
-          {savedJobs.length === 0 ? (
-            <Card className="border-dashed">
+          {isLoadingJobs ? (
+            <div className="flex items-center justify-center h-48">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : savedJobs.length === 0 ? (
+            <Card className="border-dashed border-2">
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <Bookmark className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Saved Jobs Yet</h3>
-                <p className="text-muted-foreground max-w-md">
-                  Save jobs from the Job Discovery page to prepare for interviews. 
-                  Click the "Save" button on any job listing to add it here.
+                <div className="p-4 bg-primary/10 rounded-full text-primary mb-4">
+                  <Bookmark className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No Saved Jobs Available</h3>
+                <p className="text-muted-foreground text-sm max-w-md mb-4">
+                  Bookmark job listings on the Job Discovery page to generate AI interview prep materials and study guides.
                 </p>
-                <Button variant="outline" className="mt-4" onClick={() => window.location.href = "/jobs"}>
-                  Browse Jobs
+                <Button onClick={() => window.location.href = "/jobs"} className="bg-gradient-to-r from-blue-600 to-indigo-600">
+                  Discover Opportunities
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {savedJobs.map((job) => (
-                <motion.div key={job.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                  <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
+                <motion.div key={job.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                  <Card className="h-full flex flex-col justify-between border-border/80 hover:border-primary/40 transition-all hover:shadow-md group">
                     <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg line-clamp-1">{job.title}</CardTitle>
-                          <CardDescription className="flex items-center gap-1 mt-1">
-                            <Building2 className="w-3 h-3" />
-                            {job.company}
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="space-y-1">
+                          <CardTitle className="text-base font-bold group-hover:text-primary transition-colors line-clamp-1">
+                            {job.title}
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-1.5 text-xs">
+                            <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                            <span className="font-medium text-foreground">{job.company}</span>
                           </CardDescription>
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           {job.matchScore && (
-                            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                              {job.matchScore}%
+                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-[10px] font-bold">
+                              {job.matchScore}% Match
                             </Badge>
                           )}
                           {savedPreps[job.id] && (
-                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200">
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Prep Ready
+                            <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300">
+                              <CheckCircle2 className="w-3 h-3 mr-1 text-blue-500" /> Ready
                             </Badge>
                           )}
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1">
-                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {job.location}
-                        </span>
-                        {job.salary && <span>💰 {job.salary}</span>}
+                    <CardContent className="flex-1 space-y-3 text-xs">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin className="w-3.5 h-3.5 text-muted-foreground" /> {job.location || "Remote"}
+                        {job.salary && <span className="ml-2 font-semibold text-foreground">💰 {job.salary}</span>}
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{job.description}</p>
-                      {job.skills && job.skills.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {job.skills.slice(0, 4).map((skill, i) => (
-                            <Badge key={i} variant="outline" className="text-xs">{skill}</Badge>
-                          ))}
-                          {job.skills.length > 4 && <Badge variant="outline" className="text-xs">+{job.skills.length - 4}</Badge>}
-                        </div>
-                      )}
+                      <p className="text-muted-foreground line-clamp-2 leading-relaxed">{job.description}</p>
                     </CardContent>
-                    <CardFooter className="pt-0 flex gap-2">
-                      <Button className="flex-1" onClick={() => generatePrep(job)} disabled={isGenerating}>
+                    <CardFooter className="pt-3 border-t flex gap-2">
+                      <Button 
+                        className="flex-1 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+                        onClick={() => generatePrep(job)} 
+                        disabled={isGenerating}
+                      >
                         {savedPreps[job.id] ? (
                           <>
-                            <BookOpen className="w-4 h-4 mr-2" />
-                            View Prep
+                            <BookOpen className="w-3.5 h-3.5 mr-1.5" /> View Prep Kit
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            Prepare
+                            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-amber-300 animate-pulse" /> Generate Kit
                           </>
                         )}
                       </Button>
@@ -410,13 +398,19 @@ export default function Interview() {
                           size="icon" 
                           onClick={() => generatePrep(job, true)} 
                           disabled={isGenerating}
-                          title="Regenerate prep materials"
+                          title="Regenerate interview kit"
+                          className="h-9 w-9 shrink-0"
                         >
-                          <RefreshCw className="w-4 h-4" />
+                          <RefreshCw className="w-3.5 h-3.5" />
                         </Button>
                       )}
-                      <Button variant="outline" size="icon" onClick={() => removeSavedJob(job.id)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeSavedJob(job.id)}
+                        className="h-9 w-9 shrink-0 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </CardFooter>
                   </Card>
@@ -426,378 +420,248 @@ export default function Interview() {
           )}
         </TabsContent>
 
+        {/* Prep Results Tab */}
         <TabsContent value="prep-results" className="mt-6">
           <AnimatePresence mode="wait">
             {isGenerating ? (
-              <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-16">
-                <div className="relative w-24 h-24 flex items-center justify-center mb-6">
+              <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                <div className="relative w-20 h-20 flex items-center justify-center">
                   <div className="absolute inset-0 border-4 border-muted rounded-full" />
                   <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                  <Search className="w-8 h-8 text-primary animate-pulse" />
+                  <Sparkles className="w-8 h-8 text-primary animate-pulse" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Preparing for {selectedJob?.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">at {selectedJob?.company}</p>
-                <div className="h-6 text-sm text-primary animate-pulse">{generationStep}</div>
-                <Progress value={33} className="w-64 mt-4" />
+                <div>
+                  <h3 className="text-xl font-bold text-foreground">Analyzing Role & Company Insights</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Generating prep kit for {selectedJob?.title} at {selectedJob?.company}</p>
+                </div>
+                <div className="p-3 bg-muted rounded-lg text-xs font-semibold text-primary animate-pulse max-w-sm">
+                  {generationStep}
+                </div>
               </motion.div>
             ) : error ? (
-              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-16">
-                <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Generation Failed</h3>
-                <p className="text-muted-foreground mb-4">{error}</p>
-                <Button onClick={() => selectedJob && generatePrep(selectedJob)}>Try Again</Button>
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-16 text-center">
+                <AlertTriangle className="w-12 h-12 text-rose-500 mb-3" />
+                <h3 className="text-lg font-bold">Preparation Failed</h3>
+                <p className="text-sm text-muted-foreground mb-4 max-w-md">{error}</p>
+                <Button onClick={() => selectedJob && generatePrep(selectedJob, true)}>Retry Generation</Button>
               </motion.div>
             ) : prepData ? (
-              <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <Button variant="ghost" onClick={() => { setActiveTab("saved-jobs"); setPrepData(null); }}>
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Saved Jobs
-                  </Button>
-                  <div className="flex items-center gap-3">
-                    {selectedJob && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => generatePrep(selectedJob, true)} 
-                        disabled={isGenerating}
-                      >
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Regenerate
-                      </Button>
-                    )}
-                    <div className="text-right">
-                      <h2 className="font-semibold">{prepData.jobTitle}</h2>
-                      <p className="text-sm text-muted-foreground">{prepData.company}</p>
+              <motion.div key="results" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-8">
+                {/* Back Button & Job Title Banner */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-900 text-white shadow-xl">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-semibold text-blue-300 mb-1">
+                      <Building2 className="w-3.5 h-3.5" /> {prepData.company}
                     </div>
+                    <h2 className="text-2xl font-extrabold tracking-tight">{prepData.jobTitle}</h2>
+                    <p className="text-xs text-blue-100/80 mt-1">AI-Researched Technical & Behavioral Candidate Preparation Kit</p>
                   </div>
+
+                  <Button variant="secondary" size="sm" onClick={() => setActiveTab("saved-jobs")} className="self-start sm:self-center gap-2 text-xs">
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back to Saved Jobs
+                  </Button>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-3">
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-primary" />
-                          Company Insights
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4 text-sm">
-                        <div><h4 className="font-medium mb-1">Overview</h4><p className="text-muted-foreground">{prepData.companyInsights.overview}</p></div>
-                        <div><h4 className="font-medium mb-1">Culture</h4><p className="text-muted-foreground">{prepData.companyInsights.culture}</p></div>
-                        <div><h4 className="font-medium mb-1">Interview Process</h4><p className="text-muted-foreground">{prepData.companyInsights.interviewProcess}</p></div>
-                        {prepData.companyInsights.recentNews.length > 0 && (
-                          <div>
-                            <h4 className="font-medium mb-1">Recent News</h4>
-                            <ul className="text-muted-foreground space-y-1">
-                              {prepData.companyInsights.recentNews.map((news, i) => (
-                                <li key={i} className="flex items-start gap-2"><span className="text-primary">•</span>{news}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                {/* Company & Role Insights Grid */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card className="border-border/80">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-blue-500" /> Company Intelligence
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-xs">
+                      <div>
+                        <span className="font-semibold text-foreground block mb-0.5">Overview</span>
+                        <p className="text-muted-foreground leading-relaxed">{prepData.companyInsights.overview}</p>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground block mb-0.5">Culture & Values</span>
+                        <p className="text-muted-foreground leading-relaxed">{prepData.companyInsights.culture}</p>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground block mb-0.5">Interview Process</span>
+                        <p className="text-muted-foreground leading-relaxed">{prepData.companyInsights.interviewProcess}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Target className="w-4 h-4 text-primary" />
-                          Role Insights
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4 text-sm">
-                        <div><h4 className="font-medium mb-1">What You'll Do</h4><p className="text-muted-foreground">{prepData.roleInsights.overview}</p></div>
-                        <div><h4 className="font-medium mb-1">Day-to-Day</h4><p className="text-muted-foreground">{prepData.roleInsights.dayToDay}</p></div>
-                        <div><h4 className="font-medium mb-1">Growth Path</h4><p className="text-muted-foreground">{prepData.roleInsights.growthPath}</p></div>
-                        <div><h4 className="font-medium mb-1">Expected Salary</h4><p className="text-muted-foreground">{prepData.roleInsights.salaryRange}</p></div>
-                      </CardContent>
-                    </Card>
+                  <Card className="border-border/80">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Target className="w-4 h-4 text-purple-500" /> Role Dynamics & Salary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-xs">
+                      <div>
+                        <span className="font-semibold text-foreground block mb-0.5">Day-to-Day Responsibilities</span>
+                        <p className="text-muted-foreground leading-relaxed">{prepData.roleInsights.dayToDay}</p>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground block mb-0.5">Career Growth Path</span>
+                        <p className="text-muted-foreground leading-relaxed">{prepData.roleInsights.growthPath}</p>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground block mb-0.5 flex items-center gap-1">
+                          <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> Benchmark Compensation
+                        </span>
+                        <p className="text-emerald-700 dark:text-emerald-400 font-bold">{prepData.roleInsights.salaryRange}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Code className="w-4 h-4 text-primary" />
-                          Tech Stack Analysis
-                        </CardTitle>
+                {/* Tech Stack Analysis */}
+                <Card className="border-border/80">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-indigo-500" /> Tech Stack & Key Topics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4 text-xs">
+                    <div>
+                      <span className="font-semibold text-foreground block mb-2">Required Core Technologies</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {prepData.techStackAnalysis.requiredTechnologies.map((tech) => (
+                          <Badge key={tech} className="bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200">
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    {prepData.techStackAnalysis.niceToHave.length > 0 && (
+                      <div>
+                        <span className="font-semibold text-foreground block mb-2">Nice-to-Have Skills</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {prepData.techStackAnalysis.niceToHave.map((tech) => (
+                            <Badge key={tech} variant="outline" className="text-muted-foreground">
+                              {tech}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Interview Questions & Study Modules Accordion */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    <HelpCircle className="w-5 h-5 text-primary" /> Key Question Modules & Topic Guides
+                  </h3>
+
+                  {prepData.topics.map((topic, topicIdx) => (
+                    <Card key={topicIdx} className="border-border/80">
+                      <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="text-base font-bold flex items-center gap-2">
+                            {topic.title}
+                          </CardTitle>
+                          <CardDescription className="text-xs mt-0.5">{topic.description}</CardDescription>
+                        </div>
+                        <Badge variant="outline" className={`text-xs ${getImportanceColor(topic.importance)}`}>
+                          {topic.importance} Priority
+                        </Badge>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Must Know</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {prepData.techStackAnalysis.requiredTechnologies.map((tech, i) => (
-                              <Badge key={i} variant="default" className="text-xs">{tech}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Nice to Have</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {prepData.techStackAnalysis.niceToHave.map((tech, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">{tech}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Trending</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {prepData.techStackAnalysis.trendingInField.map((tech, i) => (
-                              <Badge key={i} variant="outline" className="text-xs">{tech}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-primary" />
-                          Study Plan
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4 text-sm">
-                        <div>
-                          <h4 className="font-medium mb-2 flex items-center gap-2">
-                            <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">1</span>
-                            Week 1
-                          </h4>
-                          <ul className="text-muted-foreground space-y-1 ml-7">
-                            {prepData.studyPlan.week1.map((task, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <CheckCircle2 className="w-3 h-3 mt-1 text-muted-foreground/50" />{task}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <h4 className="font-medium mb-2 flex items-center gap-2">
-                            <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">2</span>
-                            Week 2
-                          </h4>
-                          <ul className="text-muted-foreground space-y-1 ml-7">
-                            {prepData.studyPlan.week2.map((task, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <CheckCircle2 className="w-3 h-3 mt-1 text-muted-foreground/50" />{task}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <h4 className="font-medium mb-2 flex items-center gap-2">
-                            <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">!</span>
-                            Final Days
-                          </h4>
-                          <ul className="text-muted-foreground space-y-1 ml-7">
-                            {prepData.studyPlan.lastDays.map((task, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <CheckCircle2 className="w-3 h-3 mt-1 text-muted-foreground/50" />{task}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <div className="lg:col-span-2 space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <BookOpen className="w-5 h-5 text-primary" />
-                          Interview Topics & Questions
-                        </CardTitle>
-                        <CardDescription>
-                          {prepData.topics.reduce((acc, t) => acc + t.questions.length, 0)} questions across {prepData.topics.length} topics
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Accordion type="multiple" className="w-full">
-                          {prepData.topics.map((topic, topicIdx) => (
-                            <AccordionItem key={topicIdx} value={`topic-${topicIdx}`}>
-                              <AccordionTrigger className="hover:no-underline">
-                                <div className="flex items-center gap-3 flex-1 text-left">
-                                  <span className="font-semibold">{topic.title}</span>
-                                  <Badge className={`text-xs ${getImportanceColor(topic.importance)}`}>{topic.importance}</Badge>
-                                  <span className="text-xs text-muted-foreground ml-auto mr-2">{topic.questions.length} questions</span>
+                        {/* Questions Accordion */}
+                        <Accordion type="single" collapsible className="w-full">
+                          {topic.questions.map((q, qIdx) => (
+                            <AccordionItem key={qIdx} value={`item-${topicIdx}-${qIdx}`}>
+                              <AccordionTrigger className="text-xs font-semibold hover:no-underline py-3">
+                                <div className="flex items-center gap-2 text-left">
+                                  <Badge variant="outline" className={`text-[10px] ${getDifficultyColor(q.difficulty)}`}>
+                                    {q.difficulty}
+                                  </Badge>
+                                  <span>{q.question}</span>
                                 </div>
                               </AccordionTrigger>
-                              <AccordionContent>
-                                <div className="space-y-4 pt-2">
-                                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                                    <p className="text-sm text-muted-foreground">{topic.description}</p>
-                                    <div>
-                                      <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Key Concepts</h5>
-                                      <div className="flex flex-wrap gap-1">
-                                        {topic.keyConceptsToReview.map((concept, i) => (
-                                          <Badge key={i} variant="outline" className="text-xs">{concept}</Badge>
-                                        ))}
-                                      </div>
-                                    </div>
-                                    {topic.commonMistakes.length > 0 && (
-                                      <div>
-                                        <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                                          <AlertTriangle className="w-3 h-3" />Common Mistakes
-                                        </h5>
-                                        <ul className="text-sm text-muted-foreground space-y-1">
-                                          {topic.commonMistakes.map((mistake, i) => (
-                                            <li key={i} className="flex items-start gap-2"><span className="text-destructive">•</span>{mistake}</li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    )}
-                                    
-                                    {/* YouTube Video Recommendation */}
-                                    {topic.youtubeVideo && (
-                                      <div className="mt-3">
-                                        <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                                          <Youtube className="w-3 h-3 text-red-500" />Recommended Video
-                                        </h5>
-                                        <a 
-                                          href={topic.youtubeVideo.url} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors group"
-                                        >
-                                          {topic.youtubeVideo.thumbnail && (
-                                            <img 
-                                              src={topic.youtubeVideo.thumbnail} 
-                                              alt={topic.youtubeVideo.title}
-                                              className="w-24 h-14 object-cover rounded"
-                                            />
-                                          )}
-                                          <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-red-700 dark:text-red-400 line-clamp-2 group-hover:underline">
-                                              {topic.youtubeVideo.title}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                              {topic.youtubeVideo.channel}
-                                            </p>
-                                          </div>
-                                          <ExternalLink className="w-4 h-4 text-red-500 shrink-0" />
-                                        </a>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="space-y-3">
-                                    {topic.questions.map((q, qIdx) => (
-                                      <Card key={qIdx} className="border-l-4 border-l-primary/50">
-                                        <CardContent className="pt-4">
-                                          <div className="flex items-start justify-between gap-4 mb-3">
-                                            <h4 className="font-medium text-sm flex-1">{q.question}</h4>
-                                            <div className="flex items-center gap-2 shrink-0">
-                                              <Badge variant="outline" className="text-xs flex items-center gap-1">
-                                                {getTypeIcon(q.type)}{q.type}
-                                              </Badge>
-                                              <Badge className={`text-xs ${getDifficultyColor(q.difficulty)}`}>{q.difficulty}</Badge>
-                                            </div>
-                                          </div>
-                                          <Accordion type="single" collapsible className="w-full">
-                                            <AccordionItem value="hints" className="border-none">
-                                              <AccordionTrigger className="py-2 text-xs text-muted-foreground hover:no-underline">
-                                                <span className="flex items-center gap-1"><Lightbulb className="w-3 h-3" />Show hints & answer guide</span>
-                                              </AccordionTrigger>
-                                              <AccordionContent>
-                                                <div className="space-y-3 pt-2">
-                                                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-md p-3">
-                                                    <h5 className="text-xs font-semibold mb-2 flex items-center gap-1 text-yellow-700 dark:text-yellow-400">
-                                                      <Lightbulb className="w-3 h-3" />Hints
-                                                    </h5>
-                                                    <ul className="text-sm space-y-1">
-                                                      {q.hints.map((hint, i) => (<li key={i} className="text-muted-foreground">• {hint}</li>))}
-                                                    </ul>
-                                                  </div>
-                                                  {q.sampleAnswer && (
-                                                    <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-3">
-                                                      <h5 className="text-xs font-semibold mb-2 text-green-700 dark:text-green-400">Sample Answer Approach</h5>
-                                                      <p className="text-sm text-muted-foreground">{q.sampleAnswer}</p>
-                                                    </div>
-                                                  )}
-                                                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-3">
-                                                    <h5 className="text-xs font-semibold mb-2 text-blue-700 dark:text-blue-400">Why This is Asked</h5>
-                                                    <p className="text-sm text-muted-foreground">{q.whyAsked}</p>
-                                                  </div>
-                                                </div>
-                                              </AccordionContent>
-                                            </AccordionItem>
-                                          </Accordion>
-                                        </CardContent>
-                                      </Card>
-                                    ))}
-                                  </div>
+                              <AccordionContent className="space-y-3 pt-2 text-xs">
+                                <div className="p-3 bg-muted/60 rounded-lg space-y-1.5">
+                                  <span className="font-semibold text-foreground flex items-center gap-1">
+                                    <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Why This Is Asked
+                                  </span>
+                                  <p className="text-muted-foreground">{q.whyAsked}</p>
                                 </div>
+
+                                {q.hints.length > 0 && (
+                                  <div>
+                                    <span className="font-semibold text-foreground block mb-1">Key Strategy Hints</span>
+                                    <ul className="space-y-1 text-muted-foreground">
+                                      {q.hints.map((h, i) => (
+                                        <li key={i} className="flex items-start gap-1.5">
+                                          <span className="text-primary font-bold">•</span>
+                                          <span>{h}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {q.sampleAnswer && (
+                                  <div className="p-3.5 bg-blue-50/50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg space-y-1">
+                                    <span className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Ideal Candidate Answer Framework
+                                    </span>
+                                    <p className="text-foreground/90 leading-relaxed pt-1">{q.sampleAnswer}</p>
+                                  </div>
+                                )}
                               </AccordionContent>
                             </AccordionItem>
                           ))}
                         </Accordion>
                       </CardContent>
                     </Card>
-
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Star className="w-4 h-4 text-yellow-500" />Pro Tips
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {prepData.tips.map((tip, i) => (
-                              <li key={i} className="flex items-start gap-2 text-sm">
-                                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                                <span className="text-muted-foreground">{tip}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-destructive" />Red Flags to Watch
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {prepData.redFlags.map((flag, i) => (
-                              <li key={i} className="flex items-start gap-2 text-sm">
-                                <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
-                                <span className="text-muted-foreground">{flag}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-primary" />Questions to Ask Your Interviewer
-                        </CardTitle>
-                        <CardDescription>Asking thoughtful questions shows your interest and helps you evaluate the role</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid gap-2 md:grid-cols-2">
-                          {prepData.questionsToAsk.map((question, i) => (
-                            <div key={i} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                              <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0">{i + 1}</span>
-                              <span className="text-sm">{question}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  ))}
                 </div>
+
+                {/* 2-Week Study Plan */}
+                {prepData.studyPlan && (
+                  <Card className="border-border/80">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-emerald-500" /> Recommended Study Timeline
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-4 md:grid-cols-3 text-xs">
+                      <div className="p-3.5 bg-muted/50 rounded-xl space-y-2 border">
+                        <span className="font-bold text-foreground block">Week 1: Core Fundamentals</span>
+                        <ul className="space-y-1.5 text-muted-foreground">
+                          {prepData.studyPlan.week1.map((item, i) => (
+                            <li key={i} className="flex items-start gap-1.5">
+                              <span className="text-emerald-500 font-bold">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="p-3.5 bg-muted/50 rounded-xl space-y-2 border">
+                        <span className="font-bold text-foreground block">Week 2: Applied & Mock Practice</span>
+                        <ul className="space-y-1.5 text-muted-foreground">
+                          {prepData.studyPlan.week2.map((item, i) => (
+                            <li key={i} className="flex items-start gap-1.5">
+                              <span className="text-emerald-500 font-bold">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="p-3.5 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-xl space-y-2">
+                        <span className="font-bold text-emerald-800 dark:text-emerald-300 block">Final 48 Hours</span>
+                        <ul className="space-y-1.5 text-muted-foreground">
+                          {prepData.studyPlan.lastDays.map((item, i) => (
+                            <li key={i} className="flex items-start gap-1.5">
+                              <span className="text-emerald-500 font-bold">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </motion.div>
-            ) : selectedJob ? (
-              <div className="text-center py-16 text-muted-foreground">Click "Prepare" to generate interview materials for {selectedJob.title}</div>
-            ) : (
-              <div className="text-center py-16 text-muted-foreground">Select a saved job to start preparing</div>
-            )}
+            ) : null}
           </AnimatePresence>
         </TabsContent>
       </Tabs>
