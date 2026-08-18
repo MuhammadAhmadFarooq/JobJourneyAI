@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -419,60 +419,50 @@ export default function Resume() {
     document.body.removeChild(element);
   };
 
-  const skillCategories = ["Frontend", "Backend", "Language", "Database", "Cloud", "DevOps", "Other"];
-
-  const getSkillBadgeColor = (level: number) => {
-    if (level >= 85) return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
-    if (level >= 70) return "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-800";
-    return "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800";
-  };
-
   return (
-    <div className="space-y-8 max-w-6xl mx-auto px-1 sm:px-0">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> AI Career Suite
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Resume Intelligence & Document Studio
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Parse master resumes, generate ATS-tailored job variants, and create custom cover letters or outreach emails.
-          </p>
+    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4">
+      {/* Header Banner - Minimalist & Crisp */}
+      <div className="pb-4 border-b border-border/60">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-secondary-foreground mb-2">
+          <Sparkles className="w-3 h-3 text-primary" /> AI Career Suite
         </div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+          Resume Studio & Application Suite
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
+          Parse master resumes, generate ATS-targeted variants, and draft tailored cover letters or cold outreach messages.
+        </p>
       </div>
 
-      {/* Main Feature Navigation Tabs */}
+      {/* Main Feature Navigation Tabs - Mobile Optimized */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto h-11 bg-muted/60 p-1 rounded-xl">
-          <TabsTrigger value="analysis" className="text-xs sm:text-sm font-medium gap-2">
-            <FileText className="w-4 h-4 shrink-0" />
-            <span className="hidden sm:inline">Master</span> Resume
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto h-10 sm:h-11 bg-muted/50 p-1 rounded-lg">
+          <TabsTrigger value="analysis" className="text-xs sm:text-sm font-medium gap-1.5 px-2 sm:px-3">
+            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Master Resume</span>
           </TabsTrigger>
-          <TabsTrigger value="tailor" className="text-xs sm:text-sm font-medium gap-2">
-            <Wand2 className="w-4 h-4 shrink-0 text-indigo-500" />
-            Resume Tailor
+          <TabsTrigger value="tailor" className="text-xs sm:text-sm font-medium gap-1.5 px-2 sm:px-3">
+            <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-primary" />
+            <span className="truncate">Resume Tailor</span>
           </TabsTrigger>
-          <TabsTrigger value="cover-letter" className="text-xs sm:text-sm font-medium gap-2">
-            <Send className="w-4 h-4 shrink-0 text-emerald-500" />
-            Cover Letter
+          <TabsTrigger value="cover-letter" className="text-xs sm:text-sm font-medium gap-1.5 px-2 sm:px-3">
+            <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-primary" />
+            <span className="truncate">Cover Letter</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Tab 1: Master Resume Analysis */}
-        <TabsContent value="analysis" className="mt-6 space-y-8">
-          <div className="grid gap-8 md:grid-cols-12">
+        <TabsContent value="analysis" className="mt-6 space-y-6">
+          <div className="grid gap-6 md:grid-cols-12">
             {/* Upload Panel Left */}
-            <div className="md:col-span-5 space-y-6">
+            <div className="md:col-span-5 space-y-4">
               <Card 
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${
+                className={`border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden bg-card ${
                   isDragOver 
-                    ? "border-primary bg-primary/5 scale-[1.01]" 
+                    ? "border-primary bg-primary/5" 
                     : "border-border/80 hover:border-primary/50"
                 }`}
                 onClick={handleUploadClick}
@@ -484,30 +474,30 @@ export default function Resume() {
                   accept=".pdf,.txt"
                   className="hidden"
                 />
-                <CardContent className="p-6 text-center space-y-4">
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-xs">
+                <CardContent className="p-5 sm:p-6 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto border border-border/50">
                     {isUploading ? (
-                      <Loader2 className="w-7 h-7 animate-spin" />
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
                     ) : (
-                      <Upload className="w-7 h-7" />
+                      <Upload className="w-6 h-6 text-muted-foreground" />
                     )}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-base">
+                    <h3 className="font-semibold text-sm sm:text-base text-foreground">
                       {isUploading ? "Processing Resume..." : "Upload Master Resume"}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
-                      Drag & drop your PDF or TXT resume here, or click to browse files.
+                      Drag & drop your PDF or TXT resume here, or click to browse.
                     </p>
                   </div>
 
                   {isUploading ? (
                     <div className="space-y-2 pt-2">
-                      <Progress value={uploadProgress} className="h-2" />
-                      <p className="text-xs text-primary font-medium">{uploadStatus}</p>
+                      <Progress value={uploadProgress} className="h-1.5" />
+                      <p className="text-[11px] text-primary font-medium">{uploadStatus}</p>
                     </div>
                   ) : (
-                    <Button variant="outline" size="sm" className="text-xs pointer-events-none">
+                    <Button variant="outline" size="sm" className="text-xs pointer-events-none h-8 px-3">
                       Browse File
                     </Button>
                   )}
@@ -516,18 +506,18 @@ export default function Resume() {
 
               {/* Uploaded File Info Card */}
               {fileName && (
-                <Card className="border-border/80 bg-muted/20">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
-                        <FileCheck className="w-5 h-5" />
+                <Card className="border-border/60 bg-muted/30">
+                  <CardContent className="p-3.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="p-1.5 bg-primary/10 text-primary rounded-md shrink-0">
+                        <FileCheck className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold truncate text-foreground">{fileName}</p>
+                        <p className="text-xs font-medium truncate text-foreground">{fileName}</p>
                         <p className="text-[10px] text-muted-foreground">{uploadDate || "Uploaded"}</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 shrink-0">
+                    <Badge variant="secondary" className="text-[10px] font-normal shrink-0">
                       Active Profile
                     </Badge>
                   </CardContent>
@@ -541,23 +531,23 @@ export default function Resume() {
                 {isAnalyzed ? (
                   <motion.div
                     key="analyzed"
-                    initial={{ opacity: 0, y: 15 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -15 }}
-                    className="space-y-6"
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4"
                   >
                     {/* Profile Header Card */}
-                    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-secondary/20">
-                      <CardContent className="p-6 space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <Card className="border-border/80 bg-card">
+                      <CardContent className="p-4 sm:p-6 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div>
-                            <h2 className="text-xl font-bold text-foreground">{resumeData.name || "Candidate Profile"}</h2>
+                            <h2 className="text-lg sm:text-xl font-bold text-foreground">{resumeData.name || "Candidate Profile"}</h2>
                             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
-                              {resumeData.email && <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> {resumeData.email}</span>}
-                              {resumeData.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {resumeData.location}</span>}
+                              {resumeData.email && <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 shrink-0" /> {resumeData.email}</span>}
+                              {resumeData.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 shrink-0" /> {resumeData.location}</span>}
                             </div>
                           </div>
-                          <Badge className="bg-primary text-primary-foreground font-bold self-start sm:self-center">
+                          <Badge variant="outline" className="self-start sm:self-center text-[10px] uppercase font-semibold">
                             Master Resume
                           </Badge>
                         </div>
@@ -571,18 +561,18 @@ export default function Resume() {
 
                     {/* Skill Matrix */}
                     <Card className="border-border/80">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                           <Target className="w-4 h-4 text-primary" /> Skill Competency Matrix
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="p-4 pt-1">
                         <div className="flex flex-wrap gap-1.5">
                           {resumeData.skills.map((skill, i) => (
                             <Badge 
                               key={i} 
-                              variant="outline" 
-                              className={`text-xs px-2.5 py-1 ${getSkillBadgeColor(skill.level || 80)}`}
+                              variant="secondary" 
+                              className="text-[11px] font-normal px-2.5 py-0.5"
                             >
                               {skill.name} {skill.level ? `(${skill.level}%)` : ""}
                             </Badge>
@@ -594,22 +584,22 @@ export default function Resume() {
                     {/* Experience Timeline */}
                     {resumeData.experience.length > 0 && (
                       <Card className="border-border/80">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <Briefcase className="w-4 h-4 text-blue-500" /> Work Experience
+                        <CardHeader className="p-4 pb-2">
+                          <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-primary" /> Work Experience
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="p-4 pt-1 space-y-3">
                           {resumeData.experience.map((exp, idx) => (
-                            <div key={idx} className="border-l-2 border-primary/30 pl-4 py-1 space-y-1.5">
-                              <div className="flex justify-between items-start">
+                            <div key={idx} className="border-l-2 border-primary/40 pl-3.5 py-1 space-y-1">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                                 <div>
-                                  <h4 className="font-semibold text-sm">{exp.role}</h4>
-                                  <p className="text-xs text-muted-foreground font-medium">{exp.company}</p>
+                                  <h4 className="font-semibold text-xs sm:text-sm text-foreground">{exp.role}</h4>
+                                  <p className="text-xs text-muted-foreground">{exp.company}</p>
                                 </div>
-                                <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded">{exp.duration}</span>
+                                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded self-start sm:self-auto">{exp.duration}</span>
                               </div>
-                              {exp.description && <p className="text-xs text-muted-foreground leading-relaxed">{exp.description}</p>}
+                              {exp.description && <p className="text-xs text-muted-foreground leading-relaxed pt-1">{exp.description}</p>}
                             </div>
                           ))}
                         </CardContent>
@@ -619,15 +609,15 @@ export default function Resume() {
                     {/* Education */}
                     {resumeData.education && resumeData.education.length > 0 && (
                       <Card className="border-border/80">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <GraduationCap className="w-4 h-4 text-indigo-500" /> Education
+                        <CardHeader className="p-4 pb-2">
+                          <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <GraduationCap className="w-4 h-4 text-primary" /> Education
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="p-4 pt-1 space-y-2.5">
                           {resumeData.education.map((edu, idx) => (
-                            <div key={idx} className="border-l-2 border-indigo-500/30 pl-4 py-1">
-                              <h4 className="font-semibold text-sm">{edu.degree}</h4>
+                            <div key={idx} className="border-l-2 border-border pl-3.5 py-0.5">
+                              <h4 className="font-semibold text-xs sm:text-sm text-foreground">{edu.degree}</h4>
                               <p className="text-xs text-muted-foreground">{edu.institution} {edu.graduationDate ? `(${edu.graduationDate})` : ""}</p>
                             </div>
                           ))}
@@ -638,20 +628,20 @@ export default function Resume() {
                     {/* Projects */}
                     {resumeData.projects && resumeData.projects.length > 0 && (
                       <Card className="border-border/80">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <FolderGit2 className="w-4 h-4 text-emerald-500" /> Projects
+                        <CardHeader className="p-4 pb-2">
+                          <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <FolderGit2 className="w-4 h-4 text-primary" /> Projects
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="p-4 pt-1 space-y-3">
                           {resumeData.projects.map((proj, idx) => (
-                            <div key={idx} className="border-l-2 border-emerald-500/30 pl-4 py-1 space-y-1">
-                              <h4 className="font-semibold text-sm">{proj.name}</h4>
+                            <div key={idx} className="border-l-2 border-border pl-3.5 py-0.5 space-y-1">
+                              <h4 className="font-semibold text-xs sm:text-sm text-foreground">{proj.name}</h4>
                               <p className="text-xs text-muted-foreground leading-relaxed">{proj.description}</p>
                               {proj.technologies?.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                <div className="flex flex-wrap gap-1 pt-1">
                                   {proj.technologies.map((tech, i) => (
-                                    <Badge key={i} variant="secondary" className="text-[10px]">
+                                    <Badge key={i} variant="outline" className="text-[10px] font-normal px-2">
                                       {tech}
                                     </Badge>
                                   ))}
@@ -666,16 +656,16 @@ export default function Resume() {
                     {/* Certifications */}
                     {resumeData.certifications && resumeData.certifications.length > 0 && (
                       <Card className="border-border/80">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <Award className="w-4 h-4 text-amber-500" /> Certifications & Licenses
+                        <CardHeader className="p-4 pb-2">
+                          <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <Award className="w-4 h-4 text-primary" /> Certifications & Licenses
                           </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-4 pt-1">
                           <div className="flex flex-wrap gap-1.5">
                             {resumeData.certifications.map((cert, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200">
-                                🏆 {cert}
+                              <Badge key={idx} variant="secondary" className="text-[11px] font-normal px-2.5 py-1">
+                                {cert}
                               </Badge>
                             ))}
                           </div>
@@ -686,19 +676,19 @@ export default function Resume() {
                     {/* AI Career Insights & Suggested Roles */}
                     {(resumeData.suggestedRoles?.length > 0 || resumeData.strengthAreas?.length > 0) && (
                       <Card className="border-border/80 bg-muted/20">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <CardHeader className="p-4 pb-2">
+                          <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                             <Sparkles className="w-4 h-4 text-primary" /> AI Target Roles & Strengths
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3 text-xs">
+                        <CardContent className="p-4 pt-1 space-y-3 text-xs">
                           {resumeData.suggestedRoles?.length > 0 && (
                             <div>
                               <span className="font-semibold text-foreground block mb-1.5">Suggested Target Roles</span>
                               <div className="flex flex-wrap gap-1.5">
                                 {resumeData.suggestedRoles.map((role, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                    🎯 {role}
+                                  <Badge key={idx} variant="secondary" className="text-[11px]">
+                                    {role}
                                   </Badge>
                                 ))}
                               </div>
@@ -706,11 +696,11 @@ export default function Resume() {
                           )}
                           {resumeData.strengthAreas?.length > 0 && (
                             <div>
-                              <span className="font-semibold text-foreground block mb-1.5">Core Strength Areas</span>
+                              <span className="font-semibold text-foreground block mb-1.5">Core Strengths</span>
                               <div className="flex flex-wrap gap-1.5">
                                 {resumeData.strengthAreas.map((strength, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-xs border-primary/30 text-primary">
-                                    ⚡ {strength}
+                                  <Badge key={idx} variant="outline" className="text-[11px]">
+                                    {strength}
                                   </Badge>
                                 ))}
                               </div>
@@ -721,21 +711,21 @@ export default function Resume() {
                     )}
                   </motion.div>
                 ) : (
-                  <Card className="h-[360px] flex items-center justify-center border-dashed">
-                    <CardContent className="text-center space-y-4 p-6">
+                  <Card className="h-[300px] sm:h-[360px] flex items-center justify-center border-dashed">
+                    <CardContent className="text-center space-y-3 p-4 sm:p-6">
                       {isUploading ? (
                         <>
-                          <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
+                          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
                           <div>
-                            <p className="font-medium text-base">Parsing resume structure...</p>
+                            <p className="font-medium text-sm sm:text-base">Parsing resume structure...</p>
                             <p className="text-xs text-muted-foreground mt-1">{uploadStatus}</p>
                           </div>
                         </>
                       ) : (
                         <>
-                          <Upload className="w-12 h-12 mx-auto text-muted-foreground/30" />
+                          <Upload className="w-10 h-10 mx-auto text-muted-foreground/30" />
                           <div>
-                            <p className="font-semibold text-base">No Resume Analyzed Yet</p>
+                            <p className="font-semibold text-sm sm:text-base">No Resume Analyzed Yet</p>
                             <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
                               Upload your PDF or TXT resume to extract skill matrix, job history, and personalize your applications.
                             </p>
@@ -751,24 +741,24 @@ export default function Resume() {
         </TabsContent>
 
         {/* Tab 2: AI Resume Tailor */}
-        <TabsContent value="tailor" className="mt-6 space-y-8">
-          <div className="grid gap-8 lg:grid-cols-12">
+        <TabsContent value="tailor" className="mt-6 space-y-6">
+          <div className="grid gap-6 lg:grid-cols-12">
             {/* Input Form Panel */}
-            <div className="lg:col-span-5 space-y-6">
+            <div className="lg:col-span-5 space-y-4">
               <Card className="border-border/80">
-                <CardHeader>
-                  <CardTitle className="text-base font-bold flex items-center gap-2">
-                    <Wand2 className="w-4.5 h-4.5 text-indigo-500" /> Target Job Parameters
+                <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2">
+                    <Wand2 className="w-4 h-4 text-primary" /> Target Job Parameters
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Paste the target job details or select one of your saved jobs to tailor your resume bullet points for ATS algorithms.
+                    Provide target job details or choose a saved job to generate ATS-optimized summaries and bullet points.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 text-xs">
+                <CardContent className="p-4 sm:p-6 pt-2 space-y-3.5 text-xs">
                   {/* Select from Saved Jobs */}
                   {savedJobs.length > 0 && (
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">Pre-fill from Saved Jobs</Label>
+                      <Label className="text-xs font-medium text-foreground">Pre-fill from Saved Jobs</Label>
                       <Select 
                         onValueChange={(jobId) => {
                           const job = savedJobs.find(j => j.jobId === jobId || j.id === jobId);
@@ -779,7 +769,7 @@ export default function Resume() {
                           }
                         }}
                       >
-                        <SelectTrigger className="text-xs">
+                        <SelectTrigger className="text-xs h-9">
                           <SelectValue placeholder="Choose a saved job..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -794,44 +784,44 @@ export default function Resume() {
                   )}
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Job Title *</Label>
+                    <Label className="text-xs font-medium text-foreground">Job Title *</Label>
                     <Input 
                       placeholder="e.g. Senior Frontend Engineer" 
                       value={tailorJobTitle}
                       onChange={(e) => setTailorJobTitle(e.target.value)}
-                      className="text-xs"
+                      className="text-xs h-9"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Company Name</Label>
+                    <Label className="text-xs font-medium text-foreground">Company Name</Label>
                     <Input 
                       placeholder="e.g. Acme Innovations" 
                       value={tailorCompany}
                       onChange={(e) => setTailorCompany(e.target.value)}
-                      className="text-xs"
+                      className="text-xs h-9"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Target Job Description *</Label>
+                    <Label className="text-xs font-medium text-foreground">Target Job Description *</Label>
                     <Textarea 
-                      placeholder="Paste the key responsibilities, required skills, and qualifications from the job posting..." 
-                      rows={7}
+                      placeholder="Paste key responsibilities and required skills from the job posting..." 
+                      rows={6}
                       value={tailorJobDescription}
                       onChange={(e) => setTailorJobDescription(e.target.value)}
-                      className="text-xs leading-relaxed"
+                      className="text-xs leading-relaxed min-h-[120px]"
                     />
                   </div>
 
                   <Button 
                     onClick={generateTailoredResume} 
                     disabled={isTailoring}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold"
+                    className="w-full text-xs font-semibold h-9 mt-2"
                   >
                     {isTailoring ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" /> Tailoring Resume with AI...
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" /> Tailoring Resume with Groq AI...
                       </>
                     ) : (
                       <>
@@ -846,36 +836,36 @@ export default function Resume() {
             {/* Results Panel */}
             <div className="lg:col-span-7">
               {tailorResult ? (
-                <div className="space-y-6">
-                  {/* Score & Keyword Banner */}
-                  <Card className="border-indigo-500/30 bg-gradient-to-r from-indigo-950/20 via-background to-blue-950/20">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-4">
+                  {/* Score & Keyword Banner - Clean Minimal */}
+                  <Card className="border-border/80 bg-card">
+                    <CardContent className="p-4 sm:p-5 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                          <Badge variant="outline" className="border-indigo-500/40 text-indigo-600 dark:text-indigo-300 text-[10px]">
-                            ATS Keyword Alignment
+                          <Badge variant="outline" className="text-[10px] font-normal uppercase">
+                            ATS Alignment Score
                           </Badge>
-                          <h3 className="text-xl font-bold mt-1">{tailorResult.jobTitle} at {tailorResult.company}</h3>
+                          <h3 className="text-base sm:text-lg font-bold text-foreground mt-0.5">{tailorResult.jobTitle} <span className="font-normal text-muted-foreground">at {tailorResult.company}</span></h3>
                         </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <div className="text-center px-3 py-1.5 rounded-xl bg-background border shadow-2xs">
+                        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+                          <div className="text-center px-2.5 py-1 rounded-md bg-muted text-xs">
                             <span className="text-[10px] text-muted-foreground block">Before</span>
-                            <span className="text-sm font-bold text-muted-foreground">{tailorResult.matchScoreBefore}%</span>
+                            <span className="font-bold text-muted-foreground">{tailorResult.matchScoreBefore}%</span>
                           </div>
-                          <ArrowRight className="w-4 h-4 text-indigo-500" />
-                          <div className="text-center px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-2xs">
-                            <span className="text-[10px] block font-semibold">Tailored</span>
-                            <span className="text-base font-extrabold">{tailorResult.matchScoreAfter}%</span>
+                          <ArrowRight className="w-3.5 h-3.5 text-primary shrink-0" />
+                          <div className="text-center px-3 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 text-xs">
+                            <span className="text-[10px] block font-medium">Tailored</span>
+                            <span className="font-bold">{tailorResult.matchScoreAfter}%</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Keywords Breakdown */}
-                      <div className="space-y-2 pt-3 border-t border-border/60 text-xs">
-                        <span className="font-semibold text-foreground block">Matched ATS Keywords</span>
-                        <div className="flex flex-wrap gap-1.5">
+                      <div className="space-y-1.5 pt-2.5 border-t border-border/60 text-xs">
+                        <span className="font-medium text-foreground block">Matched ATS Keywords</span>
+                        <div className="flex flex-wrap gap-1">
                           {tailorResult.matchedKeywords?.map((kw: string, i: number) => (
-                            <Badge key={i} className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 text-[11px]">
+                            <Badge key={i} variant="secondary" className="text-[11px] font-normal">
                               ✓ {kw}
                             </Badge>
                           ))}
@@ -886,19 +876,19 @@ export default function Resume() {
 
                   {/* Tailored Professional Summary */}
                   <Card className="border-border/80">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-bold">Tailored Professional Summary</CardTitle>
+                    <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
+                      <CardTitle className="text-xs sm:text-sm font-semibold">Tailored Professional Summary</CardTitle>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={() => copyToClipboard(tailorResult.tailoredSummary, "Summary Copied")}
-                        className="text-xs h-7 gap-1"
+                        className="text-xs h-7 px-2 gap-1 text-muted-foreground hover:text-foreground"
                       >
                         <Copy className="w-3.5 h-3.5" /> Copy
                       </Button>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
-                      <p className="text-xs text-foreground/90 leading-relaxed p-3 bg-muted/40 rounded-lg">
+                      <p className="text-xs text-foreground/90 leading-relaxed p-3 bg-muted/30 rounded-md border border-border/40">
                         {tailorResult.tailoredSummary}
                       </p>
                     </CardContent>
@@ -906,8 +896,8 @@ export default function Resume() {
 
                   {/* Tailored Bullet Points */}
                   <Card className="border-border/80">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-bold">Tailored Experience Bullet Points</CardTitle>
+                    <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between flex-wrap gap-2">
+                      <CardTitle className="text-xs sm:text-sm font-semibold">Tailored Experience Bullet Points</CardTitle>
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -915,20 +905,20 @@ export default function Resume() {
                           const fullText = tailorResult.tailoredExperience.map((e: any) => `${e.role} at ${e.company}\n` + e.tailoredHighlights.map((h: string) => `• ${h}`).join("\n")).join("\n\n");
                           downloadAsTextFile(`${tailorResult.company}_Tailored_Experience.txt`, fullText);
                         }}
-                        className="text-xs h-7 gap-1"
+                        className="text-xs h-7 px-2 gap-1"
                       >
                         <Download className="w-3.5 h-3.5" /> Download TXT
                       </Button>
                     </CardHeader>
-                    <CardContent className="p-4 pt-0 space-y-4">
+                    <CardContent className="p-4 pt-0 space-y-3.5">
                       {tailorResult.tailoredExperience?.map((exp: any, i: number) => (
-                        <div key={i} className="border-l-2 border-indigo-500 pl-3 py-1 space-y-2">
-                          <h4 className="text-xs font-bold text-foreground">{exp.role} <span className="font-medium text-muted-foreground">({exp.company})</span></h4>
-                          <ul className="space-y-1.5 text-xs text-muted-foreground">
+                        <div key={i} className="border-l-2 border-primary/40 pl-3 py-0.5 space-y-1.5">
+                          <h4 className="text-xs font-semibold text-foreground">{exp.role} <span className="font-normal text-muted-foreground">({exp.company})</span></h4>
+                          <ul className="space-y-1 text-xs text-muted-foreground">
                             {exp.tailoredHighlights?.map((h: string, j: number) => (
                               <li key={j} className="flex items-start gap-1.5">
-                                <span className="text-indigo-500 font-bold">•</span>
-                                <span>{h}</span>
+                                <span className="text-primary font-bold">•</span>
+                                <span className="leading-relaxed">{h}</span>
                               </li>
                             ))}
                           </ul>
@@ -938,10 +928,10 @@ export default function Resume() {
                   </Card>
                 </div>
               ) : (
-                <Card className="h-[400px] flex items-center justify-center border-dashed">
-                  <CardContent className="text-center space-y-3 p-6">
-                    <Wand2 className="w-12 h-12 mx-auto text-indigo-400/40" />
-                    <h3 className="font-semibold text-base">Ready to Tailor Your Resume?</h3>
+                <Card className="h-[300px] sm:h-[400px] flex items-center justify-center border-dashed">
+                  <CardContent className="text-center space-y-3 p-4 sm:p-6">
+                    <Wand2 className="w-10 h-10 mx-auto text-muted-foreground/30" />
+                    <h3 className="font-semibold text-sm sm:text-base">Ready to Tailor Your Resume?</h3>
                     <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Enter a job title and description on the left to generate an ATS-optimized summary, bullet points, and keyword match rating.
                     </p>
@@ -953,29 +943,29 @@ export default function Resume() {
         </TabsContent>
 
         {/* Tab 3: AI Cover Letter & Cold Outreach Generator */}
-        <TabsContent value="cover-letter" className="mt-6 space-y-8">
-          <div className="grid gap-8 lg:grid-cols-12">
+        <TabsContent value="cover-letter" className="mt-6 space-y-6">
+          <div className="grid gap-6 lg:grid-cols-12">
             {/* Input Form Panel */}
-            <div className="lg:col-span-5 space-y-6">
+            <div className="lg:col-span-5 space-y-4">
               <Card className="border-border/80">
-                <CardHeader>
-                  <CardTitle className="text-base font-bold flex items-center gap-2">
-                    <Send className="w-4.5 h-4.5 text-emerald-500" /> Outreach Document Generator
+                <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2">
+                    <Send className="w-4 h-4 text-primary" /> Outreach Generator
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Create personalized cover letters, recruiter cold emails, or LinkedIn connection notes tailored to your experience.
+                    Create personalized cover letters, recruiter cold emails, or LinkedIn connection notes.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 text-xs">
+                <CardContent className="p-4 sm:p-6 pt-2 space-y-3 text-xs">
                   {/* Select Document Mode */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Document Mode</Label>
+                    <Label className="text-xs font-medium text-foreground">Document Mode</Label>
                     <Select value={clMode} onValueChange={(val: any) => setClMode(val)}>
-                      <SelectTrigger className="text-xs">
+                      <SelectTrigger className="text-xs h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cover-letter" className="text-xs">📄 Full Cover Letter (Structured & Formal)</SelectItem>
+                        <SelectItem value="cover-letter" className="text-xs">📄 Full Cover Letter (Formal & Structured)</SelectItem>
                         <SelectItem value="cold-email" className="text-xs">✉️ Recruiter Cold Email (Short & High-Converting)</SelectItem>
                         <SelectItem value="linkedin-message" className="text-xs">💬 LinkedIn Connection Note (Punchy & Direct)</SelectItem>
                       </SelectContent>
@@ -984,9 +974,9 @@ export default function Resume() {
 
                   {/* Select Tone */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Writing Tone</Label>
+                    <Label className="text-xs font-medium text-foreground">Writing Tone</Label>
                     <Select value={clTone} onValueChange={(val: any) => setClTone(val)}>
-                      <SelectTrigger className="text-xs">
+                      <SelectTrigger className="text-xs h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1001,7 +991,7 @@ export default function Resume() {
                   {/* Select from Saved Jobs */}
                   {savedJobs.length > 0 && (
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">Pre-fill from Saved Jobs</Label>
+                      <Label className="text-xs font-medium text-foreground">Pre-fill from Saved Jobs</Label>
                       <Select 
                         onValueChange={(jobId) => {
                           const job = savedJobs.find(j => j.jobId === jobId || j.id === jobId);
@@ -1012,7 +1002,7 @@ export default function Resume() {
                           }
                         }}
                       >
-                        <SelectTrigger className="text-xs">
+                        <SelectTrigger className="text-xs h-9">
                           <SelectValue placeholder="Choose a saved job..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -1027,50 +1017,50 @@ export default function Resume() {
                   )}
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Job Title *</Label>
+                    <Label className="text-xs font-medium text-foreground">Job Title *</Label>
                     <Input 
                       placeholder="e.g. Product Manager" 
                       value={clJobTitle}
                       onChange={(e) => setClJobTitle(e.target.value)}
-                      className="text-xs"
+                      className="text-xs h-9"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Company Name</Label>
+                    <Label className="text-xs font-medium text-foreground">Company Name</Label>
                     <Input 
                       placeholder="e.g. Stripe" 
                       value={clCompany}
                       onChange={(e) => setClCompany(e.target.value)}
-                      className="text-xs"
+                      className="text-xs h-9"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Recruiter / Contact Name (Optional)</Label>
+                    <Label className="text-xs font-medium text-foreground">Recruiter / Contact Name (Optional)</Label>
                     <Input 
                       placeholder="e.g. Sarah Jenkins or Hiring Team" 
                       value={clRecruiterName}
                       onChange={(e) => setClRecruiterName(e.target.value)}
-                      className="text-xs"
+                      className="text-xs h-9"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Job Description *</Label>
+                    <Label className="text-xs font-medium text-foreground">Job Description *</Label>
                     <Textarea 
                       placeholder="Paste job description requirements..." 
                       rows={5}
                       value={clJobDescription}
                       onChange={(e) => setClJobDescription(e.target.value)}
-                      className="text-xs leading-relaxed"
+                      className="text-xs leading-relaxed min-h-[100px]"
                     />
                   </div>
 
                   <Button 
                     onClick={generateCoverLetter} 
                     disabled={isGeneratingCl}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold"
+                    className="w-full text-xs font-semibold h-9 mt-2"
                   >
                     {isGeneratingCl ? (
                       <>
@@ -1089,57 +1079,57 @@ export default function Resume() {
             {/* Output Document Panel */}
             <div className="lg:col-span-7">
               {clResult ? (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <Card className="border-border/80">
-                    <CardHeader className="pb-3 flex flex-row items-center justify-between border-b border-border/60">
+                    <CardHeader className="p-4 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60">
                       <div>
-                        <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 text-[10px] uppercase">
+                        <Badge variant="outline" className="text-[10px] font-normal uppercase">
                           {clResult.mode} • {clResult.tone}
                         </Badge>
-                        <CardTitle className="text-lg font-bold mt-1">{clResult.jobTitle} at {clResult.company}</CardTitle>
+                        <CardTitle className="text-base sm:text-lg font-bold mt-1 text-foreground">{clResult.jobTitle} <span className="font-normal text-muted-foreground">at {clResult.company}</span></CardTitle>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={() => copyToClipboard(clResult.subjectLine ? `Subject: ${clResult.subjectLine}\n\n${clResult.content}` : clResult.content, "Full Document Copied")}
-                          className="text-xs h-8 gap-1"
+                          className="text-xs h-8 px-2.5 gap-1"
                         >
                           <Copy className="w-3.5 h-3.5" /> Copy
                         </Button>
                         <Button 
                           size="sm" 
                           onClick={() => downloadAsTextFile(`${clResult.company}_${clResult.mode}.txt`, clResult.subjectLine ? `Subject: ${clResult.subjectLine}\n\n${clResult.content}` : clResult.content)}
-                          className="text-xs h-8 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                          className="text-xs h-8 px-2.5 gap-1"
                         >
                           <Download className="w-3.5 h-3.5" /> Download
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-4">
+                    <CardContent className="p-4 sm:p-6 space-y-4">
                       {clResult.subjectLine && (
-                        <div className="p-3 bg-muted/60 rounded-lg flex items-center justify-between text-xs">
-                          <span className="font-semibold text-foreground">Subject: <span className="font-normal text-muted-foreground">{clResult.subjectLine}</span></span>
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(clResult.subjectLine, "Subject Line Copied")} className="h-6 px-2 text-[10px]">
+                        <div className="p-3 bg-muted/40 rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs border border-border/40">
+                          <span className="font-medium text-foreground truncate">Subject: <span className="font-normal text-muted-foreground">{clResult.subjectLine}</span></span>
+                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(clResult.subjectLine, "Subject Line Copied")} className="h-6 px-2 text-[10px] self-end sm:self-auto">
                             Copy Subject
                           </Button>
                         </div>
                       )}
 
-                      <div className="p-4 bg-muted/20 border border-border/60 rounded-xl space-y-3 text-xs leading-relaxed font-sans whitespace-pre-line text-foreground/90">
+                      <div className="p-4 bg-card border border-border/60 rounded-lg space-y-3 text-xs leading-relaxed font-sans whitespace-pre-line text-foreground/90">
                         {clResult.content}
                       </div>
 
                       {clResult.keyMatchHighlights?.length > 0 && (
-                        <div className="p-3.5 bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-2 text-xs">
-                          <span className="font-bold text-emerald-700 dark:text-emerald-400 block text-[11px] uppercase tracking-wider">
-                            Why You Stand Out For This Role
+                        <div className="p-3.5 bg-muted/30 border border-border/50 rounded-lg space-y-2 text-xs">
+                          <span className="font-semibold text-foreground block text-[11px] uppercase tracking-wider">
+                            Key Match Highlights
                           </span>
                           <ul className="space-y-1 text-muted-foreground">
                             {clResult.keyMatchHighlights.map((h: string, i: number) => (
                               <li key={i} className="flex items-start gap-1.5">
-                                <span className="text-emerald-500 font-bold">•</span>
-                                <span>{h}</span>
+                                <span className="text-primary font-bold">•</span>
+                                <span className="leading-relaxed">{h}</span>
                               </li>
                             ))}
                           </ul>
@@ -1149,12 +1139,12 @@ export default function Resume() {
                   </Card>
                 </div>
               ) : (
-                <Card className="h-[400px] flex items-center justify-center border-dashed">
-                  <CardContent className="text-center space-y-3 p-6">
-                    <Send className="w-12 h-12 mx-auto text-emerald-400/40" />
-                    <h3 className="font-semibold text-base">Generate Personal Outreach</h3>
+                <Card className="h-[300px] sm:h-[400px] flex items-center justify-center border-dashed">
+                  <CardContent className="text-center space-y-3 p-4 sm:p-6">
+                    <Send className="w-10 h-10 mx-auto text-muted-foreground/30" />
+                    <h3 className="font-semibold text-sm sm:text-base">Generate Personal Outreach</h3>
                     <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                      Fill out the target position details on the left to instantly draft customized cover letters, cold outreach emails, or LinkedIn messages.
+                      Fill out target position details on the left to instantly draft customized cover letters, cold emails, or LinkedIn messages.
                     </p>
                   </CardContent>
                 </Card>
