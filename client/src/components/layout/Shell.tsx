@@ -30,7 +30,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     return username.slice(0, 2).toUpperCase();
   };
 
-  const NavContent = () => (
+  const NavContent = ({ showThemeToggle = false }: { showThemeToggle?: boolean }) => (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border/80 select-none">
       {/* Brand Header */}
       <div className="p-5 flex items-center justify-between border-b border-sidebar-border/60">
@@ -43,7 +43,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </span>
           </div>
         </div>
-        <ThemeToggle />
+        {showThemeToggle && <ThemeToggle />}
       </div>
 
       {/* Main Navigation List */}
@@ -131,7 +131,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <div className="hidden md:block w-64 shrink-0">
         <div className="fixed inset-y-0 left-0 w-64 z-30">
-          <NavContent />
+          <NavContent showThemeToggle />
         </div>
       </div>
 
@@ -144,7 +144,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Menu className="w-4 h-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border">
+            <SheetContent side="left" className="p-0 w-[280px] sm:w-64 border-r border-sidebar-border">
               <NavContent />
             </SheetContent>
           </Sheet>
