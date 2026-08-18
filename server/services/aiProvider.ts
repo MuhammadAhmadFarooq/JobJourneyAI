@@ -8,7 +8,37 @@ const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 const GROQ_MODELS = [
   "openai/gpt-oss-120b",
   "openai/gpt-oss-20b",
+  "llama-3.3-70b-versatile",
+  "llama3-70b-8192",
+  "mixtral-8x7b-32768",
 ];
+
+/**
+ * Robust helper to extract valid JSON substring from LLM response text
+ */
+export function extractJsonFromText(rawText: string): string {
+  let cleaned = rawText.trim();
+  
+  // Remove markdown codeblock syntax if present
+  cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+
+  // Find outermost JSON object braces
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return cleaned.substring(firstBrace, lastBrace + 1);
+  }
+
+  // Find outermost JSON array brackets if object braces not found
+  const firstBracket = cleaned.indexOf("[");
+  const lastBracket = cleaned.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+    return cleaned.substring(firstBracket, lastBracket + 1);
+  }
+
+  return cleaned;
+}
 
 /**
  * Generates content using Groq API as primary AI provider,
@@ -27,6 +57,7 @@ export async function generateContentWithAI(prompt: string): Promise<string> {
             model: model,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.2,
+            max_tokens: 4096,
           },
           {
             headers: {

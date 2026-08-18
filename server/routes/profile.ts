@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { UserProfile } from "../models";
 import { requireAuth, getCurrentUserId } from "../middleware/auth";
+import { tailorResumeForJob } from "../services/resumeTailor";
+import { generateCoverLetterOrOutreach } from "../services/coverLetter";
 
 const router = Router();
 
@@ -525,6 +527,103 @@ router.delete("/interview-preps/:jobId", requireAuth, async (req, res) => {
   } catch (error: any) {
     console.error("Delete interview prep error:", error);
     res.status(500).json({ message: "Failed to delete interview prep" });
+  }
+});
+
+// Tailor resume for specific job
+router.post("/tailor-resume", requireAuth, async (req, res) => {
+  try {
+    const userId = getCurrentUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { jobTitle, company, jobDescription, resumeData } = req.body;
+
+    if (!jobTitle || !jobDescription) {
+      return res.status(400).json({ message: "Job title and description are required" });
+    }
+
+    let candidateResume = resumeData;
+    if (!candidateResume) {
+      const profile = await UserProfile.findOne({ userId });
+      if (profile) {
+        candidateResume = {
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone,
+          location: profile.location,
+          summary: profile.summary,
+          skills: profile.skills,
+          experience: profile.experience,
+          education: profile.education,
+          projects: profile.projects,
+        };
+      }
+    }
+
+    if (!candidateResume || (!candidateResume.skills?.length && !candidateResume.experience?.length)) {
+      return res.status(400).json({ message: "Please upload your resume first to generate a tailored variant." });
+    }
+
+    const tailoredResult = await tailorResumeForJob({
+      resumeData: candidateResume,
+      jobTitle,
+      company: company || "Target Company",
+      jobDescription,
+    });
+
+    res.json(tailoredResult);
+  } catch (error: any) {
+    console.error("Tailor resume error:", error);
+    res.status(500).json({ message: error.message || "Failed to generate tailored resume" });
+  }
+});
+
+// Generate cover letter or outreach message
+router.post("/cover-letter", requireAuth, async (req, res) => {
+  try {
+    const userId = getCurrentUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { jobTitle, company, jobDescription, mode, tone, recruiterName, resumeData } = req.body;
+
+    if (!jobTitle || !jobDescription) {
+      return res.status(400).json({ message: "Job title and description are required" });
+    }
+
+    let candidateResume = resumeData;
+    if (!candidateResume) {
+      const profile = await UserProfile.findOne({ userId });
+      if (profile) {
+        candidateResume = {
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone,
+          location: profile.location,
+          summary: profile.summary,
+          skills: profile.skills,
+          experience: profile.experience,
+        };
+      }
+    }
+
+    const result = await generateCoverLetterOrOutreach({
+      resumeData: candidateResume || {},
+      jobTitle,
+      company: company || "Target Company",
+      jobDescription,
+      mode: mode || "cover-letter",
+      tone: tone || "professional",
+      recruiterName: recruiterName || "Hiring Manager",
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Cover letter error:", error);
+    res.status(500).json({ message: error.message || "Failed to generate cover letter" });
   }
 });
 

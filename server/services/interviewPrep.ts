@@ -1,4 +1,4 @@
-import { generateContentWithAI } from "./aiProvider";
+import { generateContentWithAI, extractJsonFromText } from "./aiProvider";
 import axios from "axios";
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY || "";
@@ -330,12 +330,10 @@ Return ONLY valid JSON (no markdown, no code blocks):
 Generate at least 4-5 topics with 3-5 questions each. Make questions realistic and commonly asked in real interviews.`;
 
   try {
-    let text = await generateContentWithAI(prompt);
+    const text = await generateContentWithAI(prompt);
+    const cleanedText = extractJsonFromText(text);
     
-    // Clean up the response
-    text = text.replaceAll("```json\n", "").replaceAll("```\n", "").replaceAll("```", "").trim();
-    
-    const prepData = JSON.parse(text);
+    const prepData = JSON.parse(cleanedText);
     
     // Step 4: Search YouTube videos for each topic
     console.log("🎬 Finding YouTube tutorials for each topic...");

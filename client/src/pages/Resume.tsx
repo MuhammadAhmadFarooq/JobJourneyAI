@@ -1,8 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, Check, Loader2, Sparkles, AlertCircle, Briefcase, GraduationCap, FolderGit2, Award, Target, TrendingUp, RefreshCw, CheckCircle2, ShieldCheck, Mail, Phone, MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Upload, FileText, Check, Loader2, Sparkles, AlertCircle, Briefcase, 
+  GraduationCap, FolderGit2, Award, Target, TrendingUp, RefreshCw, 
+  CheckCircle2, ShieldCheck, Mail, Phone, MapPin, Copy, Download, 
+  Wand2, Send, FileEdit, Star, ChevronRight, Layers, ArrowRight, FileCheck
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -66,6 +77,12 @@ const defaultData: ParsedResumeData = {
 };
 
 export default function Resume() {
+  const params = new URLSearchParams(window.location.search);
+  const initialTab = params.get("tab") || "analysis";
+  const queryTitle = params.get("title") || "";
+  const queryCompany = params.get("company") || "";
+
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState("");
@@ -75,22 +92,37 @@ export default function Resume() {
   const [resumeData, setResumeData] = useState<ParsedResumeData>(defaultData);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [savedJobs, setSavedJobs] = useState<any[]>([]);
 
+  // Resume Tailor State
+  const [tailorJobTitle, setTailorJobTitle] = useState(queryTitle);
+  const [tailorCompany, setTailorCompany] = useState(queryCompany);
+  const [tailorJobDescription, setTailorJobDescription] = useState("");
+  const [isTailoring, setIsTailoring] = useState(false);
+  const [tailorResult, setTailorResult] = useState<any>(null);
+
+  // Cover Letter / Outreach State
+  const [clJobTitle, setClJobTitle] = useState(queryTitle);
+  const [clCompany, setClCompany] = useState(queryCompany);
+  const [clJobDescription, setClJobDescription] = useState("");
+  const [clRecruiterName, setClRecruiterName] = useState("");
+  const [clMode, setClMode] = useState<"cover-letter" | "cold-email" | "linkedin-message">("cover-letter");
+  const [clTone, setClTone] = useState<"professional" | "enthusiastic" | "executive" | "direct">("professional");
+  const [isGeneratingCl, setIsGeneratingCl] = useState(false);
+  const [clResult, setClResult] = useState<any>(null);
+
+  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isParsingRef = useRef(false);
   const lastParsedFileRef = useRef<string | null>(null);
 
-  // Load existing profile on mount
+  // Load existing profile & saved jobs on mount
   useEffect(() => {
-    const loadProfile = async () => {
+    const loadData = async () => {
       try {
-        const response = await fetch("/api/profile", {
-          credentials: "include",
-        });
-
+        const response = await fetch("/api/profile", { credentials: "include" });
         if (response.ok) {
           const profile = await response.json();
-
           if (profile.resumeFileName) {
             setFileName(profile.resumeFileName);
             setUploadDate(profile.resumeUploadedAt ? new Date(profile.resumeUploadedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : null);
@@ -113,12 +145,18 @@ export default function Resume() {
             setIsAnalyzed(true);
           }
         }
+
+        const savedResponse = await fetch("/api/profile/saved-jobs", { credentials: "include" });
+        if (savedResponse.ok) {
+          const saved = await savedResponse.json();
+          setSavedJobs(saved);
+        }
       } catch (err) {
-        console.error("Failed to load profile:", err);
+        console.error("Failed to load profile/jobs:", err);
       }
     };
 
-    loadProfile();
+    loadData();
   }, []);
 
   const handleUploadClick = () => {
@@ -149,9 +187,8 @@ export default function Resume() {
   const parseResumeWithAI = async (text: string, fileName: string): Promise<ParsedResumeData> => {
     const response = await fetch("/api/resumes/parse", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ rawText: text, fileName }),
     });
 
@@ -250,9 +287,7 @@ export default function Resume() {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      processFile(file);
-    }
+    if (file) processFile(file);
     event.target.value = "";
   };
 
@@ -270,9 +305,117 @@ export default function Resume() {
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) {
-      processFile(file);
+    if (file) processFile(file);
+  };
+
+  // Generate Tailored Resume
+  const generateTailoredResume = async () => {
+    if (!tailorJobTitle || !tailorJobDescription) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter a target job title and job description.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    setIsTailoring(true);
+    try {
+      const response = await fetch("/api/profile/tailor-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          jobTitle: tailorJobTitle,
+          company: tailorCompany,
+          jobDescription: tailorJobDescription,
+          resumeData: resumeData,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to tailor resume");
+      }
+
+      setTailorResult(data);
+      toast({
+        title: "Resume Tailored Successfully!",
+        description: `Estimated ATS Score boosted to ${data.matchScoreAfter}% match!`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsTailoring(false);
+    }
+  };
+
+  // Generate Cover Letter or Outreach Message
+  const generateCoverLetter = async () => {
+    if (!clJobTitle || !clJobDescription) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter a target job title and job description.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingCl(true);
+    try {
+      const response = await fetch("/api/profile/cover-letter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          jobTitle: clJobTitle,
+          company: clCompany,
+          jobDescription: clJobDescription,
+          recruiterName: clRecruiterName,
+          mode: clMode,
+          tone: clTone,
+          resumeData: resumeData,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to generate document");
+      }
+
+      setClResult(data);
+      toast({
+        title: "Document Generated!",
+        description: `Personalized ${clMode.replace("-", " ")} ready.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingCl(false);
+    }
+  };
+
+  const copyToClipboard = (text: string, title = "Copied!") => {
+    navigator.clipboard.writeText(text);
+    toast({ title, description: "Copied to clipboard." });
+  };
+
+  const downloadAsTextFile = (filename: string, text: string) => {
+    const element = document.createElement("a");
+    const file = new Blob([text], { type: "text/plain;charset=utf-8" });
+    element.href = URL.createObjectURL(file);
+    element.download = filename;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
 
   const skillCategories = ["Frontend", "Backend", "Language", "Database", "Cloud", "DevOps", "Other"];
@@ -284,385 +427,637 @@ export default function Resume() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <div className="space-y-8 max-w-6xl mx-auto px-1 sm:px-0">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> AI Resume Intelligence
+            <Sparkles className="w-3.5 h-3.5" /> AI Career Suite
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Resume Analysis & Skill Matrix
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Resume Intelligence & Document Studio
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Upload your resume to extract key competencies, experience timelines, and AI job match scores.
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Parse master resumes, generate ATS-tailored job variants, and create custom cover letters or outreach emails.
           </p>
         </div>
-
-        {isAnalyzed && (
-          <Button
-            onClick={handleUploadClick}
-            variant="outline"
-            className="self-start sm:self-center gap-2 border-primary/30 hover:bg-primary/5"
-          >
-            <RefreshCw className="w-4 h-4 text-primary" /> Update Resume
-          </Button>
-        )}
       </div>
 
-      <div className="grid gap-8 md:grid-cols-3">
-        {/* Left Column: Upload Zone & Document Meta */}
-        <div className="md:col-span-1 space-y-6">
-          {/* Interactive Upload Box */}
-          <Card
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`border-dashed border-2 transition-all duration-300 ${isDragOver
-                ? "border-primary bg-primary/10 scale-[1.02]"
-                : "border-muted-foreground/30 hover:border-primary/60 bg-muted/5 hover:shadow-md"
-              }`}
-          >
-            <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[260px] text-center gap-4">
-              <div className={`p-4 rounded-full transition-transform ${isUploading ? 'bg-primary/10 text-primary animate-pulse' : 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400'}`}>
-                <Upload className="w-8 h-8" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-semibold text-base">
-                  {isDragOver ? "Drop your file here" : "Upload your Resume"}
-                </h3>
-                <p className="text-xs text-muted-foreground px-4">
-                  Drag and drop your PDF or TXT resume, or click to browse.
-                </p>
-              </div>
+      {/* Main Feature Navigation Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto h-11 bg-muted/60 p-1 rounded-xl">
+          <TabsTrigger value="analysis" className="text-xs sm:text-sm font-medium gap-2">
+            <FileText className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">Master</span> Resume
+          </TabsTrigger>
+          <TabsTrigger value="tailor" className="text-xs sm:text-sm font-medium gap-2">
+            <Wand2 className="w-4 h-4 shrink-0 text-indigo-500" />
+            Resume Tailor
+          </TabsTrigger>
+          <TabsTrigger value="cover-letter" className="text-xs sm:text-sm font-medium gap-2">
+            <Send className="w-4 h-4 shrink-0 text-emerald-500" />
+            Cover Letter
+          </TabsTrigger>
+        </TabsList>
 
-              <div className="flex gap-2">
-                <Badge variant="outline" className="text-[10px]">PDF</Badge>
-                <Badge variant="outline" className="text-[10px]">TXT</Badge>
-              </div>
-
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept=".pdf,.txt"
-                onChange={handleFileChange}
-              />
-
-              {isUploading ? (
-                <div className="w-full max-w-[220px] space-y-3 pt-2">
-                  <Progress value={uploadProgress} className="h-2 bg-secondary" />
-                  <p className="text-xs font-medium text-primary flex items-center justify-center gap-1.5">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> {uploadStatus}
-                  </p>
-                </div>
-              ) : (
-                <Button
-                  onClick={handleUploadClick}
-                  variant="default"
-                  disabled={isUploading}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/10"
-                >
-                  Choose File
-                </Button>
-              )}
-
-              {error && (
-                <div className="flex items-center gap-2 text-xs text-rose-600 dark:text-rose-400 mt-2 px-4 p-2 bg-rose-50 dark:bg-rose-950/30 rounded-lg">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Current Upload Meta */}
-          {fileName && (
-            <Card className="border-border/80 shadow-sm">
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-semibold">Active Resume</CardTitle>
-                {isAnalyzed && <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px]">Analyzed</Badge>}
-              </CardHeader>
-              <CardContent className="flex items-center gap-3">
-                <div className="p-2.5 bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 rounded-lg">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-semibold truncate">{fileName}</p>
-                  {uploadDate && <p className="text-xs text-muted-foreground">Uploaded: {uploadDate}</p>}
-                </div>
-                {isAnalyzed && <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Suggested Roles */}
-          {isAnalyzed && resumeData.suggestedRoles.length > 0 && (
-            <Card className="border-border/80">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <CardTitle className="text-sm font-semibold">Suggested Roles</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-1.5">
-                  {resumeData.suggestedRoles.map((role) => (
-                    <Badge key={role} variant="secondary" className="text-xs py-1 px-2.5 bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-900">
-                      {role}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Strengths & Improvements */}
-          {isAnalyzed && (resumeData.strengthAreas.length > 0 || resumeData.improvementAreas.length > 0) && (
-            <Card className="border-border/80">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <CardTitle className="text-sm font-semibold">AI Profile Assessment</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {resumeData.strengthAreas.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1.5 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5" /> Key Strengths
-                    </p>
-                    <ul className="text-xs space-y-1.5 text-muted-foreground">
-                      {resumeData.strengthAreas.map((s) => (
-                        <li key={s} className="flex items-start gap-1.5">
-                          <span className="text-emerald-500 font-bold">•</span>
-                          <span>{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Right Column: Parsed Resume Output */}
-        <div className="md:col-span-2">
-          <AnimatePresence mode="wait">
-            {isAnalyzed ? (
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6"
+        {/* Tab 1: Master Resume Analysis */}
+        <TabsContent value="analysis" className="mt-6 space-y-8">
+          <div className="grid gap-8 md:grid-cols-12">
+            {/* Upload Panel Left */}
+            <div className="md:col-span-5 space-y-6">
+              <Card 
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden ${
+                  isDragOver 
+                    ? "border-primary bg-primary/5 scale-[1.01]" 
+                    : "border-border/80 hover:border-primary/50"
+                }`}
+                onClick={handleUploadClick}
               >
-                {/* Profile Contact Header */}
-                {resumeData.name && (
-                  <Card className="border-primary/20 bg-gradient-to-r from-blue-50/50 via-background to-indigo-50/50 dark:from-blue-950/20 dark:via-background dark:to-indigo-950/20">
-                    <CardContent className="pt-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <h2 className="text-2xl font-bold tracking-tight text-foreground">{resumeData.name}</h2>
-                          <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
-                            {resumeData.email && (
-                              <span className="flex items-center gap-1">
-                                <Mail className="w-3.5 h-3.5 text-primary" /> {resumeData.email}
-                              </span>
-                            )}
-                            {resumeData.phone && (
-                              <span className="flex items-center gap-1">
-                                <Phone className="w-3.5 h-3.5 text-primary" /> {resumeData.phone}
-                              </span>
-                            )}
-                            {resumeData.location && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-primary" /> {resumeData.location}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="self-start sm:self-center border-emerald-500/40 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 gap-1 text-xs">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Resume Verified
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".pdf,.txt"
+                  className="hidden"
+                />
+                <CardContent className="p-6 text-center space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-xs">
+                    {isUploading ? (
+                      <Loader2 className="w-7 h-7 animate-spin" />
+                    ) : (
+                      <Upload className="w-7 h-7" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-base">
+                      {isUploading ? "Processing Resume..." : "Upload Master Resume"}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
+                      Drag & drop your PDF or TXT resume here, or click to browse files.
+                    </p>
+                  </div>
 
-                {/* AI Executive Summary */}
-                {resumeData.profileSummary && (
-                  <Card className="border-primary/30 bg-primary/5 dark:bg-primary/10">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                        <CardTitle className="text-sm font-semibold text-primary">Executive Summary</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm leading-relaxed text-foreground/90">{resumeData.profileSummary}</p>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Technical Skills Breakdown */}
-                {resumeData.skills.length > 0 && (
-                  <Card className="border-border/80">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Extracted Skill Matrix</CardTitle>
-                      <CardDescription>Technical stack competencies extracted and categorized from your resume.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-5">
-                        {skillCategories.map((category) => {
-                          const categorySkills = resumeData.skills.filter(s => s.category === category);
-                          if (categorySkills.length === 0) return null;
-
-                          return (
-                            <div key={category} className="space-y-2">
-                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                {category}
-                              </h4>
-                              <div className="flex flex-wrap gap-2">
-                                {categorySkills.map((skill) => (
-                                  <Badge
-                                    key={`${category}-${skill.name}`}
-                                    variant="outline"
-                                    className={`px-3 py-1.5 text-xs font-medium border ${getSkillBadgeColor(skill.level)}`}
-                                  >
-                                    {skill.name}
-                                    <span className="ml-1.5 text-[10px] font-bold opacity-80">{skill.level}%</span>
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Work Experience Timeline */}
-                {resumeData.experience.length > 0 && (
-                  <Card className="border-border/80">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <CardTitle className="text-lg">Professional Experience</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {resumeData.experience.map((exp, idx) => (
-                        <div key={`${exp.role}-${exp.company}-${idx}`} className="flex gap-4 items-start border-l-2 border-blue-500/30 pl-4 py-1 hover:border-blue-500 transition-colors">
-                          <div className="space-y-1.5 flex-1">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                              <h4 className="font-semibold text-base text-foreground">{exp.role}</h4>
-                              <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                                {exp.duration}
-                              </span>
-                            </div>
-                            <p className="text-sm font-medium text-primary">{exp.company}</p>
-                            {exp.description && (
-                              <p className="text-sm text-muted-foreground leading-relaxed">{exp.description}</p>
-                            )}
-                            {exp.highlights && exp.highlights.length > 0 && (
-                              <ul className="text-xs space-y-1 mt-2 text-foreground/80">
-                                {exp.highlights.map((h, i) => (
-                                  <li key={i} className="flex items-start gap-2">
-                                    <span className="text-primary font-bold mt-0.5">•</span>
-                                    <span>{h}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Education */}
-                {resumeData.education.length > 0 && (
-                  <Card className="border-border/80">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        <CardTitle className="text-lg">Education</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {resumeData.education.map((edu, idx) => (
-                        <div key={`${edu.degree}-${idx}`} className="border-l-2 border-purple-500/30 pl-4 py-1">
-                          <h4 className="font-semibold text-sm">{edu.degree}</h4>
-                          <p className="text-xs font-medium text-primary">{edu.institution}</p>
-                          {edu.graduationDate && (
-                            <p className="text-xs text-muted-foreground mt-0.5">Graduated: {edu.graduationDate}</p>
-                          )}
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Projects */}
-                {resumeData.projects.length > 0 && (
-                  <Card className="border-border/80">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2">
-                        <FolderGit2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                        <CardTitle className="text-lg">Key Projects</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {resumeData.projects.map((project, idx) => (
-                        <div key={`${project.name}-${idx}`} className="border-l-2 border-emerald-500/30 pl-4 py-1">
-                          <h4 className="font-semibold text-sm">{project.name}</h4>
-                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{project.description}</p>
-                          {project.technologies && project.technologies.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {project.technologies.map((tech) => (
-                                <Badge key={tech} variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                  {tech}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
-              </motion.div>
-            ) : (
-              <Card className="h-[360px] flex items-center justify-center border-dashed">
-                <CardContent className="text-center space-y-4">
                   {isUploading ? (
-                    <>
-                      <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
-                      <div>
-                        <p className="font-medium text-base">Parsing resume structure...</p>
-                        <p className="text-xs text-muted-foreground mt-1">{uploadStatus}</p>
-                      </div>
-                    </>
+                    <div className="space-y-2 pt-2">
+                      <Progress value={uploadProgress} className="h-2" />
+                      <p className="text-xs text-primary font-medium">{uploadStatus}</p>
+                    </div>
                   ) : (
-                    <>
-                      <Upload className="w-12 h-12 mx-auto text-muted-foreground/30" />
-                      <div>
-                        <p className="font-semibold text-base">No Resume Analyzed Yet</p>
-                        <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                          Upload your PDF or TXT resume using the panel on the left to view skill ratings and AI match insights.
-                        </p>
-                      </div>
-                    </>
+                    <Button variant="outline" size="sm" className="text-xs pointer-events-none">
+                      Browse File
+                    </Button>
                   )}
                 </CardContent>
               </Card>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+
+              {/* Uploaded File Info Card */}
+              {fileName && (
+                <Card className="border-border/80 bg-muted/20">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
+                        <FileCheck className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold truncate text-foreground">{fileName}</p>
+                        <p className="text-[10px] text-muted-foreground">{uploadDate || "Uploaded"}</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 shrink-0">
+                      Active Profile
+                    </Badge>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Resume Breakdown Right */}
+            <div className="md:col-span-7">
+              <AnimatePresence mode="wait">
+                {isAnalyzed ? (
+                  <motion.div
+                    key="analyzed"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    className="space-y-6"
+                  >
+                    {/* Profile Header Card */}
+                    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-secondary/20">
+                      <CardContent className="p-6 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h2 className="text-xl font-bold text-foreground">{resumeData.name || "Candidate Profile"}</h2>
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
+                              {resumeData.email && <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> {resumeData.email}</span>}
+                              {resumeData.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {resumeData.location}</span>}
+                            </div>
+                          </div>
+                          <Badge className="bg-primary text-primary-foreground font-bold self-start sm:self-center">
+                            Master Resume
+                          </Badge>
+                        </div>
+                        {resumeData.profileSummary && (
+                          <p className="text-xs text-muted-foreground leading-relaxed pt-2 border-t border-border/60">
+                            {resumeData.profileSummary}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Skill Matrix */}
+                    <Card className="border-border/80">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-semibold flex items-center gap-2">
+                          <Target className="w-4 h-4 text-primary" /> Skill Competency Matrix
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex flex-wrap gap-1.5">
+                          {resumeData.skills.map((skill, i) => (
+                            <Badge 
+                              key={i} 
+                              variant="outline" 
+                              className={`text-xs px-2.5 py-1 ${getSkillBadgeColor(skill.level || 80)}`}
+                            >
+                              {skill.name} {skill.level ? `(${skill.level}%)` : ""}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Experience Timeline */}
+                    {resumeData.experience.length > 0 && (
+                      <Card className="border-border/80">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-blue-500" /> Work Experience
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {resumeData.experience.map((exp, idx) => (
+                            <div key={idx} className="border-l-2 border-primary/30 pl-4 py-1 space-y-1.5">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-semibold text-sm">{exp.role}</h4>
+                                  <p className="text-xs text-muted-foreground font-medium">{exp.company}</p>
+                                </div>
+                                <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded">{exp.duration}</span>
+                              </div>
+                              {exp.description && <p className="text-xs text-muted-foreground leading-relaxed">{exp.description}</p>}
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </motion.div>
+                ) : (
+                  <Card className="h-[360px] flex items-center justify-center border-dashed">
+                    <CardContent className="text-center space-y-4 p-6">
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
+                          <div>
+                            <p className="font-medium text-base">Parsing resume structure...</p>
+                            <p className="text-xs text-muted-foreground mt-1">{uploadStatus}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-12 h-12 mx-auto text-muted-foreground/30" />
+                          <div>
+                            <p className="font-semibold text-base">No Resume Analyzed Yet</p>
+                            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                              Upload your PDF or TXT resume to extract skill matrix, job history, and personalize your applications.
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Tab 2: AI Resume Tailor */}
+        <TabsContent value="tailor" className="mt-6 space-y-8">
+          <div className="grid gap-8 lg:grid-cols-12">
+            {/* Input Form Panel */}
+            <div className="lg:col-span-5 space-y-6">
+              <Card className="border-border/80">
+                <CardHeader>
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <Wand2 className="w-4.5 h-4.5 text-indigo-500" /> Target Job Parameters
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Paste the target job details or select one of your saved jobs to tailor your resume bullet points for ATS algorithms.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-xs">
+                  {/* Select from Saved Jobs */}
+                  {savedJobs.length > 0 && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Pre-fill from Saved Jobs</Label>
+                      <Select 
+                        onValueChange={(jobId) => {
+                          const job = savedJobs.find(j => j.jobId === jobId || j.id === jobId);
+                          if (job) {
+                            setTailorJobTitle(job.title || "");
+                            setTailorCompany(job.company || "");
+                            setTailorJobDescription(job.description || "");
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="text-xs">
+                          <SelectValue placeholder="Choose a saved job..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {savedJobs.map((job, idx) => (
+                            <SelectItem key={idx} value={job.jobId || job.id || `${idx}`} className="text-xs">
+                              {job.title} at {job.company}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Job Title *</Label>
+                    <Input 
+                      placeholder="e.g. Senior Frontend Engineer" 
+                      value={tailorJobTitle}
+                      onChange={(e) => setTailorJobTitle(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Company Name</Label>
+                    <Input 
+                      placeholder="e.g. Acme Innovations" 
+                      value={tailorCompany}
+                      onChange={(e) => setTailorCompany(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Target Job Description *</Label>
+                    <Textarea 
+                      placeholder="Paste the key responsibilities, required skills, and qualifications from the job posting..." 
+                      rows={7}
+                      value={tailorJobDescription}
+                      onChange={(e) => setTailorJobDescription(e.target.value)}
+                      className="text-xs leading-relaxed"
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={generateTailoredResume} 
+                    disabled={isTailoring}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold"
+                  >
+                    {isTailoring ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" /> Tailoring Resume with AI...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="w-4 h-4 mr-2" /> Generate Tailored Resume Variant
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Results Panel */}
+            <div className="lg:col-span-7">
+              {tailorResult ? (
+                <div className="space-y-6">
+                  {/* Score & Keyword Banner */}
+                  <Card className="border-indigo-500/30 bg-gradient-to-r from-indigo-950/20 via-background to-blue-950/20">
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <Badge variant="outline" className="border-indigo-500/40 text-indigo-600 dark:text-indigo-300 text-[10px]">
+                            ATS Keyword Alignment
+                          </Badge>
+                          <h3 className="text-xl font-bold mt-1">{tailorResult.jobTitle} at {tailorResult.company}</h3>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-center px-3 py-1.5 rounded-xl bg-background border shadow-2xs">
+                            <span className="text-[10px] text-muted-foreground block">Before</span>
+                            <span className="text-sm font-bold text-muted-foreground">{tailorResult.matchScoreBefore}%</span>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-indigo-500" />
+                          <div className="text-center px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-2xs">
+                            <span className="text-[10px] block font-semibold">Tailored</span>
+                            <span className="text-base font-extrabold">{tailorResult.matchScoreAfter}%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Keywords Breakdown */}
+                      <div className="space-y-2 pt-3 border-t border-border/60 text-xs">
+                        <span className="font-semibold text-foreground block">Matched ATS Keywords</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tailorResult.matchedKeywords?.map((kw: string, i: number) => (
+                            <Badge key={i} className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 text-[11px]">
+                              ✓ {kw}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Tailored Professional Summary */}
+                  <Card className="border-border/80">
+                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                      <CardTitle className="text-sm font-bold">Tailored Professional Summary</CardTitle>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => copyToClipboard(tailorResult.tailoredSummary, "Summary Copied")}
+                        className="text-xs h-7 gap-1"
+                      >
+                        <Copy className="w-3.5 h-3.5" /> Copy
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <p className="text-xs text-foreground/90 leading-relaxed p-3 bg-muted/40 rounded-lg">
+                        {tailorResult.tailoredSummary}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Tailored Bullet Points */}
+                  <Card className="border-border/80">
+                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                      <CardTitle className="text-sm font-bold">Tailored Experience Bullet Points</CardTitle>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          const fullText = tailorResult.tailoredExperience.map((e: any) => `${e.role} at ${e.company}\n` + e.tailoredHighlights.map((h: string) => `• ${h}`).join("\n")).join("\n\n");
+                          downloadAsTextFile(`${tailorResult.company}_Tailored_Experience.txt`, fullText);
+                        }}
+                        className="text-xs h-7 gap-1"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Download TXT
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 space-y-4">
+                      {tailorResult.tailoredExperience?.map((exp: any, i: number) => (
+                        <div key={i} className="border-l-2 border-indigo-500 pl-3 py-1 space-y-2">
+                          <h4 className="text-xs font-bold text-foreground">{exp.role} <span className="font-medium text-muted-foreground">({exp.company})</span></h4>
+                          <ul className="space-y-1.5 text-xs text-muted-foreground">
+                            {exp.tailoredHighlights?.map((h: string, j: number) => (
+                              <li key={j} className="flex items-start gap-1.5">
+                                <span className="text-indigo-500 font-bold">•</span>
+                                <span>{h}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <Card className="h-[400px] flex items-center justify-center border-dashed">
+                  <CardContent className="text-center space-y-3 p-6">
+                    <Wand2 className="w-12 h-12 mx-auto text-indigo-400/40" />
+                    <h3 className="font-semibold text-base">Ready to Tailor Your Resume?</h3>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                      Enter a job title and description on the left to generate an ATS-optimized summary, bullet points, and keyword match rating.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Tab 3: AI Cover Letter & Cold Outreach Generator */}
+        <TabsContent value="cover-letter" className="mt-6 space-y-8">
+          <div className="grid gap-8 lg:grid-cols-12">
+            {/* Input Form Panel */}
+            <div className="lg:col-span-5 space-y-6">
+              <Card className="border-border/80">
+                <CardHeader>
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <Send className="w-4.5 h-4.5 text-emerald-500" /> Outreach Document Generator
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Create personalized cover letters, recruiter cold emails, or LinkedIn connection notes tailored to your experience.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-xs">
+                  {/* Select Document Mode */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Document Mode</Label>
+                    <Select value={clMode} onValueChange={(val: any) => setClMode(val)}>
+                      <SelectTrigger className="text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cover-letter" className="text-xs">📄 Full Cover Letter (Structured & Formal)</SelectItem>
+                        <SelectItem value="cold-email" className="text-xs">✉️ Recruiter Cold Email (Short & High-Converting)</SelectItem>
+                        <SelectItem value="linkedin-message" className="text-xs">💬 LinkedIn Connection Note (Punchy & Direct)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Select Tone */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Writing Tone</Label>
+                    <Select value={clTone} onValueChange={(val: any) => setClTone(val)}>
+                      <SelectTrigger className="text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="professional" className="text-xs">👔 Professional & Polished</SelectItem>
+                        <SelectItem value="enthusiastic" className="text-xs">🔥 Enthusiastic & Dynamic</SelectItem>
+                        <SelectItem value="executive" className="text-xs">📈 Executive & Metric-Driven</SelectItem>
+                        <SelectItem value="direct" className="text-xs">🎯 Direct & Concise</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Select from Saved Jobs */}
+                  {savedJobs.length > 0 && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Pre-fill from Saved Jobs</Label>
+                      <Select 
+                        onValueChange={(jobId) => {
+                          const job = savedJobs.find(j => j.jobId === jobId || j.id === jobId);
+                          if (job) {
+                            setClJobTitle(job.title || "");
+                            setClCompany(job.company || "");
+                            setClJobDescription(job.description || "");
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="text-xs">
+                          <SelectValue placeholder="Choose a saved job..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {savedJobs.map((job, idx) => (
+                            <SelectItem key={idx} value={job.jobId || job.id || `${idx}`} className="text-xs">
+                              {job.title} at {job.company}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Job Title *</Label>
+                    <Input 
+                      placeholder="e.g. Product Manager" 
+                      value={clJobTitle}
+                      onChange={(e) => setClJobTitle(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Company Name</Label>
+                    <Input 
+                      placeholder="e.g. Stripe" 
+                      value={clCompany}
+                      onChange={(e) => setClCompany(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Recruiter / Contact Name (Optional)</Label>
+                    <Input 
+                      placeholder="e.g. Sarah Jenkins or Hiring Team" 
+                      value={clRecruiterName}
+                      onChange={(e) => setClRecruiterName(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Job Description *</Label>
+                    <Textarea 
+                      placeholder="Paste job description requirements..." 
+                      rows={5}
+                      value={clJobDescription}
+                      onChange={(e) => setClJobDescription(e.target.value)}
+                      className="text-xs leading-relaxed"
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={generateCoverLetter} 
+                    disabled={isGeneratingCl}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold"
+                  >
+                    {isGeneratingCl ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating Document...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" /> Generate {clMode === 'cover-letter' ? 'Cover Letter' : 'Outreach Message'}
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Output Document Panel */}
+            <div className="lg:col-span-7">
+              {clResult ? (
+                <div className="space-y-6">
+                  <Card className="border-border/80">
+                    <CardHeader className="pb-3 flex flex-row items-center justify-between border-b border-border/60">
+                      <div>
+                        <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 text-[10px] uppercase">
+                          {clResult.mode} • {clResult.tone}
+                        </Badge>
+                        <CardTitle className="text-lg font-bold mt-1">{clResult.jobTitle} at {clResult.company}</CardTitle>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => copyToClipboard(clResult.subjectLine ? `Subject: ${clResult.subjectLine}\n\n${clResult.content}` : clResult.content, "Full Document Copied")}
+                          className="text-xs h-8 gap-1"
+                        >
+                          <Copy className="w-3.5 h-3.5" /> Copy
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => downloadAsTextFile(`${clResult.company}_${clResult.mode}.txt`, clResult.subjectLine ? `Subject: ${clResult.subjectLine}\n\n${clResult.content}` : clResult.content)}
+                          className="text-xs h-8 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                          <Download className="w-3.5 h-3.5" /> Download
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      {clResult.subjectLine && (
+                        <div className="p-3 bg-muted/60 rounded-lg flex items-center justify-between text-xs">
+                          <span className="font-semibold text-foreground">Subject: <span className="font-normal text-muted-foreground">{clResult.subjectLine}</span></span>
+                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(clResult.subjectLine, "Subject Line Copied")} className="h-6 px-2 text-[10px]">
+                            Copy Subject
+                          </Button>
+                        </div>
+                      )}
+
+                      <div className="p-4 bg-muted/20 border border-border/60 rounded-xl space-y-3 text-xs leading-relaxed font-sans whitespace-pre-line text-foreground/90">
+                        {clResult.content}
+                      </div>
+
+                      {clResult.keyMatchHighlights?.length > 0 && (
+                        <div className="p-3.5 bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-2 text-xs">
+                          <span className="font-bold text-emerald-700 dark:text-emerald-400 block text-[11px] uppercase tracking-wider">
+                            Why You Stand Out For This Role
+                          </span>
+                          <ul className="space-y-1 text-muted-foreground">
+                            {clResult.keyMatchHighlights.map((h: string, i: number) => (
+                              <li key={i} className="flex items-start gap-1.5">
+                                <span className="text-emerald-500 font-bold">•</span>
+                                <span>{h}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <Card className="h-[400px] flex items-center justify-center border-dashed">
+                  <CardContent className="text-center space-y-3 p-6">
+                    <Send className="w-12 h-12 mx-auto text-emerald-400/40" />
+                    <h3 className="font-semibold text-base">Generate Personal Outreach</h3>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                      Fill out the target position details on the left to instantly draft customized cover letters, cold outreach emails, or LinkedIn messages.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

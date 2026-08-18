@@ -1,4 +1,4 @@
-import { generateContentWithAI } from "./aiProvider";
+import { generateContentWithAI, extractJsonFromText } from "./aiProvider";
 
 const parsedResumeCache = new Map<string, { expiresAt: number; value: ParsedResume }>();
 const inflightResumeParses = new Map<string, Promise<ParsedResume>>();
@@ -139,18 +139,8 @@ async function parseResumeWithGeminiInternal(resumeText: string): Promise<Parsed
   try {
     const text = await generateContentWithAI(RESUME_PARSE_PROMPT + resumeText);
 
-    // Clean up the response - remove any markdown code blocks if present
-    let cleanedText = text.trim();
-    if (cleanedText.startsWith("```json")) {
-      cleanedText = cleanedText.slice(7);
-    } else if (cleanedText.startsWith("```")) {
-      cleanedText = cleanedText.slice(3);
-    }
-    if (cleanedText.endsWith("```")) {
-      cleanedText = cleanedText.slice(0, -3);
-    }
-    cleanedText = cleanedText.trim();
-
+    // Robustly extract JSON payload from LLM output
+    const cleanedText = extractJsonFromText(text);
     const parsedData = JSON.parse(cleanedText) as ParsedResume;
 
     // Validate and set defaults for missing fields

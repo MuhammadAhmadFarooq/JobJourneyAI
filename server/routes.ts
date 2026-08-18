@@ -33,7 +33,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Resume text is required" });
       }
 
-      console.log("🤖 Parsing resume with Gemini AI...");
+      console.log("🤖 Parsing resume with Groq AI...");
       const parsedData = await parseResumeWithGemini(rawText);
       console.log("✅ Resume parsed successfully");
 

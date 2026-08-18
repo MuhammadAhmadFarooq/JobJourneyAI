@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, DollarSign, Clock, Star, ArrowUpRight, Sparkles, Loader2, RefreshCw, AlertCircle, Briefcase, ExternalLink, BookmarkPlus, BookmarkCheck, Settings2, X, Plus, Check, SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, MapPin, DollarSign, Clock, Star, ArrowUpRight, Sparkles, Loader2, RefreshCw, AlertCircle, Briefcase, ExternalLink, BookmarkPlus, BookmarkCheck, Settings2, X, Plus, Check, SlidersHorizontal, ChevronDown, ChevronUp, Wand2, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -981,12 +981,34 @@ export default function Jobs() {
                       <span className="text-[11px] sm:text-xs text-muted-foreground">
                         via <span className="font-medium text-foreground">{job.sourcePlatform}</span>
                       </span>
-                      <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+                        <Button 
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            window.location.href = `/resume?tab=tailor&title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`;
+                          }}
+                          className="flex-1 sm:flex-none text-[11px] h-8 px-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                          title="Generate ATS-tailored resume variant for this role"
+                        >
+                          <Wand2 className="mr-1 w-3 h-3 text-indigo-500" /> Tailor Resume
+                        </Button>
+                        <Button 
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            window.location.href = `/resume?tab=cover-letter&title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`;
+                          }}
+                          className="flex-1 sm:flex-none text-[11px] h-8 px-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                          title="Generate Cover Letter or Outreach message"
+                        >
+                          <Send className="mr-1 w-3 h-3 text-emerald-500" /> Cover Letter
+                        </Button>
                         <Button 
                           variant={isJobSaved(job) ? "default" : "outline"} 
                           size="sm"
                           onClick={() => saveJob(job)}
-                          className="flex-1 sm:flex-none text-xs h-8 sm:h-9"
+                          className="flex-1 sm:flex-none text-xs h-8"
                         >
                           {isJobSaved(job) ? (
                             <>
@@ -998,7 +1020,7 @@ export default function Jobs() {
                             </>
                           )}
                         </Button>
-                        <Button size="sm" asChild className="flex-1 sm:flex-none text-xs h-8 sm:h-9">
+                        <Button size="sm" asChild className="flex-1 sm:flex-none text-xs h-8">
                           <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer">
                             Apply <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
                           </a>
