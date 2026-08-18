@@ -126,8 +126,16 @@ async function searchWeb(query: string): Promise<string[]> {
 
 // Search YouTube for the best tutorial/explanation video
 async function searchYouTubeVideo(topic: string, context: string): Promise<YouTubeVideo | null> {
+  const searchQuery = `${topic} ${context} tutorial interview`;
+  const fallbackUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+  const fallbackVideo: YouTubeVideo = {
+    title: `${topic} - Tutorial & Interview Guide`,
+    channel: "YouTube Search",
+    url: fallbackUrl,
+  };
+
   if (!SERPER_API_KEY) {
-    return null;
+    return fallbackVideo;
   }
 
   try {
@@ -135,7 +143,7 @@ async function searchYouTubeVideo(topic: string, context: string): Promise<YouTu
     const response = await axios.post(
       "https://google.serper.dev/videos",
       {
-        q: `${topic} ${context} tutorial interview`,
+        q: searchQuery,
         num: 5,
       },
       {
@@ -155,7 +163,7 @@ async function searchYouTubeVideo(topic: string, context: string): Promise<YouTu
       // Only return YouTube videos
       if (link.includes("youtube.com") || link.includes("youtu.be")) {
         return {
-          title: video.title || "Tutorial Video",
+          title: video.title || `${topic} Tutorial Video`,
           channel: video.channel || "YouTube",
           url: link,
           thumbnail: video.imageUrl || video.thumbnail,
@@ -163,10 +171,10 @@ async function searchYouTubeVideo(topic: string, context: string): Promise<YouTu
       }
     }
 
-    return null;
+    return fallbackVideo;
   } catch (error) {
     console.error("YouTube search error:", error);
-    return null;
+    return fallbackVideo;
   }
 }
 
