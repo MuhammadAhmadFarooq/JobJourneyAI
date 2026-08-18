@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import SEO from "@/components/SEO";
 
 interface Job {
   jobId?: string;
@@ -606,6 +607,12 @@ export default function Jobs() {
 
   return (
     <div className="space-y-6 sm:space-y-8 max-w-6xl mx-auto px-1 sm:px-0">
+      <SEO 
+        title="Job Discovery & AI Matcher" 
+        description="Search active tech and remote job listings with real-time Anti-Expired Shield verification, compatibility ratings, and 1-click resume tailoring." 
+        canonical="/jobs"
+        keywords="live job board, anti-expired jobs, verified tech jobs, remote engineering jobs, job compatibility score"
+      />
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">

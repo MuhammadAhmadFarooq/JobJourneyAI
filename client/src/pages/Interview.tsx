@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
 interface SavedJob {
   id: string;
@@ -291,6 +292,12 @@ export default function Interview() {
 
   return (
     <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto px-1 sm:px-0 overflow-x-hidden">
+      <SEO 
+        title="AI Interview Preparation & Practice Kit" 
+        description="Master your upcoming tech interviews with AI-generated behavioral questions, coding hints, sample answers, curated YouTube tutorial videos, and 2-week study schedules." 
+        canonical="/interview"
+        keywords="interview prep, mock interview questions, behavioral interview questions, tech interview tutorial, coding interview practice"
+      />
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
         <div className="min-w-0">

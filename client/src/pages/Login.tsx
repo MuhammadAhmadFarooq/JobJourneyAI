@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, Lock, Sparkles, ShieldCheck, Briefcase, BrainCircuit, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import logoImage from "@assets/generated_images/minimalist_abstract_logo_for_career_navigation_app.png";
+import SEO from "@/components/SEO";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -41,6 +42,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-12 bg-background">
+      <SEO 
+        title="Sign In" 
+        description="Sign in to your JobJourneyAI career portal to access verified job opportunities, ATS resume optimizer, and AI interview prep." 
+        canonical="/login"
+      />
       {/* Left Feature Hero Banner */}
       <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 relative bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 p-12 text-white flex-col justify-between overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />

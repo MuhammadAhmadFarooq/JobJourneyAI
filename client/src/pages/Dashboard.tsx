@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import SEO from "@/components/SEO";
 
 interface UserProfile {
   skills: any[];
@@ -121,6 +122,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      <SEO 
+        title="Career Dashboard" 
+        description="Monitor your job application pipeline, resume ATS strength score, skill breakdown, and personalized matched opportunities." 
+        canonical="/"
+      />
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

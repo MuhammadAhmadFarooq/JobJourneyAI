@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import * as pdfjsLib from 'pdfjs-dist';
+import SEO from "@/components/SEO";
 
 // Configure worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -421,6 +422,12 @@ export default function Resume() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 pb-8 overflow-x-hidden">
+      <SEO 
+        title="Resume Studio & AI Tailor" 
+        description="Extract resume competencies, optimize bullet points for ATS scanners with target job descriptions, and generate customized cover letters with AI." 
+        canonical="/resume"
+        keywords="resume parser, resume tailor, ATS score optimizer, AI cover letter generator, cold outreach email writer"
+      />
       {/* Header Banner - Minimalist & Mobile Crisp */}
       <div className="pb-4 border-b border-border/60">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-secondary-foreground mb-2">

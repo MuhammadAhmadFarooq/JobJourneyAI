@@ -1,0 +1,10 @@
+# Robots.txt for JobJourneyAI
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+
+# Disallow authenticated private dashboard endpoints from indexing
+Disallow: /api/
+
+Sitemap: https://jobjourneyai.com/sitemap.xml
