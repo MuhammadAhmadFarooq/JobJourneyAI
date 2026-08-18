@@ -290,17 +290,17 @@ export default function Interview() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto px-1 sm:px-0 overflow-x-hidden">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
-        <div>
+        <div className="min-w-0">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> AI Interview Simulator & Research Coach
+            <Sparkles className="w-3.5 h-3.5 shrink-0" /> AI Interview Simulator & Research Coach
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground break-words">
             Interview Preparation Kit
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
             Deep role research, technical questions, hints, sample answers, and structured study plans powered by Groq AI.
           </p>
         </div>
@@ -448,13 +448,13 @@ export default function Interview() {
             ) : prepData ? (
               <motion.div key="results" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-8">
                 {/* Back Button & Job Title Banner */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-900 text-white shadow-xl">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-900 text-white shadow-xl">
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 text-xs font-semibold text-blue-300 mb-1">
-                      <Building2 className="w-3.5 h-3.5" /> {prepData.company}
+                      <Building2 className="w-3.5 h-3.5 shrink-0" /> {prepData.company}
                     </div>
-                    <h2 className="text-2xl font-extrabold tracking-tight">{prepData.jobTitle}</h2>
-                    <p className="text-xs text-blue-100/80 mt-1">AI-Researched Technical & Behavioral Candidate Preparation Kit</p>
+                    <h2 className="text-lg sm:text-2xl font-extrabold tracking-tight break-words">{prepData.jobTitle}</h2>
+                    <p className="text-xs text-blue-100/80 mt-1 break-words">AI-Researched Technical & Behavioral Candidate Preparation Kit</p>
                   </div>
 
                   <Button variant="secondary" size="sm" onClick={() => setActiveTab("saved-jobs")} className="self-start sm:self-center gap-2 text-xs">
@@ -463,43 +463,43 @@ export default function Interview() {
                 </div>
 
                 {/* Company & Role Insights Grid */}
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card className="border-border/80">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-blue-500" /> Company Intelligence
+                <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+                  <Card className="border-border/80 overflow-hidden">
+                    <CardHeader className="p-3 sm:p-6 pb-3">
+                      <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-blue-500 shrink-0" /> Company Intelligence
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3 text-xs">
+                    <CardContent className="p-3 sm:p-6 pt-0 space-y-3 text-xs">
                       <div>
                         <span className="font-semibold text-foreground block mb-0.5">Overview</span>
-                        <p className="text-muted-foreground leading-relaxed">{prepData.companyInsights.overview}</p>
+                        <p className="text-muted-foreground leading-relaxed break-words">{prepData.companyInsights.overview}</p>
                       </div>
                       <div>
                         <span className="font-semibold text-foreground block mb-0.5">Culture & Values</span>
-                        <p className="text-muted-foreground leading-relaxed">{prepData.companyInsights.culture}</p>
+                        <p className="text-muted-foreground leading-relaxed break-words">{prepData.companyInsights.culture}</p>
                       </div>
                       <div>
                         <span className="font-semibold text-foreground block mb-0.5">Interview Process</span>
-                        <p className="text-muted-foreground leading-relaxed">{prepData.companyInsights.interviewProcess}</p>
+                        <p className="text-muted-foreground leading-relaxed break-words">{prepData.companyInsights.interviewProcess}</p>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-border/80">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <Target className="w-4 h-4 text-purple-500" /> Role Dynamics & Salary
+                  <Card className="border-border/80 overflow-hidden">
+                    <CardHeader className="p-3 sm:p-6 pb-3">
+                      <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                        <Target className="w-4 h-4 text-purple-500 shrink-0" /> Role Dynamics & Salary
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3 text-xs">
+                    <CardContent className="p-3 sm:p-6 pt-0 space-y-3 text-xs">
                       <div>
                         <span className="font-semibold text-foreground block mb-0.5">Day-to-Day Responsibilities</span>
-                        <p className="text-muted-foreground leading-relaxed">{prepData.roleInsights.dayToDay}</p>
+                        <p className="text-muted-foreground leading-relaxed break-words">{prepData.roleInsights.dayToDay}</p>
                       </div>
                       <div>
                         <span className="font-semibold text-foreground block mb-0.5">Career Growth Path</span>
-                        <p className="text-muted-foreground leading-relaxed">{prepData.roleInsights.growthPath}</p>
+                        <p className="text-muted-foreground leading-relaxed break-words">{prepData.roleInsights.growthPath}</p>
                       </div>
                       <div>
                         <span className="font-semibold text-foreground block mb-0.5 flex items-center gap-1">
@@ -512,13 +512,13 @@ export default function Interview() {
                 </div>
 
                 {/* Tech Stack Analysis */}
-                <Card className="border-border/80">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-indigo-500" /> Tech Stack & Key Topics
+                <Card className="border-border/80 overflow-hidden">
+                  <CardHeader className="p-3 sm:p-6 pb-3">
+                    <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-indigo-500 shrink-0" /> Tech Stack & Key Topics
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4 text-xs">
+                  <CardContent className="p-3 sm:p-6 pt-0 space-y-4 text-xs">
                     <div>
                       <span className="font-semibold text-foreground block mb-2">Required Core Technologies</span>
                       <div className="flex flex-wrap gap-1.5">
@@ -551,19 +551,19 @@ export default function Interview() {
                   </h3>
 
                   {prepData.topics.map((topic, topicIdx) => (
-                    <Card key={topicIdx} className="border-border/80">
-                      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                        <div>
-                          <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <Card key={topicIdx} className="border-border/80 overflow-hidden">
+                      <CardHeader className="p-3 sm:p-6 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <CardTitle className="text-sm sm:text-base font-bold break-words">
                             {topic.title}
                           </CardTitle>
-                          <CardDescription className="text-xs mt-0.5">{topic.description}</CardDescription>
+                          <CardDescription className="text-xs mt-0.5 break-words">{topic.description}</CardDescription>
                         </div>
-                        <Badge variant="outline" className={`text-xs ${getImportanceColor(topic.importance)}`}>
+                        <Badge variant="outline" className={`text-xs shrink-0 self-start sm:self-auto ${getImportanceColor(topic.importance)}`}>
                           {topic.importance} Priority
                         </Badge>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="p-3 sm:p-6 pt-0 space-y-4">
                         {/* YouTube Video Prep Tutorial */}
                         {(() => {
                           const video = topic.youtubeVideo || {
@@ -604,19 +604,19 @@ export default function Interview() {
                           {topic.questions.map((q, qIdx) => (
                             <AccordionItem key={qIdx} value={`item-${topicIdx}-${qIdx}`}>
                               <AccordionTrigger className="text-xs font-semibold hover:no-underline py-3">
-                                <div className="flex items-center gap-2 text-left">
-                                  <Badge variant="outline" className={`text-[10px] ${getDifficultyColor(q.difficulty)}`}>
+                                <div className="flex items-start gap-2 text-left min-w-0">
+                                  <Badge variant="outline" className={`text-[10px] shrink-0 mt-0.5 ${getDifficultyColor(q.difficulty)}`}>
                                     {q.difficulty}
                                   </Badge>
-                                  <span>{q.question}</span>
+                                  <span className="break-words">{q.question}</span>
                                 </div>
                               </AccordionTrigger>
-                              <AccordionContent className="space-y-3 pt-2 text-xs">
-                                <div className="p-3 bg-muted/60 rounded-lg space-y-1.5">
+                              <AccordionContent className="space-y-3 pt-2 text-xs overflow-hidden">
+                                <div className="p-3 bg-muted/60 rounded-lg space-y-1.5 overflow-hidden">
                                   <span className="font-semibold text-foreground flex items-center gap-1">
                                     <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Why This Is Asked
                                   </span>
-                                  <p className="text-muted-foreground">{q.whyAsked}</p>
+                                  <p className="text-muted-foreground break-words">{q.whyAsked}</p>
                                 </div>
 
                                 {q.hints.length > 0 && (
@@ -638,7 +638,7 @@ export default function Interview() {
                                     <span className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1">
                                       <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Ideal Candidate Answer Framework
                                     </span>
-                                    <p className="text-foreground/90 leading-relaxed pt-1">{q.sampleAnswer}</p>
+                                    <p className="text-foreground/90 leading-relaxed pt-1 break-words">{q.sampleAnswer}</p>
                                   </div>
                                 )}
                               </AccordionContent>
@@ -652,13 +652,13 @@ export default function Interview() {
 
                 {/* 2-Week Study Plan */}
                 {prepData.studyPlan && (
-                  <Card className="border-border/80">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-emerald-500" /> Recommended Study Timeline
+                <Card className="border-border/80 overflow-hidden">
+                    <CardHeader className="p-3 sm:p-6 pb-3">
+                      <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-emerald-500 shrink-0" /> Recommended Study Timeline
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="grid gap-4 md:grid-cols-3 text-xs">
+                    <CardContent className="p-3 sm:p-6 pt-0 grid gap-4 md:grid-cols-3 text-xs">
                       <div className="p-3.5 bg-muted/50 rounded-xl space-y-2 border">
                         <span className="font-bold text-foreground block">Week 1: Core Fundamentals</span>
                         <ul className="space-y-1.5 text-muted-foreground">

@@ -420,7 +420,7 @@ export default function Resume() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 pb-8">
+    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 pb-8 overflow-x-hidden">
       {/* Header Banner - Minimalist & Mobile Crisp */}
       <div className="pb-4 border-b border-border/60">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-secondary-foreground mb-2">
@@ -455,7 +455,7 @@ export default function Resume() {
         <TabsContent value="analysis" className="mt-6 space-y-6">
           <div className="grid gap-6 md:grid-cols-12">
             {/* Upload Panel Left */}
-            <div className="md:col-span-5 space-y-4">
+            <div className="md:col-span-5 space-y-4 min-w-0">
               <Card 
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -526,7 +526,7 @@ export default function Resume() {
             </div>
 
             {/* Resume Breakdown Right */}
-            <div className="md:col-span-7">
+            <div className="md:col-span-7 min-w-0 overflow-hidden">
               <AnimatePresence mode="wait">
                 {isAnalyzed ? (
                   <motion.div
@@ -537,8 +537,8 @@ export default function Resume() {
                     className="space-y-4"
                   >
                     {/* Profile Header Card */}
-                    <Card className="border-border/80 bg-card">
-                      <CardContent className="p-4 sm:p-5 space-y-3">
+                    <Card className="border-border/80 bg-card overflow-hidden">
+                      <CardContent className="p-3 sm:p-5 space-y-3">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div className="min-w-0 space-y-1">
                             <h2 className="text-base sm:text-xl font-bold text-foreground break-words">{resumeData.name || "Candidate Profile"}</h2>
@@ -560,13 +560,13 @@ export default function Resume() {
                     </Card>
 
                     {/* Skill Matrix */}
-                    <Card className="border-border/80">
-                      <CardHeader className="p-4 pb-2">
+                    <Card className="border-border/80 overflow-hidden">
+                      <CardHeader className="p-3 sm:p-4 pb-2">
                         <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                           <Target className="w-4 h-4 text-primary shrink-0" /> Skill Competency Matrix
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="p-4 pt-1">
+                      <CardContent className="p-3 sm:p-4 pt-1">
                         <div className="flex flex-wrap gap-1.5">
                           {resumeData.skills.map((skill, i) => (
                             <Badge 
@@ -583,13 +583,13 @@ export default function Resume() {
 
                     {/* Experience Timeline */}
                     {resumeData.experience.length > 0 && (
-                      <Card className="border-border/80">
-                        <CardHeader className="p-4 pb-2">
+                      <Card className="border-border/80 overflow-hidden">
+                        <CardHeader className="p-3 sm:p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                             <Briefcase className="w-4 h-4 text-primary shrink-0" /> Work Experience
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-1 space-y-3">
+                        <CardContent className="p-3 sm:p-4 pt-1 space-y-3">
                           {resumeData.experience.map((exp, idx) => (
                             <div key={idx} className="border-l-2 border-primary/40 pl-3.5 py-1 space-y-1">
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
@@ -608,13 +608,13 @@ export default function Resume() {
 
                     {/* Education */}
                     {resumeData.education && resumeData.education.length > 0 && (
-                      <Card className="border-border/80">
-                        <CardHeader className="p-4 pb-2">
+                      <Card className="border-border/80 overflow-hidden">
+                        <CardHeader className="p-3 sm:p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                             <GraduationCap className="w-4 h-4 text-primary shrink-0" /> Education
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-1 space-y-2.5">
+                        <CardContent className="p-3 sm:p-4 pt-1 space-y-2.5">
                           {resumeData.education.map((edu, idx) => (
                             <div key={idx} className="border-l-2 border-border pl-3.5 py-0.5">
                               <h4 className="font-semibold text-xs sm:text-sm text-foreground break-words">{edu.degree}</h4>
@@ -627,13 +627,13 @@ export default function Resume() {
 
                     {/* Projects */}
                     {resumeData.projects && resumeData.projects.length > 0 && (
-                      <Card className="border-border/80">
-                        <CardHeader className="p-4 pb-2">
+                      <Card className="border-border/80 overflow-hidden">
+                        <CardHeader className="p-3 sm:p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                             <FolderGit2 className="w-4 h-4 text-primary shrink-0" /> Projects
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-1 space-y-3">
+                        <CardContent className="p-3 sm:p-4 pt-1 space-y-3">
                           {resumeData.projects.map((proj, idx) => (
                             <div key={idx} className="border-l-2 border-border pl-3.5 py-0.5 space-y-1">
                               <h4 className="font-semibold text-xs sm:text-sm text-foreground break-words">{proj.name}</h4>
@@ -655,13 +655,13 @@ export default function Resume() {
 
                     {/* Certifications */}
                     {resumeData.certifications && resumeData.certifications.length > 0 && (
-                      <Card className="border-border/80">
-                        <CardHeader className="p-4 pb-2">
+                      <Card className="border-border/80 overflow-hidden">
+                        <CardHeader className="p-3 sm:p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                             <Award className="w-4 h-4 text-primary shrink-0" /> Certifications & Licenses
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-1">
+                        <CardContent className="p-3 sm:p-4 pt-1">
                           <div className="flex flex-wrap gap-1.5">
                             {resumeData.certifications.map((cert, idx) => (
                               <Badge key={idx} variant="secondary" className="text-[11px] font-normal px-2.5 py-1 break-words">
@@ -675,13 +675,13 @@ export default function Resume() {
 
                     {/* AI Career Insights & Suggested Roles */}
                     {(resumeData.suggestedRoles?.length > 0 || resumeData.strengthAreas?.length > 0) && (
-                      <Card className="border-border/80 bg-muted/20">
-                        <CardHeader className="p-4 pb-2">
+                      <Card className="border-border/80 bg-muted/20 overflow-hidden">
+                        <CardHeader className="p-3 sm:p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                             <Sparkles className="w-4 h-4 text-primary shrink-0" /> AI Target Roles & Strengths
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-1 space-y-3 text-xs">
+                        <CardContent className="p-3 sm:p-4 pt-1 space-y-3 text-xs">
                           {resumeData.suggestedRoles?.length > 0 && (
                             <div>
                               <span className="font-semibold text-foreground block mb-1.5">Suggested Target Roles</span>
@@ -744,8 +744,8 @@ export default function Resume() {
         <TabsContent value="tailor" className="mt-6 space-y-6">
           <div className="grid gap-6 lg:grid-cols-12">
             {/* Input Form Panel */}
-            <div className="lg:col-span-5 space-y-4">
-              <Card className="border-border/80">
+            <div className="lg:col-span-5 space-y-4 min-w-0">
+              <Card className="border-border/80 overflow-hidden">
                 <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
                   <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2">
                     <Wand2 className="w-4 h-4 text-primary shrink-0" /> Target Job Parameters
@@ -834,12 +834,12 @@ export default function Resume() {
             </div>
 
             {/* Results Panel */}
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 min-w-0 overflow-hidden">
               {tailorResult ? (
                 <div className="space-y-4">
                   {/* Score & Keyword Banner */}
-                  <Card className="border-border/80 bg-card">
-                    <CardContent className="p-4 sm:p-5 space-y-3">
+                  <Card className="border-border/80 bg-card overflow-hidden">
+                    <CardContent className="p-3 sm:p-5 space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="min-w-0">
                           <Badge variant="outline" className="text-[10px] font-normal uppercase shrink-0">
@@ -877,8 +877,8 @@ export default function Resume() {
                   </Card>
 
                   {/* Tailored Professional Summary */}
-                  <Card className="border-border/80">
-                    <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between gap-2">
+                  <Card className="border-border/80 overflow-hidden">
+                    <CardHeader className="p-3 sm:p-4 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <CardTitle className="text-xs sm:text-sm font-semibold">Tailored Professional Summary</CardTitle>
                       <Button 
                         variant="ghost" 
@@ -889,16 +889,16 @@ export default function Resume() {
                         <Copy className="w-3.5 h-3.5" /> Copy
                       </Button>
                     </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <p className="text-xs text-foreground/90 leading-relaxed p-3 bg-muted/30 rounded-md border border-border/40 whitespace-pre-wrap break-words">
+                    <CardContent className="p-3 sm:p-4 pt-0">
+                      <p className="text-xs text-foreground/90 leading-relaxed p-2.5 sm:p-3 bg-muted/30 rounded-md border border-border/40 whitespace-pre-wrap break-words overflow-hidden">
                         {tailorResult.tailoredSummary}
                       </p>
                     </CardContent>
                   </Card>
 
                   {/* Tailored Bullet Points */}
-                  <Card className="border-border/80">
-                    <CardHeader className="p-4 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <Card className="border-border/80 overflow-hidden">
+                    <CardHeader className="p-3 sm:p-4 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <CardTitle className="text-xs sm:text-sm font-semibold">Tailored Experience Bullet Points</CardTitle>
                       <Button 
                         variant="outline" 
@@ -912,7 +912,7 @@ export default function Resume() {
                         <Download className="w-3.5 h-3.5" /> Download TXT
                       </Button>
                     </CardHeader>
-                    <CardContent className="p-4 pt-0 space-y-3.5">
+                    <CardContent className="p-3 sm:p-4 pt-0 space-y-3.5">
                       {tailorResult.tailoredExperience?.map((exp: any, i: number) => (
                         <div key={i} className="border-l-2 border-primary/40 pl-3 py-0.5 space-y-1.5">
                           <h4 className="text-xs font-semibold text-foreground break-words">{exp.role} <span className="font-normal text-muted-foreground">({exp.company})</span></h4>
@@ -948,9 +948,9 @@ export default function Resume() {
         <TabsContent value="cover-letter" className="mt-6 space-y-6">
           <div className="grid gap-6 lg:grid-cols-12">
             {/* Input Form Panel */}
-            <div className="lg:col-span-5 space-y-4">
-              <Card className="border-border/80">
-                <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+            <div className="lg:col-span-5 space-y-4 min-w-0">
+              <Card className="border-border/80 overflow-hidden">
+                <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-3">
                   <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2">
                     <Send className="w-4 h-4 text-primary shrink-0" /> Outreach Generator
                   </CardTitle>
@@ -958,7 +958,7 @@ export default function Resume() {
                     Create personalized cover letters, recruiter cold emails, or LinkedIn connection notes.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6 pt-2 space-y-3 text-xs">
+                <CardContent className="p-3 sm:p-6 pt-2 space-y-3 text-xs">
                   {/* Select Document Mode */}
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-foreground">Document Mode</Label>
@@ -1079,11 +1079,11 @@ export default function Resume() {
             </div>
 
             {/* Output Document Panel */}
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 min-w-0 overflow-hidden">
               {clResult ? (
                 <div className="space-y-4">
-                  <Card className="border-border/80">
-                    <CardHeader className="p-4 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60">
+                  <Card className="border-border/80 overflow-hidden">
+                    <CardHeader className="p-3 sm:p-4 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60">
                       <div className="min-w-0">
                         <Badge variant="outline" className="text-[10px] font-normal uppercase shrink-0">
                           {clResult.mode} • {clResult.tone}
@@ -1110,7 +1110,7 @@ export default function Resume() {
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4 sm:p-6 space-y-4">
+                    <CardContent className="p-3 sm:p-6 space-y-4">
                       {clResult.subjectLine && (
                         <div className="p-3 bg-muted/40 rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs border border-border/40">
                           <span className="font-medium text-foreground break-words">Subject: <span className="font-normal text-muted-foreground">{clResult.subjectLine}</span></span>
@@ -1120,12 +1120,12 @@ export default function Resume() {
                         </div>
                       )}
 
-                      <div className="p-3.5 sm:p-5 bg-card border border-border/60 rounded-lg space-y-3 text-xs sm:text-sm leading-relaxed font-sans whitespace-pre-wrap break-words text-foreground/90">
+                      <div className="p-3 sm:p-5 bg-card border border-border/60 rounded-lg space-y-3 text-xs sm:text-sm leading-relaxed font-sans whitespace-pre-wrap break-words overflow-hidden text-foreground/90">
                         {clResult.content}
                       </div>
 
                       {clResult.keyMatchHighlights?.length > 0 && (
-                        <div className="p-3.5 bg-muted/30 border border-border/50 rounded-lg space-y-2 text-xs">
+                        <div className="p-3 sm:p-3.5 bg-muted/30 border border-border/50 rounded-lg space-y-2 text-xs">
                           <span className="font-semibold text-foreground block text-[11px] uppercase tracking-wider">
                             Key Match Highlights
                           </span>
