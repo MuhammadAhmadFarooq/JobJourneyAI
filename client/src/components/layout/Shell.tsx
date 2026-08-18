@@ -7,6 +7,8 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImage from "@assets/generated_images/minimalist_abstract_logo_for_career_navigation_app.png";
 
+import ThemeToggle from "@/components/ThemeToggle";
+
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -41,6 +43,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </span>
           </div>
         </div>
+        <ThemeToggle />
       </div>
 
       {/* Main Navigation List */}
@@ -152,13 +155,16 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {user && (
-          <Avatar className="w-8 h-8 ring-2 ring-primary/20">
-            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-xs font-bold">
-              {getInitials(user.username)}
-            </AvatarFallback>
-          </Avatar>
-        )}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {user && (
+            <Avatar className="w-8 h-8 ring-2 ring-primary/20">
+              <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-xs font-bold">
+                {getInitials(user.username)}
+              </AvatarFallback>
+            </Avatar>
+          )}
+        </div>
       </div>
 
       {/* Main Content Area */}
