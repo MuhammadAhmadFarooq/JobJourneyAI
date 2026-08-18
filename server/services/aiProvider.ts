@@ -8,9 +8,6 @@ const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 const GROQ_MODELS = [
   "openai/gpt-oss-120b",
   "openai/gpt-oss-20b",
-  "llama-3.3-70b-versatile",
-  "llama3-70b-8192",
-  "mixtral-8x7b-32768",
 ];
 
 /**

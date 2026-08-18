@@ -111,6 +111,9 @@ export interface IUserProfile extends Document {
     technologies: string[];
   }[];
   
+  certifications?: string[];
+  languages?: string[];
+  
   // AI-generated insights
   profileSummary?: string;
   suggestedRoles: string[];
@@ -251,6 +254,9 @@ const userProfileSchema = new Schema<IUserProfile>(
       description: { type: String, default: "" },
       technologies: [{ type: String }],
     }],
+    
+    certifications: [{ type: String }],
+    languages: [{ type: String }],
     
     profileSummary: { type: String },
     suggestedRoles: [{ type: String }],

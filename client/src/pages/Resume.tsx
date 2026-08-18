@@ -136,7 +136,7 @@ export default function Resume() {
               experience: profile.experience || [],
               education: profile.education || [],
               projects: profile.projects || [],
-              certifications: [],
+              certifications: profile.certifications || [],
               profileSummary: profile.profileSummary || "",
               suggestedRoles: profile.suggestedRoles || [],
               strengthAreas: profile.strengthAreas || [],
@@ -258,6 +258,7 @@ export default function Resume() {
             experience: parsedData.experience,
             education: parsedData.education,
             projects: parsedData.projects,
+            certifications: parsedData.certifications,
             profileSummary: parsedData.profileSummary,
             suggestedRoles: parsedData.suggestedRoles,
             strengthAreas: parsedData.strengthAreas,
@@ -611,6 +612,110 @@ export default function Resume() {
                               {exp.description && <p className="text-xs text-muted-foreground leading-relaxed">{exp.description}</p>}
                             </div>
                           ))}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Education */}
+                    {resumeData.education && resumeData.education.length > 0 && (
+                      <Card className="border-border/80">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <GraduationCap className="w-4 h-4 text-indigo-500" /> Education
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {resumeData.education.map((edu, idx) => (
+                            <div key={idx} className="border-l-2 border-indigo-500/30 pl-4 py-1">
+                              <h4 className="font-semibold text-sm">{edu.degree}</h4>
+                              <p className="text-xs text-muted-foreground">{edu.institution} {edu.graduationDate ? `(${edu.graduationDate})` : ""}</p>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Projects */}
+                    {resumeData.projects && resumeData.projects.length > 0 && (
+                      <Card className="border-border/80">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <FolderGit2 className="w-4 h-4 text-emerald-500" /> Projects
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {resumeData.projects.map((proj, idx) => (
+                            <div key={idx} className="border-l-2 border-emerald-500/30 pl-4 py-1 space-y-1">
+                              <h4 className="font-semibold text-sm">{proj.name}</h4>
+                              <p className="text-xs text-muted-foreground leading-relaxed">{proj.description}</p>
+                              {proj.technologies?.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {proj.technologies.map((tech, i) => (
+                                    <Badge key={i} variant="secondary" className="text-[10px]">
+                                      {tech}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Certifications */}
+                    {resumeData.certifications && resumeData.certifications.length > 0 && (
+                      <Card className="border-border/80">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <Award className="w-4 h-4 text-amber-500" /> Certifications & Licenses
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-1.5">
+                            {resumeData.certifications.map((cert, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200">
+                                🏆 {cert}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* AI Career Insights & Suggested Roles */}
+                    {(resumeData.suggestedRoles?.length > 0 || resumeData.strengthAreas?.length > 0) && (
+                      <Card className="border-border/80 bg-muted/20">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-primary" /> AI Target Roles & Strengths
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-xs">
+                          {resumeData.suggestedRoles?.length > 0 && (
+                            <div>
+                              <span className="font-semibold text-foreground block mb-1.5">Suggested Target Roles</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {resumeData.suggestedRoles.map((role, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                    🎯 {role}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {resumeData.strengthAreas?.length > 0 && (
+                            <div>
+                              <span className="font-semibold text-foreground block mb-1.5">Core Strength Areas</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {resumeData.strengthAreas.map((strength, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs border-primary/30 text-primary">
+                                    ⚡ {strength}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     )}
