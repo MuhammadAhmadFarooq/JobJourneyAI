@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, Lock, User, Sparkles, ShieldCheck, Briefcase, BrainCircuit, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import logoImage from "@assets/generated_images/minimalist_abstract_logo_for_career_navigation_app.png";
+import logoImage from "@assets/generated_images/minimalist_abstract_logo_for_career_navigation_app.jpg";
 import SEO from "@/components/SEO";
 
 export default function Register() {

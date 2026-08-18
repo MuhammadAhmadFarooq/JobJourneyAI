@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import logoImage from "@assets/generated_images/minimalist_abstract_logo_for_career_navigation_app.png";
+import logoImage from "@assets/generated_images/minimalist_abstract_logo_for_career_navigation_app.jpg";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Shell({ children }: { children: React.ReactNode }) {

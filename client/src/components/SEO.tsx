@@ -22,7 +22,7 @@ export function SEO({
   keywords = DEFAULT_KEYWORDS,
   canonical,
   ogType = "website",
-  ogImage = "/favicon.png",
+  ogImage = "/favicon.jpg",
   noIndex = false,
   jsonLd,
 }: SEOProps) {
