@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, FileText, Briefcase, BrainCircuit, LogOut, Menu, Sparkles, ShieldCheck, UserCheck } from "lucide-react";
+import { LayoutDashboard, FileText, Briefcase, BrainCircuit, LogOut, Menu, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -31,16 +31,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   const NavContent = ({ showThemeToggle = false }: { showThemeToggle?: boolean }) => (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground select-none">
-      {/* Brand Header with generous spacing */}
+      {/* Brand Header with clean spacing */}
       <div className="p-6 flex items-center justify-between border-b border-sidebar-border/70">
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-3.5 min-w-0">
           <img src={logoImage} alt="JobJourneyAI" className="w-10 h-10 rounded-xl shadow-xs shrink-0" />
           <div className="min-w-0">
             <span className="font-bold text-base lg:text-lg tracking-tight text-foreground block truncate">
               JobJourneyAI
-            </span>
-            <span className="text-xs text-muted-foreground font-medium flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" /> Groq AI Online
             </span>
           </div>
         </div>
@@ -51,7 +48,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         )}
       </div>
 
-      {/* Main Navigation List - Spacious, readable desktop items */}
+      {/* Main Navigation List */}
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         <div className="px-3 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Platform Menu
@@ -93,14 +90,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
       {/* Footer Info & User Card */}
       <div className="p-5 border-t border-sidebar-border/70 space-y-3.5 bg-sidebar-accent/15">
-        {/* Anti-Expired Guard Status */}
-        <div className="p-3 rounded-lg bg-muted/40 border border-border/60 text-muted-foreground flex items-center justify-between text-xs">
-          <span className="flex items-center gap-2 font-medium">
-            <ShieldCheck className="w-4 h-4 text-primary shrink-0" /> Anti-Expired Shield
-          </span>
-          <span className="font-semibold text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Active</span>
-        </div>
-
         {/* User Account Info */}
         {user && (
           <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/70 shadow-2xs">
@@ -133,7 +122,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
-      {/* Desktop Sticky Sidebar (Non-overlapping, spacious 256px-288px) */}
+      {/* Desktop Sticky Sidebar */}
       <aside className="hidden md:flex flex-col w-64 lg:w-72 shrink-0 border-r border-sidebar-border/80 bg-sidebar h-screen sticky top-0 z-30">
         <NavContent showThemeToggle />
       </aside>
@@ -170,7 +159,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* Main Content Area - Generous desktop viewport */}
+      {/* Main Content Area */}
       <main className="flex-1 min-w-0 bg-background overflow-x-hidden min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
           {children}
