@@ -60,7 +60,7 @@ export default function Login() {
         {/* Hero Copy */}
         <div className="relative z-10 space-y-6 max-w-lg">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-blue-300 backdrop-blur-md border border-white/10">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Groq AI Accelerated Platform
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> AI-Powered Career Platform
           </div>
 
           <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
