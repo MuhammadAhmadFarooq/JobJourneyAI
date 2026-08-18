@@ -420,34 +420,34 @@ export default function Resume() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4">
-      {/* Header Banner - Minimalist & Crisp */}
+    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 pb-8">
+      {/* Header Banner - Minimalist & Mobile Crisp */}
       <div className="pb-4 border-b border-border/60">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-secondary-foreground mb-2">
           <Sparkles className="w-3 h-3 text-primary" /> AI Career Suite
         </div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground break-words">
           Resume Studio & Application Suite
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed break-words">
           Parse master resumes, generate ATS-targeted variants, and draft tailored cover letters or cold outreach messages.
         </p>
       </div>
 
-      {/* Main Feature Navigation Tabs - Mobile Optimized */}
+      {/* Main Feature Navigation Tabs - Responsive Scroll/Grid */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto h-10 sm:h-11 bg-muted/50 p-1 rounded-lg">
-          <TabsTrigger value="analysis" className="text-xs sm:text-sm font-medium gap-1.5 px-2 sm:px-3">
+        <TabsList className="flex w-full overflow-x-auto justify-start sm:justify-center max-w-2xl mx-auto h-10 sm:h-11 bg-muted/50 p-1 rounded-lg space-x-1 sm:space-x-0 no-scrollbar">
+          <TabsTrigger value="analysis" className="flex-1 min-w-[100px] text-xs sm:text-sm font-medium gap-1.5 px-2.5 sm:px-3 whitespace-nowrap">
             <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Master Resume</span>
+            <span>Master Resume</span>
           </TabsTrigger>
-          <TabsTrigger value="tailor" className="text-xs sm:text-sm font-medium gap-1.5 px-2 sm:px-3">
+          <TabsTrigger value="tailor" className="flex-1 min-w-[100px] text-xs sm:text-sm font-medium gap-1.5 px-2.5 sm:px-3 whitespace-nowrap">
             <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-primary" />
-            <span className="truncate">Resume Tailor</span>
+            <span>Resume Tailor</span>
           </TabsTrigger>
-          <TabsTrigger value="cover-letter" className="text-xs sm:text-sm font-medium gap-1.5 px-2 sm:px-3">
+          <TabsTrigger value="cover-letter" className="flex-1 min-w-[100px] text-xs sm:text-sm font-medium gap-1.5 px-2.5 sm:px-3 whitespace-nowrap">
             <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-primary" />
-            <span className="truncate">Cover Letter</span>
+            <span>Cover Letter</span>
           </TabsTrigger>
         </TabsList>
 
@@ -474,7 +474,7 @@ export default function Resume() {
                   accept=".pdf,.txt"
                   className="hidden"
                 />
-                <CardContent className="p-5 sm:p-6 text-center space-y-3">
+                <CardContent className="p-4 sm:p-6 text-center space-y-3">
                   <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto border border-border/50">
                     {isUploading ? (
                       <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -483,10 +483,10 @@ export default function Resume() {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-sm sm:text-base text-foreground">
+                    <h3 className="font-semibold text-sm sm:text-base text-foreground break-words">
                       {isUploading ? "Processing Resume..." : "Upload Master Resume"}
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
+                    <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto break-words">
                       Drag & drop your PDF or TXT resume here, or click to browse.
                     </p>
                   </div>
@@ -494,7 +494,7 @@ export default function Resume() {
                   {isUploading ? (
                     <div className="space-y-2 pt-2">
                       <Progress value={uploadProgress} className="h-1.5" />
-                      <p className="text-[11px] text-primary font-medium">{uploadStatus}</p>
+                      <p className="text-[11px] text-primary font-medium break-words">{uploadStatus}</p>
                     </div>
                   ) : (
                     <Button variant="outline" size="sm" className="text-xs pointer-events-none h-8 px-3">
@@ -507,7 +507,7 @@ export default function Resume() {
               {/* Uploaded File Info Card */}
               {fileName && (
                 <Card className="border-border/60 bg-muted/30">
-                  <CardContent className="p-3.5 flex items-center justify-between">
+                  <CardContent className="p-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="p-1.5 bg-primary/10 text-primary rounded-md shrink-0">
                         <FileCheck className="w-4 h-4" />
@@ -538,21 +538,21 @@ export default function Resume() {
                   >
                     {/* Profile Header Card */}
                     <Card className="border-border/80 bg-card">
-                      <CardContent className="p-4 sm:p-6 space-y-3">
+                      <CardContent className="p-4 sm:p-5 space-y-3">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div>
-                            <h2 className="text-lg sm:text-xl font-bold text-foreground">{resumeData.name || "Candidate Profile"}</h2>
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
-                              {resumeData.email && <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 shrink-0" /> {resumeData.email}</span>}
-                              {resumeData.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 shrink-0" /> {resumeData.location}</span>}
+                          <div className="min-w-0 space-y-1">
+                            <h2 className="text-base sm:text-xl font-bold text-foreground break-words">{resumeData.name || "Candidate Profile"}</h2>
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
+                              {resumeData.email && <span className="flex items-center gap-1 break-all"><Mail className="w-3.5 h-3.5 shrink-0" /> {resumeData.email}</span>}
+                              {resumeData.location && <span className="flex items-center gap-1 break-words"><MapPin className="w-3.5 h-3.5 shrink-0" /> {resumeData.location}</span>}
                             </div>
                           </div>
-                          <Badge variant="outline" className="self-start sm:self-center text-[10px] uppercase font-semibold">
+                          <Badge variant="outline" className="self-start sm:self-center text-[10px] uppercase font-semibold shrink-0">
                             Master Resume
                           </Badge>
                         </div>
                         {resumeData.profileSummary && (
-                          <p className="text-xs text-muted-foreground leading-relaxed pt-2 border-t border-border/60">
+                          <p className="text-xs text-muted-foreground leading-relaxed pt-2 border-t border-border/60 break-words">
                             {resumeData.profileSummary}
                           </p>
                         )}
@@ -563,7 +563,7 @@ export default function Resume() {
                     <Card className="border-border/80">
                       <CardHeader className="p-4 pb-2">
                         <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
-                          <Target className="w-4 h-4 text-primary" /> Skill Competency Matrix
+                          <Target className="w-4 h-4 text-primary shrink-0" /> Skill Competency Matrix
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-1">
@@ -572,7 +572,7 @@ export default function Resume() {
                             <Badge 
                               key={i} 
                               variant="secondary" 
-                              className="text-[11px] font-normal px-2.5 py-0.5"
+                              className="text-[11px] font-normal px-2.5 py-0.5 break-words"
                             >
                               {skill.name} {skill.level ? `(${skill.level}%)` : ""}
                             </Badge>
@@ -586,20 +586,20 @@ export default function Resume() {
                       <Card className="border-border/80">
                         <CardHeader className="p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
-                            <Briefcase className="w-4 h-4 text-primary" /> Work Experience
+                            <Briefcase className="w-4 h-4 text-primary shrink-0" /> Work Experience
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-1 space-y-3">
                           {resumeData.experience.map((exp, idx) => (
                             <div key={idx} className="border-l-2 border-primary/40 pl-3.5 py-1 space-y-1">
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                <div>
-                                  <h4 className="font-semibold text-xs sm:text-sm text-foreground">{exp.role}</h4>
-                                  <p className="text-xs text-muted-foreground">{exp.company}</p>
+                                <div className="min-w-0">
+                                  <h4 className="font-semibold text-xs sm:text-sm text-foreground break-words">{exp.role}</h4>
+                                  <p className="text-xs text-muted-foreground break-words">{exp.company}</p>
                                 </div>
-                                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded self-start sm:self-auto">{exp.duration}</span>
+                                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded self-start sm:self-auto shrink-0">{exp.duration}</span>
                               </div>
-                              {exp.description && <p className="text-xs text-muted-foreground leading-relaxed pt-1">{exp.description}</p>}
+                              {exp.description && <p className="text-xs text-muted-foreground leading-relaxed pt-1 break-words">{exp.description}</p>}
                             </div>
                           ))}
                         </CardContent>
@@ -611,14 +611,14 @@ export default function Resume() {
                       <Card className="border-border/80">
                         <CardHeader className="p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
-                            <GraduationCap className="w-4 h-4 text-primary" /> Education
+                            <GraduationCap className="w-4 h-4 text-primary shrink-0" /> Education
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-1 space-y-2.5">
                           {resumeData.education.map((edu, idx) => (
                             <div key={idx} className="border-l-2 border-border pl-3.5 py-0.5">
-                              <h4 className="font-semibold text-xs sm:text-sm text-foreground">{edu.degree}</h4>
-                              <p className="text-xs text-muted-foreground">{edu.institution} {edu.graduationDate ? `(${edu.graduationDate})` : ""}</p>
+                              <h4 className="font-semibold text-xs sm:text-sm text-foreground break-words">{edu.degree}</h4>
+                              <p className="text-xs text-muted-foreground break-words">{edu.institution} {edu.graduationDate ? `(${edu.graduationDate})` : ""}</p>
                             </div>
                           ))}
                         </CardContent>
@@ -630,18 +630,18 @@ export default function Resume() {
                       <Card className="border-border/80">
                         <CardHeader className="p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
-                            <FolderGit2 className="w-4 h-4 text-primary" /> Projects
+                            <FolderGit2 className="w-4 h-4 text-primary shrink-0" /> Projects
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-1 space-y-3">
                           {resumeData.projects.map((proj, idx) => (
                             <div key={idx} className="border-l-2 border-border pl-3.5 py-0.5 space-y-1">
-                              <h4 className="font-semibold text-xs sm:text-sm text-foreground">{proj.name}</h4>
-                              <p className="text-xs text-muted-foreground leading-relaxed">{proj.description}</p>
+                              <h4 className="font-semibold text-xs sm:text-sm text-foreground break-words">{proj.name}</h4>
+                              <p className="text-xs text-muted-foreground leading-relaxed break-words">{proj.description}</p>
                               {proj.technologies?.length > 0 && (
                                 <div className="flex flex-wrap gap-1 pt-1">
                                   {proj.technologies.map((tech, i) => (
-                                    <Badge key={i} variant="outline" className="text-[10px] font-normal px-2">
+                                    <Badge key={i} variant="outline" className="text-[10px] font-normal px-2 break-words">
                                       {tech}
                                     </Badge>
                                   ))}
@@ -658,13 +658,13 @@ export default function Resume() {
                       <Card className="border-border/80">
                         <CardHeader className="p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
-                            <Award className="w-4 h-4 text-primary" /> Certifications & Licenses
+                            <Award className="w-4 h-4 text-primary shrink-0" /> Certifications & Licenses
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-1">
                           <div className="flex flex-wrap gap-1.5">
                             {resumeData.certifications.map((cert, idx) => (
-                              <Badge key={idx} variant="secondary" className="text-[11px] font-normal px-2.5 py-1">
+                              <Badge key={idx} variant="secondary" className="text-[11px] font-normal px-2.5 py-1 break-words">
                                 {cert}
                               </Badge>
                             ))}
@@ -678,7 +678,7 @@ export default function Resume() {
                       <Card className="border-border/80 bg-muted/20">
                         <CardHeader className="p-4 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-primary" /> AI Target Roles & Strengths
+                            <Sparkles className="w-4 h-4 text-primary shrink-0" /> AI Target Roles & Strengths
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-1 space-y-3 text-xs">
@@ -687,7 +687,7 @@ export default function Resume() {
                               <span className="font-semibold text-foreground block mb-1.5">Suggested Target Roles</span>
                               <div className="flex flex-wrap gap-1.5">
                                 {resumeData.suggestedRoles.map((role, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-[11px]">
+                                  <Badge key={idx} variant="secondary" className="text-[11px] break-words">
                                     {role}
                                   </Badge>
                                 ))}
@@ -699,7 +699,7 @@ export default function Resume() {
                               <span className="font-semibold text-foreground block mb-1.5">Core Strengths</span>
                               <div className="flex flex-wrap gap-1.5">
                                 {resumeData.strengthAreas.map((strength, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-[11px]">
+                                  <Badge key={idx} variant="outline" className="text-[11px] break-words">
                                     {strength}
                                   </Badge>
                                 ))}
@@ -717,8 +717,8 @@ export default function Resume() {
                         <>
                           <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
                           <div>
-                            <p className="font-medium text-sm sm:text-base">Parsing resume structure...</p>
-                            <p className="text-xs text-muted-foreground mt-1">{uploadStatus}</p>
+                            <p className="font-medium text-sm sm:text-base break-words">Parsing resume structure...</p>
+                            <p className="text-xs text-muted-foreground mt-1 break-words">{uploadStatus}</p>
                           </div>
                         </>
                       ) : (
@@ -726,7 +726,7 @@ export default function Resume() {
                           <Upload className="w-10 h-10 mx-auto text-muted-foreground/30" />
                           <div>
                             <p className="font-semibold text-sm sm:text-base">No Resume Analyzed Yet</p>
-                            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto break-words">
                               Upload your PDF or TXT resume to extract skill matrix, job history, and personalize your applications.
                             </p>
                           </div>
@@ -748,7 +748,7 @@ export default function Resume() {
               <Card className="border-border/80">
                 <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
                   <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2">
-                    <Wand2 className="w-4 h-4 text-primary" /> Target Job Parameters
+                    <Wand2 className="w-4 h-4 text-primary shrink-0" /> Target Job Parameters
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Provide target job details or choose a saved job to generate ATS-optimized summaries and bullet points.
@@ -769,10 +769,10 @@ export default function Resume() {
                           }
                         }}
                       >
-                        <SelectTrigger className="text-xs h-9">
+                        <SelectTrigger className="text-xs h-9 w-full">
                           <SelectValue placeholder="Choose a saved job..." />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-w-[300px] sm:max-w-none">
                           {savedJobs.map((job, idx) => (
                             <SelectItem key={idx} value={job.jobId || job.id || `${idx}`} className="text-xs">
                               {job.title} at {job.company}
@@ -789,7 +789,7 @@ export default function Resume() {
                       placeholder="e.g. Senior Frontend Engineer" 
                       value={tailorJobTitle}
                       onChange={(e) => setTailorJobTitle(e.target.value)}
-                      className="text-xs h-9"
+                      className="text-xs h-9 w-full"
                     />
                   </div>
 
@@ -799,7 +799,7 @@ export default function Resume() {
                       placeholder="e.g. Acme Innovations" 
                       value={tailorCompany}
                       onChange={(e) => setTailorCompany(e.target.value)}
-                      className="text-xs h-9"
+                      className="text-xs h-9 w-full"
                     />
                   </div>
 
@@ -810,22 +810,22 @@ export default function Resume() {
                       rows={6}
                       value={tailorJobDescription}
                       onChange={(e) => setTailorJobDescription(e.target.value)}
-                      className="text-xs leading-relaxed min-h-[120px]"
+                      className="text-xs leading-relaxed min-h-[120px] w-full"
                     />
                   </div>
 
                   <Button 
                     onClick={generateTailoredResume} 
                     disabled={isTailoring}
-                    className="w-full text-xs font-semibold h-9 mt-2"
+                    className="w-full text-xs font-semibold h-10 mt-2"
                   >
                     {isTailoring ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" /> Tailoring Resume with Groq AI...
+                        <Loader2 className="w-4 h-4 animate-spin mr-2 shrink-0" /> Tailoring Resume with AI...
                       </>
                     ) : (
                       <>
-                        <Wand2 className="w-4 h-4 mr-2" /> Generate Tailored Resume Variant
+                        <Wand2 className="w-4 h-4 mr-2 shrink-0" /> Generate Tailored Resume Variant
                       </>
                     )}
                   </Button>
@@ -837,17 +837,19 @@ export default function Resume() {
             <div className="lg:col-span-7">
               {tailorResult ? (
                 <div className="space-y-4">
-                  {/* Score & Keyword Banner - Clean Minimal */}
+                  {/* Score & Keyword Banner */}
                   <Card className="border-border/80 bg-card">
                     <CardContent className="p-4 sm:p-5 space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                          <Badge variant="outline" className="text-[10px] font-normal uppercase">
+                        <div className="min-w-0">
+                          <Badge variant="outline" className="text-[10px] font-normal uppercase shrink-0">
                             ATS Alignment Score
                           </Badge>
-                          <h3 className="text-base sm:text-lg font-bold text-foreground mt-0.5">{tailorResult.jobTitle} <span className="font-normal text-muted-foreground">at {tailorResult.company}</span></h3>
+                          <h3 className="text-base sm:text-lg font-bold text-foreground mt-0.5 break-words">
+                            {tailorResult.jobTitle} <span className="font-normal text-muted-foreground">at {tailorResult.company}</span>
+                          </h3>
                         </div>
-                        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 self-start sm:self-auto shrink-0">
                           <div className="text-center px-2.5 py-1 rounded-md bg-muted text-xs">
                             <span className="text-[10px] text-muted-foreground block">Before</span>
                             <span className="font-bold text-muted-foreground">{tailorResult.matchScoreBefore}%</span>
@@ -865,7 +867,7 @@ export default function Resume() {
                         <span className="font-medium text-foreground block">Matched ATS Keywords</span>
                         <div className="flex flex-wrap gap-1">
                           {tailorResult.matchedKeywords?.map((kw: string, i: number) => (
-                            <Badge key={i} variant="secondary" className="text-[11px] font-normal">
+                            <Badge key={i} variant="secondary" className="text-[11px] font-normal break-words">
                               ✓ {kw}
                             </Badge>
                           ))}
@@ -876,19 +878,19 @@ export default function Resume() {
 
                   {/* Tailored Professional Summary */}
                   <Card className="border-border/80">
-                    <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
+                    <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between gap-2">
                       <CardTitle className="text-xs sm:text-sm font-semibold">Tailored Professional Summary</CardTitle>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={() => copyToClipboard(tailorResult.tailoredSummary, "Summary Copied")}
-                        className="text-xs h-7 px-2 gap-1 text-muted-foreground hover:text-foreground"
+                        className="text-xs h-7 px-2 gap-1 text-muted-foreground hover:text-foreground shrink-0"
                       >
                         <Copy className="w-3.5 h-3.5" /> Copy
                       </Button>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
-                      <p className="text-xs text-foreground/90 leading-relaxed p-3 bg-muted/30 rounded-md border border-border/40">
+                      <p className="text-xs text-foreground/90 leading-relaxed p-3 bg-muted/30 rounded-md border border-border/40 whitespace-pre-wrap break-words">
                         {tailorResult.tailoredSummary}
                       </p>
                     </CardContent>
@@ -896,7 +898,7 @@ export default function Resume() {
 
                   {/* Tailored Bullet Points */}
                   <Card className="border-border/80">
-                    <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between flex-wrap gap-2">
+                    <CardHeader className="p-4 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <CardTitle className="text-xs sm:text-sm font-semibold">Tailored Experience Bullet Points</CardTitle>
                       <Button 
                         variant="outline" 
@@ -905,7 +907,7 @@ export default function Resume() {
                           const fullText = tailorResult.tailoredExperience.map((e: any) => `${e.role} at ${e.company}\n` + e.tailoredHighlights.map((h: string) => `• ${h}`).join("\n")).join("\n\n");
                           downloadAsTextFile(`${tailorResult.company}_Tailored_Experience.txt`, fullText);
                         }}
-                        className="text-xs h-7 px-2 gap-1"
+                        className="text-xs h-8 sm:h-7 px-2.5 gap-1 w-full sm:w-auto"
                       >
                         <Download className="w-3.5 h-3.5" /> Download TXT
                       </Button>
@@ -913,12 +915,12 @@ export default function Resume() {
                     <CardContent className="p-4 pt-0 space-y-3.5">
                       {tailorResult.tailoredExperience?.map((exp: any, i: number) => (
                         <div key={i} className="border-l-2 border-primary/40 pl-3 py-0.5 space-y-1.5">
-                          <h4 className="text-xs font-semibold text-foreground">{exp.role} <span className="font-normal text-muted-foreground">({exp.company})</span></h4>
+                          <h4 className="text-xs font-semibold text-foreground break-words">{exp.role} <span className="font-normal text-muted-foreground">({exp.company})</span></h4>
                           <ul className="space-y-1 text-xs text-muted-foreground">
                             {exp.tailoredHighlights?.map((h: string, j: number) => (
                               <li key={j} className="flex items-start gap-1.5">
-                                <span className="text-primary font-bold">•</span>
-                                <span className="leading-relaxed">{h}</span>
+                                <span className="text-primary font-bold shrink-0">•</span>
+                                <span className="leading-relaxed break-words">{h}</span>
                               </li>
                             ))}
                           </ul>
@@ -932,7 +934,7 @@ export default function Resume() {
                   <CardContent className="text-center space-y-3 p-4 sm:p-6">
                     <Wand2 className="w-10 h-10 mx-auto text-muted-foreground/30" />
                     <h3 className="font-semibold text-sm sm:text-base">Ready to Tailor Your Resume?</h3>
-                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto break-words">
                       Enter a job title and description on the left to generate an ATS-optimized summary, bullet points, and keyword match rating.
                     </p>
                   </CardContent>
@@ -950,7 +952,7 @@ export default function Resume() {
               <Card className="border-border/80">
                 <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
                   <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-2">
-                    <Send className="w-4 h-4 text-primary" /> Outreach Generator
+                    <Send className="w-4 h-4 text-primary shrink-0" /> Outreach Generator
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Create personalized cover letters, recruiter cold emails, or LinkedIn connection notes.
@@ -961,7 +963,7 @@ export default function Resume() {
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-foreground">Document Mode</Label>
                     <Select value={clMode} onValueChange={(val: any) => setClMode(val)}>
-                      <SelectTrigger className="text-xs h-9">
+                      <SelectTrigger className="text-xs h-9 w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -976,7 +978,7 @@ export default function Resume() {
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-foreground">Writing Tone</Label>
                     <Select value={clTone} onValueChange={(val: any) => setClTone(val)}>
-                      <SelectTrigger className="text-xs h-9">
+                      <SelectTrigger className="text-xs h-9 w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1002,10 +1004,10 @@ export default function Resume() {
                           }
                         }}
                       >
-                        <SelectTrigger className="text-xs h-9">
+                        <SelectTrigger className="text-xs h-9 w-full">
                           <SelectValue placeholder="Choose a saved job..." />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-w-[300px] sm:max-w-none">
                           {savedJobs.map((job, idx) => (
                             <SelectItem key={idx} value={job.jobId || job.id || `${idx}`} className="text-xs">
                               {job.title} at {job.company}
@@ -1022,7 +1024,7 @@ export default function Resume() {
                       placeholder="e.g. Product Manager" 
                       value={clJobTitle}
                       onChange={(e) => setClJobTitle(e.target.value)}
-                      className="text-xs h-9"
+                      className="text-xs h-9 w-full"
                     />
                   </div>
 
@@ -1032,7 +1034,7 @@ export default function Resume() {
                       placeholder="e.g. Stripe" 
                       value={clCompany}
                       onChange={(e) => setClCompany(e.target.value)}
-                      className="text-xs h-9"
+                      className="text-xs h-9 w-full"
                     />
                   </div>
 
@@ -1042,7 +1044,7 @@ export default function Resume() {
                       placeholder="e.g. Sarah Jenkins or Hiring Team" 
                       value={clRecruiterName}
                       onChange={(e) => setClRecruiterName(e.target.value)}
-                      className="text-xs h-9"
+                      className="text-xs h-9 w-full"
                     />
                   </div>
 
@@ -1053,22 +1055,22 @@ export default function Resume() {
                       rows={5}
                       value={clJobDescription}
                       onChange={(e) => setClJobDescription(e.target.value)}
-                      className="text-xs leading-relaxed min-h-[100px]"
+                      className="text-xs leading-relaxed min-h-[100px] w-full"
                     />
                   </div>
 
                   <Button 
                     onClick={generateCoverLetter} 
                     disabled={isGeneratingCl}
-                    className="w-full text-xs font-semibold h-9 mt-2"
+                    className="w-full text-xs font-semibold h-10 mt-2"
                   >
                     {isGeneratingCl ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating Document...
+                        <Loader2 className="w-4 h-4 animate-spin mr-2 shrink-0" /> Generating Document...
                       </>
                     ) : (
                       <>
-                        <Send className="w-4 h-4 mr-2" /> Generate {clMode === 'cover-letter' ? 'Cover Letter' : 'Outreach Message'}
+                        <Send className="w-4 h-4 mr-2 shrink-0" /> Generate {clMode === 'cover-letter' ? 'Cover Letter' : 'Outreach Message'}
                       </>
                     )}
                   </Button>
@@ -1082,25 +1084,27 @@ export default function Resume() {
                 <div className="space-y-4">
                   <Card className="border-border/80">
                     <CardHeader className="p-4 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60">
-                      <div>
-                        <Badge variant="outline" className="text-[10px] font-normal uppercase">
+                      <div className="min-w-0">
+                        <Badge variant="outline" className="text-[10px] font-normal uppercase shrink-0">
                           {clResult.mode} • {clResult.tone}
                         </Badge>
-                        <CardTitle className="text-base sm:text-lg font-bold mt-1 text-foreground">{clResult.jobTitle} <span className="font-normal text-muted-foreground">at {clResult.company}</span></CardTitle>
+                        <CardTitle className="text-base sm:text-lg font-bold mt-1 text-foreground break-words">
+                          {clResult.jobTitle} <span className="font-normal text-muted-foreground">at {clResult.company}</span>
+                        </CardTitle>
                       </div>
-                      <div className="flex items-center gap-2 self-start sm:self-auto">
+                      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={() => copyToClipboard(clResult.subjectLine ? `Subject: ${clResult.subjectLine}\n\n${clResult.content}` : clResult.content, "Full Document Copied")}
-                          className="text-xs h-8 px-2.5 gap-1"
+                          className="text-xs h-8 px-2.5 gap-1 flex-1 sm:flex-none"
                         >
                           <Copy className="w-3.5 h-3.5" /> Copy
                         </Button>
                         <Button 
                           size="sm" 
                           onClick={() => downloadAsTextFile(`${clResult.company}_${clResult.mode}.txt`, clResult.subjectLine ? `Subject: ${clResult.subjectLine}\n\n${clResult.content}` : clResult.content)}
-                          className="text-xs h-8 px-2.5 gap-1"
+                          className="text-xs h-8 px-2.5 gap-1 flex-1 sm:flex-none"
                         >
                           <Download className="w-3.5 h-3.5" /> Download
                         </Button>
@@ -1109,14 +1113,14 @@ export default function Resume() {
                     <CardContent className="p-4 sm:p-6 space-y-4">
                       {clResult.subjectLine && (
                         <div className="p-3 bg-muted/40 rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs border border-border/40">
-                          <span className="font-medium text-foreground truncate">Subject: <span className="font-normal text-muted-foreground">{clResult.subjectLine}</span></span>
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(clResult.subjectLine, "Subject Line Copied")} className="h-6 px-2 text-[10px] self-end sm:self-auto">
+                          <span className="font-medium text-foreground break-words">Subject: <span className="font-normal text-muted-foreground">{clResult.subjectLine}</span></span>
+                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(clResult.subjectLine, "Subject Line Copied")} className="h-6 px-2 text-[10px] self-end sm:self-auto shrink-0">
                             Copy Subject
                           </Button>
                         </div>
                       )}
 
-                      <div className="p-4 bg-card border border-border/60 rounded-lg space-y-3 text-xs leading-relaxed font-sans whitespace-pre-line text-foreground/90">
+                      <div className="p-3.5 sm:p-5 bg-card border border-border/60 rounded-lg space-y-3 text-xs sm:text-sm leading-relaxed font-sans whitespace-pre-wrap break-words text-foreground/90">
                         {clResult.content}
                       </div>
 
@@ -1128,8 +1132,8 @@ export default function Resume() {
                           <ul className="space-y-1 text-muted-foreground">
                             {clResult.keyMatchHighlights.map((h: string, i: number) => (
                               <li key={i} className="flex items-start gap-1.5">
-                                <span className="text-primary font-bold">•</span>
-                                <span className="leading-relaxed">{h}</span>
+                                <span className="text-primary font-bold shrink-0">•</span>
+                                <span className="leading-relaxed break-words">{h}</span>
                               </li>
                             ))}
                           </ul>
@@ -1143,7 +1147,7 @@ export default function Resume() {
                   <CardContent className="text-center space-y-3 p-4 sm:p-6">
                     <Send className="w-10 h-10 mx-auto text-muted-foreground/30" />
                     <h3 className="font-semibold text-sm sm:text-base">Generate Personal Outreach</h3>
-                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto break-words">
                       Fill out target position details on the left to instantly draft customized cover letters, cold emails, or LinkedIn messages.
                     </p>
                   </CardContent>

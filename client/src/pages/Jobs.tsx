@@ -643,15 +643,15 @@ export default function Jobs() {
                 <div className="p-2 bg-primary/10 rounded-full shrink-0">
                   <Briefcase className="w-5 h-5 text-primary" />
                 </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-sm sm:text-base truncate">Profile Loaded {userProfile.name && `- ${userProfile.name}`}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                <div className="min-w-0 space-y-0.5">
+                  <p className="font-semibold text-sm sm:text-base text-foreground break-words">Profile Loaded {userProfile.name && `- ${userProfile.name}`}</p>
+                  <p className="text-xs text-muted-foreground break-words">
                     {userProfile.skills.length} skills • {userProfile.experience.length} experiences
                     {userProfile.location && ` • 📍 ${userProfile.location}`}
                   </p>
                   {(jobPreferences.targetRoles.length > 0 || userProfile.suggestedRoles?.length > 0) && (
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      Looking for: {(jobPreferences.targetRoles.length > 0 
+                    <p className="text-xs text-muted-foreground break-words">
+                      <span className="font-medium text-foreground">Looking for:</span> {(jobPreferences.targetRoles.length > 0 
                         ? jobPreferences.targetRoles 
                         : userProfile.suggestedRoles
                       ).slice(0, 3).join(", ")}

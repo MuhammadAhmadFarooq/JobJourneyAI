@@ -573,24 +573,24 @@ export default function Interview() {
                           };
 
                           return (
-                            <div className="p-3.5 bg-red-500/5 dark:bg-red-950/20 border border-red-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-10 h-10 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                            <div className="p-3.5 bg-red-500/5 dark:bg-red-950/20 border border-red-500/20 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5 sm:mt-0">
                                   <Youtube className="w-5 h-5" />
                                 </div>
-                                <div className="min-w-0">
+                                <div className="min-w-0 space-y-0.5">
                                   <span className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider block">
                                     Recommended YouTube Tutorial
                                   </span>
-                                  <h4 className="text-xs font-bold text-foreground truncate">
+                                  <h4 className="text-xs font-bold text-foreground leading-snug break-words">
                                     {video.title}
                                   </h4>
-                                  <p className="text-[11px] text-muted-foreground truncate">
+                                  <p className="text-[11px] text-muted-foreground break-words">
                                     Channel: <span className="font-medium text-foreground/80">{video.channel}</span>
                                   </p>
                                 </div>
                               </div>
-                              <Button size="sm" variant="outline" asChild className="shrink-0 text-xs border-red-500/30 hover:bg-red-500/10 text-red-600 dark:text-red-400 h-8">
+                              <Button size="sm" variant="outline" asChild className="w-full sm:w-auto shrink-0 text-xs border-red-500/30 hover:bg-red-500/10 text-red-600 dark:text-red-400 h-8">
                                 <a href={video.url} target="_blank" rel="noopener noreferrer">
                                   Watch Tutorial <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
                                 </a>
