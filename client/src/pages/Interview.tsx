@@ -4,12 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Progress } from "@/components/ui/progress";
 import { 
   Loader2, Search, BookOpen, BrainCircuit, Lightbulb, 
   Bookmark, Building2, MapPin, Sparkles, CheckCircle2, 
   AlertTriangle, Target, Calendar, ArrowLeft, Trash2,
-  GraduationCap, MessageSquare, Code, Users, Star, Youtube, ExternalLink, RefreshCw, Layers, ShieldCheck, DollarSign, HelpCircle
+  GraduationCap, Youtube, ExternalLink, RefreshCw, Layers, ShieldCheck, DollarSign, HelpCircle, ArrowRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -153,119 +152,80 @@ export default function Interview() {
 
       if (response.ok) {
         setSavedJobs(savedJobs.filter(j => j.id !== jobId));
-        if (selectedJob?.id === jobId) {
-          setSelectedJob(null);
-          setPrepData(null);
-        }
         toast({
           title: "Job Removed",
-          description: "Job removed from saved list.",
+          description: "Removed from saved opportunities.",
         });
       }
     } catch (err) {
-      console.error("Failed to remove job:", err);
+      toast({
+        title: "Error",
+        description: "Failed to remove job.",
+        variant: "destructive",
+      });
     }
   };
 
   const generatePrep = async (job: SavedJob, forceRegenerate = false) => {
     setSelectedJob(job);
-    setActiveTab("prep-results");
     setError(null);
 
     if (!forceRegenerate && savedPreps[job.id]) {
       setPrepData(savedPreps[job.id]);
+      setActiveTab("prep-results");
       return;
     }
 
     setIsGenerating(true);
-    setPrepData(null);
-
-    const steps = [
-      `Analyzing role requirements for ${job.title}...`,
-      `Researching company culture for ${job.company}...`,
-      `Mapping technical stack competencies...`,
-      `Generating technical & behavioral interview questions...`,
-      `Finding recommended learning resources & videos...`,
-      `Building personalized 2-week study plan...`,
-    ];
-
-    let stepIndex = 0;
-    setGenerationStep(steps[0]);
-
-    const stepInterval = setInterval(() => {
-      if (stepIndex < steps.length - 1) {
-        stepIndex++;
-        setGenerationStep(steps[stepIndex]);
-      }
-    }, 1800);
+    setActiveTab("prep-results");
+    setGenerationStep("Analyzing target role & company requirements...");
 
     try {
-      let userProfile = { skills: [], experience: [] };
-      try {
-        const profileRes = await fetch("/api/profile", { credentials: "include" });
-        if (profileRes.ok) {
-          userProfile = await profileRes.json();
-        }
-      } catch (e) {
-        console.warn("Could not fetch profile, using defaults");
-      }
+      const stepTimer1 = setTimeout(() => {
+        setGenerationStep("Synthesizing core technical questions & framework answers...");
+      }, 1500);
 
-      const response = await fetch("/api/interview-prep/generate", {
+      const stepTimer2 = setTimeout(() => {
+        setGenerationStep("Indexing curated YouTube tutorial video masterclasses...");
+      }, 3000);
+
+      const stepTimer3 = setTimeout(() => {
+        setGenerationStep("Structuring 2-week personalized study plan...");
+      }, 4500);
+
+      const response = await fetch("/api/interview/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          job: {
-            title: job.title,
-            company: job.company,
-            description: job.description,
-            requirements: job.requirements,
-            skills: job.skills,
-            location: job.location,
-          },
-          userProfile,
+          jobId: job.id,
+          jobTitle: job.title,
+          company: job.company,
+          description: job.description,
         }),
       });
 
-      clearInterval(stepInterval);
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      clearTimeout(stepTimer3);
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || "Failed to generate interview prep");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to generate interview prep kit");
       }
 
       const result = await response.json();
-      setPrepData(result.data);
-      
-      try {
-        const saveResponse = await fetch("/api/profile/interview-preps", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            jobId: job.id,
-            jobTitle: job.title,
-            company: job.company,
-            ...result.data,
-          }),
-        });
-        
-        if (saveResponse.ok) {
-          setSavedPreps(prev => ({
-            ...prev,
-            [job.id]: result.data,
-          }));
-          toast({
-            title: "Prep Kit Saved!",
-            description: "Your customized interview preparation material has been saved.",
-          });
-        }
-      } catch (saveErr) {
-        console.error("Failed to save prep:", saveErr);
-      }
+      const generatedPrep = result.prepData || result;
+      setPrepData(generatedPrep);
+      setSavedPreps(prev => ({ ...prev, [job.id]: generatedPrep }));
+
+      toast({
+        title: "Prep Kit Ready!",
+        description: `Generated research & question guides for ${job.title}.`,
+      });
     } catch (err: any) {
-      console.error("Error generating prep:", err);
-      setError(err.message);
+      console.error("Interview prep error:", err);
+      setError(err.message || "Failed to generate interview kit. Please try again.");
     } finally {
       setIsGenerating(false);
       setGenerationStep("");
@@ -274,118 +234,117 @@ export default function Interview() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Easy": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
-      case "Medium": return "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800";
-      case "Hard": return "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800";
-      default: return "bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400";
+      case "Hard": return "text-destructive border-destructive/30";
+      case "Medium": return "text-amber-600 dark:text-amber-400 border-amber-500/30";
+      case "Easy": return "text-emerald-600 dark:text-emerald-400 border-emerald-500/30";
+      default: return "";
     }
   };
 
   const getImportanceColor = (importance: string) => {
     switch (importance) {
-      case "High": return "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800";
-      case "Medium": return "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800";
-      case "Low": return "bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400";
-      default: return "bg-slate-100 text-slate-700";
+      case "High": return "border-destructive/40 text-destructive";
+      case "Medium": return "border-primary/40 text-primary";
+      case "Low": return "border-border text-muted-foreground";
+      default: return "border-border text-muted-foreground";
     }
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto px-1 sm:px-0 overflow-x-hidden">
+    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 pb-8 overflow-x-hidden">
       <SEO 
         title="AI Interview Preparation & Practice Kit" 
         description="Master your upcoming tech interviews with AI-generated behavioral questions, coding hints, sample answers, curated YouTube tutorial videos, and 2-week study schedules." 
         canonical="/interview"
         keywords="interview prep, mock interview questions, behavioral interview questions, tech interview tutorial, coding interview practice"
       />
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5 shrink-0" /> AI Interview Simulator & Research Coach
-          </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground break-words">
-            Interview Preparation Kit
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
-            Deep role research, technical questions, hints, sample answers, and structured study plans powered by Groq AI.
-          </p>
+
+      {/* Header Banner - Minimalist & Clean */}
+      <div className="pb-4 border-b border-border/60">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-secondary-foreground mb-2">
+          <BrainCircuit className="w-3 h-3 text-primary shrink-0" /> AI Interview Simulator & Coach
         </div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground break-words">
+          Interview Preparation Kit
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed break-words">
+          Deep role research, technical questions, hints, sample answers, YouTube tutorials, and structured study plans powered by Groq AI.
+        </p>
       </div>
 
+      {/* Main Navigation Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 p-1 bg-muted rounded-xl">
-          <TabsTrigger value="saved-jobs" className="flex items-center gap-2 rounded-lg text-xs font-semibold">
-            <Bookmark className="w-3.5 h-3.5" />
-            Saved Jobs ({savedJobs.length})
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-10 sm:h-11 bg-muted/50 p-1 rounded-lg">
+          <TabsTrigger value="saved-jobs" className="text-xs sm:text-sm font-medium gap-1.5 px-2 sm:px-3">
+            <Bookmark className="w-3.5 h-3.5 shrink-0" />
+            <span>Saved Jobs ({savedJobs.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="prep-results" className="flex items-center gap-2 rounded-lg text-xs font-semibold" disabled={!selectedJob}>
-            <GraduationCap className="w-3.5 h-3.5" />
-            Prep Kit {selectedJob && `(${selectedJob.company})`}
+          <TabsTrigger value="prep-results" className="text-xs sm:text-sm font-medium gap-1.5 px-2 sm:px-3" disabled={!selectedJob && !prepData}>
+            <GraduationCap className="w-3.5 h-3.5 shrink-0 text-primary" />
+            <span className="truncate">Prep Kit {selectedJob && `(${selectedJob.company})`}</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Saved Jobs Tab */}
-        <TabsContent value="saved-jobs" className="mt-6">
+        <TabsContent value="saved-jobs" className="mt-6 space-y-6">
           {isLoadingJobs ? (
             <div className="flex items-center justify-center h-48">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : savedJobs.length === 0 ? (
-            <Card className="border-dashed border-2">
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="p-4 bg-primary/10 rounded-full text-primary mb-4">
-                  <Bookmark className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">No Saved Jobs Available</h3>
-                <p className="text-muted-foreground text-sm max-w-md mb-4">
-                  Bookmark job listings on the Job Discovery page to generate AI interview prep materials and study guides.
+            <Card className="h-[280px] sm:h-[340px] flex items-center justify-center border-dashed">
+              <CardContent className="flex flex-col items-center justify-center p-4 sm:p-6 text-center space-y-3">
+                <Bookmark className="w-10 h-10 text-muted-foreground/30 mx-auto" />
+                <h3 className="text-sm sm:text-base font-semibold">No Saved Jobs Available</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Bookmark target opportunities on the Job Discovery page to generate customized interview preparation kits and study plans.
                 </p>
-                <Button onClick={() => window.location.href = "/jobs"} className="bg-gradient-to-r from-blue-600 to-indigo-600">
-                  Discover Opportunities
+                <Button onClick={() => window.location.href = "/jobs"} size="sm" className="text-xs h-9 mt-1">
+                  Discover Opportunities <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {savedJobs.map((job) => (
-                <motion.div key={job.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-                  <Card className="h-full flex flex-col justify-between border-border/80 hover:border-primary/40 transition-all hover:shadow-md group">
-                    <CardHeader className="pb-3">
+                <motion.div key={job.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+                  <Card className="h-full flex flex-col justify-between border-border/80 bg-card hover:border-primary/40 transition-colors overflow-hidden">
+                    <CardHeader className="p-4 pb-2 space-y-2">
                       <div className="flex justify-between items-start gap-2">
-                        <div className="space-y-1">
-                          <CardTitle className="text-base font-bold group-hover:text-primary transition-colors line-clamp-1">
+                        <div className="min-w-0 space-y-0.5">
+                          <CardTitle className="text-sm sm:text-base font-bold truncate">
                             {job.title}
                           </CardTitle>
-                          <CardDescription className="flex items-center gap-1.5 text-xs">
+                          <CardDescription className="flex items-center gap-1.5 text-xs truncate">
                             <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
                             <span className="font-medium text-foreground">{job.company}</span>
                           </CardDescription>
                         </div>
-                        <div className="flex flex-col items-end gap-1">
+                        <div className="flex flex-col items-end gap-1 shrink-0">
                           {job.matchScore && (
-                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-[10px] font-bold">
+                            <Badge variant="secondary" className="text-[10px] font-semibold">
                               {job.matchScore}% Match
                             </Badge>
                           )}
                           {savedPreps[job.id] && (
-                            <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300">
-                              <CheckCircle2 className="w-3 h-3 mr-1 text-blue-500" /> Ready
+                            <Badge variant="outline" className="text-[10px] font-normal border-primary/30 text-primary">
+                              <CheckCircle2 className="w-3 h-3 mr-1" /> Ready
                             </Badge>
                           )}
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 space-y-3 text-xs">
+                    <CardContent className="p-4 pt-1 flex-1 space-y-2 text-xs">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="w-3.5 h-3.5 text-muted-foreground" /> {job.location || "Remote"}
-                        {job.salary && <span className="ml-2 font-semibold text-foreground">💰 {job.salary}</span>}
+                        <MapPin className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{job.location || "Remote"}</span>
+                        {job.salary && <span className="ml-auto font-medium text-foreground">{job.salary}</span>}
                       </div>
-                      <p className="text-muted-foreground line-clamp-2 leading-relaxed">{job.description}</p>
+                      <p className="text-muted-foreground line-clamp-2 leading-relaxed break-words">{job.description}</p>
                     </CardContent>
-                    <CardFooter className="pt-3 border-t flex gap-2">
+                    <CardFooter className="p-4 pt-2 border-t border-border/60 flex gap-2">
                       <Button 
-                        className="flex-1 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+                        size="sm"
+                        className="flex-1 text-xs font-semibold h-8" 
                         onClick={() => generatePrep(job)} 
                         disabled={isGenerating}
                       >
@@ -395,7 +354,7 @@ export default function Interview() {
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-amber-300 animate-pulse" /> Generate Kit
+                            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" /> Generate Kit
                           </>
                         )}
                       </Button>
@@ -406,7 +365,7 @@ export default function Interview() {
                           onClick={() => generatePrep(job, true)} 
                           disabled={isGenerating}
                           title="Regenerate interview kit"
-                          className="h-9 w-9 shrink-0"
+                          className="h-8 w-8 shrink-0"
                         >
                           <RefreshCw className="w-3.5 h-3.5" />
                         </Button>
@@ -415,7 +374,7 @@ export default function Interview() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => removeSavedJob(job.id)}
-                        className="h-9 w-9 shrink-0 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -428,56 +387,62 @@ export default function Interview() {
         </TabsContent>
 
         {/* Prep Results Tab */}
-        <TabsContent value="prep-results" className="mt-6">
+        <TabsContent value="prep-results" className="mt-6 space-y-6">
           <AnimatePresence mode="wait">
             {isGenerating ? (
-              <motion.div key="generating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-16 text-center space-y-4">
-                <div className="relative w-20 h-20 flex items-center justify-center">
-                  <div className="absolute inset-0 border-4 border-muted rounded-full" />
-                  <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                  <Sparkles className="w-8 h-8 text-primary animate-pulse" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-foreground">Analyzing Role & Company Insights</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Generating prep kit for {selectedJob?.title} at {selectedJob?.company}</p>
-                </div>
-                <div className="p-3 bg-muted rounded-lg text-xs font-semibold text-primary animate-pulse max-w-sm">
-                  {generationStep}
-                </div>
-              </motion.div>
-            ) : error ? (
-              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-16 text-center">
-                <AlertTriangle className="w-12 h-12 text-rose-500 mb-3" />
-                <h3 className="text-lg font-bold">Preparation Failed</h3>
-                <p className="text-sm text-muted-foreground mb-4 max-w-md">{error}</p>
-                <Button onClick={() => selectedJob && generatePrep(selectedJob, true)}>Retry Generation</Button>
-              </motion.div>
-            ) : prepData ? (
-              <motion.div key="results" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-8">
-                {/* Back Button & Job Title Banner */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-900 text-white shadow-xl">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-blue-300 mb-1">
-                      <Building2 className="w-3.5 h-3.5 shrink-0" /> {prepData.company}
-                    </div>
-                    <h2 className="text-lg sm:text-2xl font-extrabold tracking-tight break-words">{prepData.jobTitle}</h2>
-                    <p className="text-xs text-blue-100/80 mt-1 break-words">AI-Researched Technical & Behavioral Candidate Preparation Kit</p>
+              <Card className="h-[300px] sm:h-[380px] flex items-center justify-center border-dashed">
+                <CardContent className="flex flex-col items-center justify-center p-4 sm:p-6 text-center space-y-4">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+                  <div className="space-y-1">
+                    <h3 className="text-sm sm:text-base font-bold text-foreground">Analyzing Role & Company Insights</h3>
+                    <p className="text-xs text-muted-foreground">Generating customized kit for {selectedJob?.title} at {selectedJob?.company}</p>
                   </div>
+                  <div className="p-2.5 bg-muted/40 rounded-md text-xs text-primary font-medium border border-border/50 max-w-sm">
+                    {generationStep}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : error ? (
+              <Card className="border-destructive/30 bg-destructive/5">
+                <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
+                  <AlertTriangle className="w-8 h-8 text-destructive" />
+                  <h3 className="text-sm sm:text-base font-bold text-foreground">Preparation Failed</h3>
+                  <p className="text-xs text-muted-foreground max-w-md">{error}</p>
+                  <Button size="sm" onClick={() => selectedJob && generatePrep(selectedJob, true)} className="text-xs h-8">Retry Generation</Button>
+                </CardContent>
+              </Card>
+            ) : prepData ? (
+              <motion.div key="results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} className="space-y-4 sm:space-y-6">
+                {/* Header Card - Minimal SaaS */}
+                <Card className="border-border/80 bg-card overflow-hidden">
+                  <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <Badge variant="outline" className="text-[10px] font-normal uppercase shrink-0">
+                        Interview Prep Kit
+                      </Badge>
+                      <h2 className="text-base sm:text-xl font-bold text-foreground break-words">
+                        {prepData.jobTitle} <span className="font-normal text-muted-foreground">at {prepData.company}</span>
+                      </h2>
+                      <p className="text-xs text-muted-foreground break-words">
+                        AI-Researched Technical & Behavioral Candidate Preparation Kit
+                      </p>
+                    </div>
 
-                  <Button variant="secondary" size="sm" onClick={() => setActiveTab("saved-jobs")} className="self-start sm:self-center gap-2 text-xs">
-                    <ArrowLeft className="w-3.5 h-3.5" /> Back to Saved Jobs
-                  </Button>
-                </div>
+                    <Button variant="outline" size="sm" onClick={() => setActiveTab("saved-jobs")} className="self-start sm:self-auto gap-1.5 text-xs h-8 shrink-0">
+                      <ArrowLeft className="w-3.5 h-3.5" /> Back to Saved Jobs
+                    </Button>
+                  </CardContent>
+                </Card>
 
                 {/* Company & Role Insights Grid */}
                 <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
                   <Card className="border-border/80 overflow-hidden">
-                    <CardHeader className="p-3 sm:p-6 pb-3">
-                      <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-blue-500 shrink-0" /> Company Intelligence
+                    <CardHeader className="p-4 pb-2">
+                      <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-primary shrink-0" /> Company Intelligence
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-3 sm:p-6 pt-0 space-y-3 text-xs">
+                    <CardContent className="p-4 pt-1 space-y-3 text-xs">
                       <div>
                         <span className="font-semibold text-foreground block mb-0.5">Overview</span>
                         <p className="text-muted-foreground leading-relaxed break-words">{prepData.companyInsights.overview}</p>
@@ -494,12 +459,12 @@ export default function Interview() {
                   </Card>
 
                   <Card className="border-border/80 overflow-hidden">
-                    <CardHeader className="p-3 sm:p-6 pb-3">
-                      <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                        <Target className="w-4 h-4 text-purple-500 shrink-0" /> Role Dynamics & Salary
+                    <CardHeader className="p-4 pb-2">
+                      <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                        <Target className="w-4 h-4 text-primary shrink-0" /> Role Dynamics & Salary
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-3 sm:p-6 pt-0 space-y-3 text-xs">
+                    <CardContent className="p-4 pt-1 space-y-3 text-xs">
                       <div>
                         <span className="font-semibold text-foreground block mb-0.5">Day-to-Day Responsibilities</span>
                         <p className="text-muted-foreground leading-relaxed break-words">{prepData.roleInsights.dayToDay}</p>
@@ -509,10 +474,8 @@ export default function Interview() {
                         <p className="text-muted-foreground leading-relaxed break-words">{prepData.roleInsights.growthPath}</p>
                       </div>
                       <div>
-                        <span className="font-semibold text-foreground block mb-0.5 flex items-center gap-1">
-                          <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> Benchmark Compensation
-                        </span>
-                        <p className="text-emerald-700 dark:text-emerald-400 font-bold">{prepData.roleInsights.salaryRange}</p>
+                        <span className="font-semibold text-foreground block mb-0.5">Benchmark Compensation</span>
+                        <p className="text-foreground font-semibold">{prepData.roleInsights.salaryRange}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -520,17 +483,17 @@ export default function Interview() {
 
                 {/* Tech Stack Analysis */}
                 <Card className="border-border/80 overflow-hidden">
-                  <CardHeader className="p-3 sm:p-6 pb-3">
-                    <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-indigo-500 shrink-0" /> Tech Stack & Key Topics
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-primary shrink-0" /> Tech Stack & Key Topics
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-3 sm:p-6 pt-0 space-y-4 text-xs">
+                  <CardContent className="p-4 pt-1 space-y-3 text-xs">
                     <div>
-                      <span className="font-semibold text-foreground block mb-2">Required Core Technologies</span>
+                      <span className="font-semibold text-foreground block mb-1.5">Required Core Technologies</span>
                       <div className="flex flex-wrap gap-1.5">
                         {prepData.techStackAnalysis.requiredTechnologies.map((tech) => (
-                          <Badge key={tech} className="bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200">
+                          <Badge key={tech} variant="secondary" className="text-[11px] font-normal px-2.5 py-0.5 break-words">
                             {tech}
                           </Badge>
                         ))}
@@ -538,10 +501,10 @@ export default function Interview() {
                     </div>
                     {prepData.techStackAnalysis.niceToHave.length > 0 && (
                       <div>
-                        <span className="font-semibold text-foreground block mb-2">Nice-to-Have Skills</span>
+                        <span className="font-semibold text-foreground block mb-1.5">Nice-to-Have Skills</span>
                         <div className="flex flex-wrap gap-1.5">
                           {prepData.techStackAnalysis.niceToHave.map((tech) => (
-                            <Badge key={tech} variant="outline" className="text-muted-foreground">
+                            <Badge key={tech} variant="outline" className="text-[11px] font-normal px-2 break-words">
                               {tech}
                             </Badge>
                           ))}
@@ -553,24 +516,24 @@ export default function Interview() {
 
                 {/* Interview Questions & Study Modules Accordion */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                    <HelpCircle className="w-5 h-5 text-primary" /> Key Question Modules & Topic Guides
+                  <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
+                    <HelpCircle className="w-4 h-4 text-primary shrink-0" /> Key Question Modules & Topic Guides
                   </h3>
 
                   {prepData.topics.map((topic, topicIdx) => (
                     <Card key={topicIdx} className="border-border/80 overflow-hidden">
-                      <CardHeader className="p-3 sm:p-6 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <CardHeader className="p-4 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <CardTitle className="text-sm sm:text-base font-bold break-words">
+                          <CardTitle className="text-xs sm:text-sm font-bold break-words">
                             {topic.title}
                           </CardTitle>
                           <CardDescription className="text-xs mt-0.5 break-words">{topic.description}</CardDescription>
                         </div>
-                        <Badge variant="outline" className={`text-xs shrink-0 self-start sm:self-auto ${getImportanceColor(topic.importance)}`}>
+                        <Badge variant="outline" className={`text-[10px] shrink-0 self-start sm:self-auto font-medium ${getImportanceColor(topic.importance)}`}>
                           {topic.importance} Priority
                         </Badge>
                       </CardHeader>
-                      <CardContent className="p-3 sm:p-6 pt-0 space-y-4">
+                      <CardContent className="p-4 pt-1 space-y-3.5">
                         {/* YouTube Video Prep Tutorial */}
                         {(() => {
                           const video = topic.youtubeVideo || {
@@ -580,16 +543,16 @@ export default function Interview() {
                           };
 
                           return (
-                            <div className="p-3.5 bg-red-500/5 dark:bg-red-950/20 border border-red-500/20 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="p-3 bg-muted/30 border border-border/60 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                <div className="w-10 h-10 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5 sm:mt-0">
-                                  <Youtube className="w-5 h-5" />
+                                <div className="w-8 h-8 rounded-md bg-red-600/10 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                                  <Youtube className="w-4 h-4" />
                                 </div>
                                 <div className="min-w-0 space-y-0.5">
                                   <span className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider block">
                                     Recommended YouTube Tutorial
                                   </span>
-                                  <h4 className="text-xs font-bold text-foreground leading-snug break-words">
+                                  <h4 className="text-xs font-semibold text-foreground leading-snug break-words">
                                     {video.title}
                                   </h4>
                                   <p className="text-[11px] text-muted-foreground break-words">
@@ -597,7 +560,7 @@ export default function Interview() {
                                   </p>
                                 </div>
                               </div>
-                              <Button size="sm" variant="outline" asChild className="w-full sm:w-auto shrink-0 text-xs border-red-500/30 hover:bg-red-500/10 text-red-600 dark:text-red-400 h-8">
+                              <Button size="sm" variant="outline" asChild className="w-full sm:w-auto shrink-0 text-xs border-border/80 hover:bg-muted h-8">
                                 <a href={video.url} target="_blank" rel="noopener noreferrer">
                                   Watch Tutorial <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
                                 </a>
@@ -607,33 +570,33 @@ export default function Interview() {
                         })()}
 
                         {/* Questions Accordion */}
-                        <Accordion type="single" collapsible className="w-full">
+                        <Accordion type="single" collapsible className="w-full space-y-1">
                           {topic.questions.map((q, qIdx) => (
-                            <AccordionItem key={qIdx} value={`item-${topicIdx}-${qIdx}`}>
-                              <AccordionTrigger className="text-xs font-semibold hover:no-underline py-3">
+                            <AccordionItem key={qIdx} value={`item-${topicIdx}-${qIdx}`} className="border-border/60">
+                              <AccordionTrigger className="text-xs font-semibold hover:no-underline py-2.5">
                                 <div className="flex items-start gap-2 text-left min-w-0">
-                                  <Badge variant="outline" className={`text-[10px] shrink-0 mt-0.5 ${getDifficultyColor(q.difficulty)}`}>
+                                  <Badge variant="outline" className={`text-[10px] shrink-0 mt-0.5 font-normal ${getDifficultyColor(q.difficulty)}`}>
                                     {q.difficulty}
                                   </Badge>
-                                  <span className="break-words">{q.question}</span>
+                                  <span className="break-words leading-relaxed">{q.question}</span>
                                 </div>
                               </AccordionTrigger>
                               <AccordionContent className="space-y-3 pt-2 text-xs overflow-hidden">
-                                <div className="p-3 bg-muted/60 rounded-lg space-y-1.5 overflow-hidden">
+                                <div className="p-3 bg-muted/40 rounded-md space-y-1 overflow-hidden border border-border/40">
                                   <span className="font-semibold text-foreground flex items-center gap-1">
-                                    <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Why This Is Asked
+                                    <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Why This Is Asked
                                   </span>
-                                  <p className="text-muted-foreground break-words">{q.whyAsked}</p>
+                                  <p className="text-muted-foreground break-words leading-relaxed">{q.whyAsked}</p>
                                 </div>
 
                                 {q.hints.length > 0 && (
-                                  <div>
-                                    <span className="font-semibold text-foreground block mb-1">Key Strategy Hints</span>
+                                  <div className="space-y-1">
+                                    <span className="font-semibold text-foreground block">Key Strategy Hints</span>
                                     <ul className="space-y-1 text-muted-foreground">
                                       {q.hints.map((h, i) => (
                                         <li key={i} className="flex items-start gap-1.5">
-                                          <span className="text-primary font-bold">•</span>
-                                          <span>{h}</span>
+                                          <span className="text-primary font-bold shrink-0">•</span>
+                                          <span className="break-words leading-relaxed">{h}</span>
                                         </li>
                                       ))}
                                     </ul>
@@ -641,9 +604,9 @@ export default function Interview() {
                                 )}
 
                                 {q.sampleAnswer && (
-                                  <div className="p-3.5 bg-blue-50/50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg space-y-1">
-                                    <span className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1">
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> Ideal Candidate Answer Framework
+                                  <div className="p-3.5 bg-muted/30 border border-border/60 rounded-md space-y-1">
+                                    <span className="font-semibold text-foreground flex items-center gap-1 text-xs">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" /> Ideal Candidate Answer Framework
                                     </span>
                                     <p className="text-foreground/90 leading-relaxed pt-1 break-words">{q.sampleAnswer}</p>
                                   </div>
@@ -659,42 +622,42 @@ export default function Interview() {
 
                 {/* 2-Week Study Plan */}
                 {prepData.studyPlan && (
-                <Card className="border-border/80 overflow-hidden">
-                    <CardHeader className="p-3 sm:p-6 pb-3">
-                      <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-emerald-500 shrink-0" /> Recommended Study Timeline
+                  <Card className="border-border/80 overflow-hidden">
+                    <CardHeader className="p-4 pb-2">
+                      <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-primary shrink-0" /> Recommended Study Timeline
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-3 sm:p-6 pt-0 grid gap-4 md:grid-cols-3 text-xs">
-                      <div className="p-3.5 bg-muted/50 rounded-xl space-y-2 border">
-                        <span className="font-bold text-foreground block">Week 1: Core Fundamentals</span>
-                        <ul className="space-y-1.5 text-muted-foreground">
+                    <CardContent className="p-4 pt-1 grid gap-3 md:grid-cols-3 text-xs">
+                      <div className="p-3 bg-muted/30 rounded-md space-y-1.5 border border-border/40">
+                        <span className="font-semibold text-foreground block">Week 1: Core Fundamentals</span>
+                        <ul className="space-y-1 text-muted-foreground">
                           {prepData.studyPlan.week1.map((item, i) => (
                             <li key={i} className="flex items-start gap-1.5">
-                              <span className="text-emerald-500 font-bold">•</span>
-                              <span>{item}</span>
+                              <span className="text-primary font-bold shrink-0">•</span>
+                              <span className="break-words leading-relaxed">{item}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="p-3.5 bg-muted/50 rounded-xl space-y-2 border">
-                        <span className="font-bold text-foreground block">Week 2: Applied & Mock Practice</span>
-                        <ul className="space-y-1.5 text-muted-foreground">
+                      <div className="p-3 bg-muted/30 rounded-md space-y-1.5 border border-border/40">
+                        <span className="font-semibold text-foreground block">Week 2: Applied & Mock Practice</span>
+                        <ul className="space-y-1 text-muted-foreground">
                           {prepData.studyPlan.week2.map((item, i) => (
                             <li key={i} className="flex items-start gap-1.5">
-                              <span className="text-emerald-500 font-bold">•</span>
-                              <span>{item}</span>
+                              <span className="text-primary font-bold shrink-0">•</span>
+                              <span className="break-words leading-relaxed">{item}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="p-3.5 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-xl space-y-2">
-                        <span className="font-bold text-emerald-800 dark:text-emerald-300 block">Final 48 Hours</span>
-                        <ul className="space-y-1.5 text-muted-foreground">
+                      <div className="p-3 bg-muted/30 rounded-md space-y-1.5 border border-border/40">
+                        <span className="font-semibold text-foreground block">Final 48 Hours</span>
+                        <ul className="space-y-1 text-muted-foreground">
                           {prepData.studyPlan.lastDays.map((item, i) => (
                             <li key={i} className="flex items-start gap-1.5">
-                              <span className="text-emerald-500 font-bold">•</span>
-                              <span>{item}</span>
+                              <span className="text-primary font-bold shrink-0">•</span>
+                              <span className="break-words leading-relaxed">{item}</span>
                             </li>
                           ))}
                         </ul>
