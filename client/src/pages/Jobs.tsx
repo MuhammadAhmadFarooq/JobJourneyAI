@@ -630,19 +630,19 @@ export default function Jobs() {
                 : "Upload your resume in Resume Studio for personalized job matching."}
             </p>
           </div>
-          <div className="flex w-full sm:w-auto items-center space-x-2.5 shrink-0">
-            <div className="relative flex-1 sm:w-[240px] md:w-[300px]">
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto items-stretch sm:items-center gap-2 shrink-0">
+            <div className="relative flex-1 w-full sm:w-[240px] md:w-[300px]">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search roles, skills..."
-                className="pl-9 bg-background text-xs sm:text-sm h-10"
+                className="pl-9 bg-background text-xs sm:text-sm h-10 w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && searchJobs()}
               />
             </div>
-            <Button onClick={searchJobs} disabled={loading} size="default" className="shrink-0 text-xs sm:text-sm h-10 px-4 font-semibold">
+            <Button onClick={searchJobs} disabled={loading} size="default" className="shrink-0 text-xs sm:text-sm h-10 px-5 font-semibold w-full sm:w-auto">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
             </Button>
           </div>
@@ -654,25 +654,25 @@ export default function Jobs() {
         <Card className="border-border/80 bg-card overflow-hidden">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+              <div className="flex items-start sm:items-center gap-3.5 min-w-0 w-full sm:w-auto">
                 <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-secondary flex items-center justify-center shrink-0">
                   <Briefcase className="w-5 h-5 text-primary" />
                 </div>
-                <div className="min-w-0 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-sm sm:text-base text-foreground truncate">Candidate Profile Loaded</p>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-bold text-sm sm:text-base text-foreground">Candidate Profile Loaded</p>
                     {userProfile.name && (
                       <Badge variant="outline" className="text-xs font-normal py-0.5">
                         {userProfile.name}
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
                     {userProfile.skills.length} skills • {userProfile.experience.length} experiences
                     {userProfile.location && ` • 📍 ${userProfile.location}`}
                   </p>
                   {(jobPreferences.targetRoles.length > 0 || userProfile.suggestedRoles?.length > 0) && (
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                    <p className="text-xs sm:text-sm text-muted-foreground break-words">
                       <span className="font-medium text-foreground">Target:</span> {(jobPreferences.targetRoles.length > 0 
                         ? jobPreferences.targetRoles 
                         : userProfile.suggestedRoles
@@ -682,31 +682,31 @@ export default function Jobs() {
                   )}
                 </div>
               </div>
-              <div className="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto shrink-0">
+              <div className="grid grid-cols-2 sm:flex sm:flex-nowrap gap-2.5 w-full sm:w-auto shrink-0">
                 <Button 
                   variant="outline" 
                   size="default"
                   onClick={() => setShowPreferencesModal(true)}
-                  className="flex-1 sm:flex-none text-xs sm:text-sm h-9 sm:h-10"
+                  className="w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3"
                 >
-                  <Settings2 className="w-4 h-4 mr-2" />
-                  Preferences
+                  <Settings2 className="w-4 h-4 mr-1.5 shrink-0" />
+                  <span>Preferences</span>
                 </Button>
                 <Button 
                   size="default"
                   onClick={discoverJobs} 
                   disabled={loading} 
-                  className="flex-1 sm:flex-none text-xs sm:text-sm h-9 sm:h-10 font-semibold"
+                  className="w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-4 font-semibold"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      Searching...
+                      <Loader2 className="w-4 h-4 animate-spin mr-1.5 shrink-0" />
+                      <span>Searching...</span>
                     </>
                   ) : (
                     <>
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Discover Jobs
+                      <RefreshCw className="w-4 h-4 mr-1.5 shrink-0" />
+                      <span>Discover Jobs</span>
                     </>
                   )}
                 </Button>
@@ -927,7 +927,7 @@ export default function Jobs() {
                             </CardDescription>
                           </div>
                         </div>
-                        <div className="flex flex-wrap sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto gap-1.5 shrink-0">
+                        <div className="flex flex-wrap items-center justify-between sm:justify-end w-full sm:w-auto gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-0 border-border/40">
                           {job.matchScore > 0 && (
                             <Badge variant="secondary" className="text-xs font-semibold px-2.5 py-0.5">
                               {job.matchScore}% Match
@@ -964,7 +964,7 @@ export default function Jobs() {
                         </Badge>
                       </div>
                       
-                      <p className="text-muted-foreground line-clamp-2 leading-relaxed break-words text-xs sm:text-sm">
+                      <p className="text-muted-foreground line-clamp-3 leading-relaxed break-words text-xs sm:text-sm">
                         {job.description.substring(0, 240)}...
                       </p>
 
@@ -1001,21 +1001,22 @@ export default function Jobs() {
                         </div>
                       )}
                     </CardContent>
-                    <CardFooter className="p-3 sm:p-5 pt-3 flex flex-col sm:flex-row gap-2.5 sm:items-center justify-between border-t border-border/60">
+                    <CardFooter className="p-3.5 sm:p-5 pt-3 flex flex-col sm:flex-row gap-3 sm:items-center justify-between border-t border-border/60">
                       <span className="text-xs text-muted-foreground">
                         Source: <span className="font-medium text-foreground">{job.sourcePlatform}</span>
                       </span>
-                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
                         <Button 
                           variant="ghost"
                           size="sm"
                           onClick={() => {
                             window.location.href = `/resume?tab=tailor&title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`;
                           }}
-                          className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9 px-3"
+                          className="w-full sm:w-auto text-xs sm:text-sm h-9 px-2.5 justify-center"
                           title="Generate ATS-tailored resume variant for this role"
                         >
-                          <Wand2 className="mr-1.5 w-3.5 h-3.5 text-primary" /> Tailor Resume
+                          <Wand2 className="mr-1.5 w-3.5 h-3.5 text-primary shrink-0" /> 
+                          <span className="truncate">Tailor Resume</span>
                         </Button>
                         <Button 
                           variant="ghost"
@@ -1023,30 +1024,33 @@ export default function Jobs() {
                           onClick={() => {
                             window.location.href = `/resume?tab=cover-letter&title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`;
                           }}
-                          className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9 px-3"
+                          className="w-full sm:w-auto text-xs sm:text-sm h-9 px-2.5 justify-center"
                           title="Generate Cover Letter or Outreach message"
                         >
-                          <Send className="mr-1.5 w-3.5 h-3.5 text-primary" /> Cover Letter
+                          <Send className="mr-1.5 w-3.5 h-3.5 text-primary shrink-0" /> 
+                          <span className="truncate">Cover Letter</span>
                         </Button>
                         <Button 
                           variant={isJobSaved(job) ? "default" : "outline"} 
                           size="sm"
                           onClick={() => saveJob(job)}
-                          className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9 px-3.5"
+                          className="w-full sm:w-auto text-xs sm:text-sm h-9 px-3 justify-center"
                         >
                           {isJobSaved(job) ? (
                             <>
-                              <BookmarkCheck className="mr-1.5 w-3.5 h-3.5" /> Saved
+                              <BookmarkCheck className="mr-1.5 w-3.5 h-3.5 shrink-0" /> 
+                              <span className="truncate">Saved</span>
                             </>
                           ) : (
                             <>
-                              <BookmarkPlus className="mr-1.5 w-3.5 h-3.5" /> Save
+                              <BookmarkPlus className="mr-1.5 w-3.5 h-3.5 shrink-0" /> 
+                              <span className="truncate">Save</span>
                             </>
                           )}
                         </Button>
-                        <Button size="sm" asChild className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9 px-4">
+                        <Button size="sm" asChild className="w-full sm:w-auto text-xs sm:text-sm h-9 px-3.5 justify-center">
                           <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer">
-                            Apply <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
+                            <span className="truncate">Apply</span> <ExternalLink className="ml-1.5 w-3.5 h-3.5 shrink-0" />
                           </a>
                         </Button>
                       </div>

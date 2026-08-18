@@ -305,22 +305,22 @@ export default function Interview() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {savedJobs.map((job) => (
                 <motion.div key={job.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
                   <Card className="h-full flex flex-col justify-between border-border/80 bg-card hover:border-primary/40 transition-colors overflow-hidden">
-                    <CardHeader className="p-5 pb-2.5 space-y-2">
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="min-w-0 space-y-1">
-                          <CardTitle className="text-base sm:text-lg font-bold truncate hover:text-primary transition-colors">
+                    <CardHeader className="p-4 sm:p-5 pb-2.5 space-y-2">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-2.5">
+                        <div className="min-w-0 flex-1 space-y-1 w-full sm:w-auto">
+                          <CardTitle className="text-base sm:text-lg font-bold break-words hover:text-primary transition-colors leading-snug">
                             {job.title}
                           </CardTitle>
-                          <CardDescription className="flex items-center gap-1.5 text-xs sm:text-sm truncate">
+                          <CardDescription className="flex items-center gap-1.5 text-xs sm:text-sm break-words">
                             <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                            <span className="font-medium text-foreground">{job.company}</span>
+                            <span className="font-medium text-foreground truncate">{job.company}</span>
                           </CardDescription>
                         </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
                           {job.matchScore && (
                             <Badge variant="secondary" className="text-xs font-semibold px-2 py-0.5">
                               {job.matchScore}% Match
@@ -334,27 +334,27 @@ export default function Interview() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-5 pt-1 flex-1 space-y-2.5 text-xs sm:text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{job.location || "Remote"}</span>
+                    <CardContent className="p-4 sm:p-5 pt-1 flex-1 space-y-2.5 text-xs sm:text-sm">
+                      <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
+                        <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 shrink-0" /> {job.location || "Remote"}</span>
                         {job.salary && <span className="ml-auto font-medium text-foreground">{job.salary}</span>}
                       </div>
-                      <p className="text-muted-foreground line-clamp-2 leading-relaxed break-words">{job.description}</p>
+                      <p className="text-muted-foreground line-clamp-3 leading-relaxed break-words">{job.description}</p>
                     </CardContent>
-                    <CardFooter className="p-5 pt-3 border-t border-border/60 flex gap-2">
+                    <CardFooter className="p-4 sm:p-5 pt-3 border-t border-border/60 flex items-center gap-2">
                       <Button 
                         size="sm"
-                        className="flex-1 text-xs sm:text-sm font-semibold h-9" 
+                        className="flex-1 min-w-0 text-xs sm:text-sm font-semibold h-9" 
                         onClick={() => generatePrep(job)} 
                         disabled={isGenerating}
                       >
                         {savedPreps[job.id] ? (
                           <>
-                            <BookOpen className="w-3.5 h-3.5 mr-2" /> View Prep Kit
+                            <BookOpen className="w-3.5 h-3.5 mr-1.5 shrink-0" /> <span className="truncate">View Prep Kit</span>
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-3.5 h-3.5 mr-2 text-primary" /> Generate Kit
+                            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary shrink-0" /> <span className="truncate">Generate Kit</span>
                           </>
                         )}
                       </Button>
