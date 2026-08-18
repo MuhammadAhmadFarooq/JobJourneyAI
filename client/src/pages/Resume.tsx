@@ -421,45 +421,45 @@ export default function Resume() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 pb-8 overflow-x-hidden">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto px-1 sm:px-0 pb-8 overflow-x-hidden">
       <SEO 
         title="Resume Studio & AI Tailor" 
         description="Extract resume competencies, optimize bullet points for ATS scanners with target job descriptions, and generate customized cover letters with AI." 
         canonical="/resume"
         keywords="resume parser, resume tailor, ATS score optimizer, AI cover letter generator, cold outreach email writer"
       />
-      {/* Header Banner - Minimalist & Mobile Crisp */}
-      <div className="pb-4 border-b border-border/60">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-secondary-foreground mb-2">
-          <Sparkles className="w-3 h-3 text-primary" /> AI Career Suite
+      {/* Header Banner - Clean & Readable */}
+      <div className="pb-5 border-b border-border/60">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium bg-secondary text-secondary-foreground mb-3">
+          <Sparkles className="w-3.5 h-3.5 text-primary" /> AI Career Suite
         </div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground break-words">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground break-words">
           Resume Studio & Application Suite
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed break-words">
+        <p className="text-sm sm:text-base text-muted-foreground mt-1.5 max-w-3xl leading-relaxed break-words">
           Parse master resumes, generate ATS-targeted variants, and draft tailored cover letters or cold outreach messages.
         </p>
       </div>
 
       {/* Main Feature Navigation Tabs - Responsive Scroll/Grid */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex w-full overflow-x-auto justify-start sm:justify-center max-w-2xl mx-auto h-10 sm:h-11 bg-muted/50 p-1 rounded-lg space-x-1 sm:space-x-0 no-scrollbar">
-          <TabsTrigger value="analysis" className="flex-1 min-w-[100px] text-xs sm:text-sm font-medium gap-1.5 px-2.5 sm:px-3 whitespace-nowrap">
-            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+        <TabsList className="flex w-full overflow-x-auto justify-start sm:justify-center max-w-2xl mx-auto h-11 sm:h-12 bg-muted/50 p-1 rounded-lg space-x-1 sm:space-x-0 no-scrollbar">
+          <TabsTrigger value="analysis" className="flex-1 min-w-[110px] text-xs sm:text-sm font-medium gap-2 px-3 sm:px-4 whitespace-nowrap">
+            <FileText className="w-4 h-4 shrink-0" />
             <span>Master Resume</span>
           </TabsTrigger>
-          <TabsTrigger value="tailor" className="flex-1 min-w-[100px] text-xs sm:text-sm font-medium gap-1.5 px-2.5 sm:px-3 whitespace-nowrap">
-            <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-primary" />
+          <TabsTrigger value="tailor" className="flex-1 min-w-[110px] text-xs sm:text-sm font-medium gap-2 px-3 sm:px-4 whitespace-nowrap">
+            <Wand2 className="w-4 h-4 shrink-0 text-primary" />
             <span>Resume Tailor</span>
           </TabsTrigger>
-          <TabsTrigger value="cover-letter" className="flex-1 min-w-[100px] text-xs sm:text-sm font-medium gap-1.5 px-2.5 sm:px-3 whitespace-nowrap">
-            <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-primary" />
+          <TabsTrigger value="cover-letter" className="flex-1 min-w-[110px] text-xs sm:text-sm font-medium gap-2 px-3 sm:px-4 whitespace-nowrap">
+            <Send className="w-4 h-4 shrink-0 text-primary" />
             <span>Cover Letter</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Tab 1: Master Resume Analysis */}
-        <TabsContent value="analysis" className="mt-6 space-y-6">
+        <TabsContent value="analysis" className="mt-6 sm:mt-8 space-y-6">
           <div className="grid gap-6 md:grid-cols-12">
             {/* Upload Panel Left */}
             <div className="md:col-span-5 space-y-4 min-w-0">
@@ -481,30 +481,30 @@ export default function Resume() {
                   accept=".pdf,.txt"
                   className="hidden"
                 />
-                <CardContent className="p-4 sm:p-6 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto border border-border/50">
+                <CardContent className="p-5 sm:p-8 text-center space-y-3.5">
+                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto border border-border/50">
                     {isUploading ? (
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <Loader2 className="w-7 h-7 animate-spin text-primary" />
                     ) : (
-                      <Upload className="w-6 h-6 text-muted-foreground" />
+                      <Upload className="w-7 h-7 text-muted-foreground" />
                     )}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-sm sm:text-base text-foreground break-words">
+                    <h3 className="font-semibold text-base sm:text-lg text-foreground break-words">
                       {isUploading ? "Processing Resume..." : "Upload Master Resume"}
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto break-words">
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-xs mx-auto break-words">
                       Drag & drop your PDF or TXT resume here, or click to browse.
                     </p>
                   </div>
 
                   {isUploading ? (
                     <div className="space-y-2 pt-2">
-                      <Progress value={uploadProgress} className="h-1.5" />
-                      <p className="text-[11px] text-primary font-medium break-words">{uploadStatus}</p>
+                      <Progress value={uploadProgress} className="h-2" />
+                      <p className="text-xs text-primary font-medium break-words">{uploadStatus}</p>
                     </div>
                   ) : (
-                    <Button variant="outline" size="sm" className="text-xs pointer-events-none h-8 px-3">
+                    <Button variant="outline" size="default" className="text-xs sm:text-sm pointer-events-none h-9 px-4">
                       Browse File
                     </Button>
                   )}
@@ -514,17 +514,17 @@ export default function Resume() {
               {/* Uploaded File Info Card */}
               {fileName && (
                 <Card className="border-border/60 bg-muted/30">
-                  <CardContent className="p-3 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="p-1.5 bg-primary/10 text-primary rounded-md shrink-0">
-                        <FileCheck className="w-4 h-4" />
+                  <CardContent className="p-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2 bg-primary/10 text-primary rounded-lg shrink-0">
+                        <FileCheck className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium truncate text-foreground">{fileName}</p>
-                        <p className="text-[10px] text-muted-foreground">{uploadDate || "Uploaded"}</p>
+                        <p className="text-xs sm:text-sm font-medium truncate text-foreground">{fileName}</p>
+                        <p className="text-xs text-muted-foreground">{uploadDate || "Uploaded"}</p>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-[10px] font-normal shrink-0">
+                    <Badge variant="secondary" className="text-xs font-normal shrink-0 px-2.5 py-0.5">
                       Active Profile
                     </Badge>
                   </CardContent>
@@ -541,20 +541,20 @@ export default function Resume() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="space-y-4"
+                    className="space-y-4 sm:space-y-5"
                   >
                     {/* Profile Header Card */}
                     <Card className="border-border/80 bg-card overflow-hidden">
-                      <CardContent className="p-3 sm:p-5 space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <CardContent className="p-5 sm:p-6 space-y-3.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div className="min-w-0 space-y-1">
-                            <h2 className="text-base sm:text-xl font-bold text-foreground break-words">{resumeData.name || "Candidate Profile"}</h2>
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
-                              {resumeData.email && <span className="flex items-center gap-1 break-all"><Mail className="w-3.5 h-3.5 shrink-0" /> {resumeData.email}</span>}
-                              {resumeData.location && <span className="flex items-center gap-1 break-words"><MapPin className="w-3.5 h-3.5 shrink-0" /> {resumeData.location}</span>}
+                            <h2 className="text-lg sm:text-2xl font-bold text-foreground break-words">{resumeData.name || "Candidate Profile"}</h2>
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                              {resumeData.email && <span className="flex items-center gap-1.5 break-all"><Mail className="w-4 h-4 shrink-0" /> {resumeData.email}</span>}
+                              {resumeData.location && <span className="flex items-center gap-1.5 break-words"><MapPin className="w-4 h-4 shrink-0" /> {resumeData.location}</span>}
                             </div>
                           </div>
-                          <Badge variant="outline" className="self-start sm:self-center text-[10px] uppercase font-semibold shrink-0">
+                          <Badge variant="outline" className="self-start sm:self-center text-xs uppercase font-semibold shrink-0 px-2.5 py-0.5">
                             Master Resume
                           </Badge>
                         </div>

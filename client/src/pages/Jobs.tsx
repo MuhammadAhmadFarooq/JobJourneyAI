@@ -606,7 +606,7 @@ export default function Jobs() {
   );
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 pb-8 overflow-x-hidden">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto px-1 sm:px-0 pb-8 overflow-x-hidden">
       <SEO 
         title="Job Discovery & AI Matcher" 
         description="Search active tech and remote job listings with real-time Anti-Expired Shield verification, compatibility ratings, and 1-click resume tailoring." 
@@ -614,35 +614,35 @@ export default function Jobs() {
         keywords="live job board, anti-expired jobs, verified tech jobs, remote engineering jobs, job compatibility score"
       />
 
-      {/* Header Banner - Minimalist & Clean */}
-      <div className="pb-4 border-b border-border/60">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-secondary-foreground mb-2">
-          <Briefcase className="w-3 h-3 text-primary shrink-0" /> Live Opportunity Feed
+      {/* Header Banner - Clean & Readable */}
+      <div className="pb-5 border-b border-border/60">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium bg-secondary text-secondary-foreground mb-3">
+          <Briefcase className="w-3.5 h-3.5 text-primary shrink-0" /> Live Opportunity Feed
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground break-words">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground break-words">
               Job Discovery
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed break-words">
+            <p className="text-sm sm:text-base text-muted-foreground mt-1.5 max-w-3xl leading-relaxed break-words">
               {userProfile 
                 ? "Real-time verified opportunities matching your candidate profile & ATS compatibility."
                 : "Upload your resume in Resume Studio for personalized job matching."}
             </p>
           </div>
-          <div className="flex w-full sm:w-auto items-center space-x-2 shrink-0">
-            <div className="relative flex-1 sm:w-[220px] md:w-[260px]">
-              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+          <div className="flex w-full sm:w-auto items-center space-x-2.5 shrink-0">
+            <div className="relative flex-1 sm:w-[240px] md:w-[300px]">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search roles, skills..."
-                className="pl-8 bg-background text-xs sm:text-sm h-9"
+                className="pl-9 bg-background text-xs sm:text-sm h-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && searchJobs()}
               />
             </div>
-            <Button onClick={searchJobs} disabled={loading} size="sm" className="shrink-0 text-xs h-9 font-semibold">
+            <Button onClick={searchJobs} disabled={loading} size="default" className="shrink-0 text-xs sm:text-sm h-10 px-4 font-semibold">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
             </Button>
           </div>
@@ -652,27 +652,27 @@ export default function Jobs() {
       {/* Profile Status & Discover Banner */}
       {userProfile && (
         <Card className="border-border/80 bg-card overflow-hidden">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-start sm:items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                  <Briefcase className="w-4 h-4 text-primary" />
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                  <Briefcase className="w-5 h-5 text-primary" />
                 </div>
-                <div className="min-w-0 space-y-0.5">
+                <div className="min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-xs sm:text-sm text-foreground truncate">Candidate Profile Loaded</p>
+                    <p className="font-bold text-sm sm:text-base text-foreground truncate">Candidate Profile Loaded</p>
                     {userProfile.name && (
-                      <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">
+                      <Badge variant="outline" className="text-xs font-normal py-0.5">
                         {userProfile.name}
                       </Badge>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground truncate">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
                     {userProfile.skills.length} skills • {userProfile.experience.length} experiences
                     {userProfile.location && ` • 📍 ${userProfile.location}`}
                   </p>
                   {(jobPreferences.targetRoles.length > 0 || userProfile.suggestedRoles?.length > 0) && (
-                    <p className="text-[11px] text-muted-foreground truncate">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       <span className="font-medium text-foreground">Target:</span> {(jobPreferences.targetRoles.length > 0 
                         ? jobPreferences.targetRoles 
                         : userProfile.suggestedRoles
@@ -682,30 +682,30 @@ export default function Jobs() {
                   )}
                 </div>
               </div>
-              <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto shrink-0">
+              <div className="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto shrink-0">
                 <Button 
                   variant="outline" 
-                  size="sm"
+                  size="default"
                   onClick={() => setShowPreferencesModal(true)}
-                  className="flex-1 sm:flex-none text-xs h-8"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm h-9 sm:h-10"
                 >
-                  <Settings2 className="w-3.5 h-3.5 mr-1.5" />
+                  <Settings2 className="w-4 h-4 mr-2" />
                   Preferences
                 </Button>
                 <Button 
-                  size="sm"
+                  size="default"
                   onClick={discoverJobs} 
                   disabled={loading} 
-                  className="flex-1 sm:flex-none text-xs h-8 font-semibold"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm h-9 sm:h-10 font-semibold"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
                       Searching...
                     </>
                   ) : (
                     <>
-                      <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                      <RefreshCw className="w-4 h-4 mr-2" />
                       Discover Jobs
                     </>
                   )}
@@ -719,12 +719,12 @@ export default function Jobs() {
       {/* No Profile Warning */}
       {!userProfile && (
         <Card className="border-border/80 bg-muted/20">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-4 h-4 text-primary shrink-0" />
+          <CardContent className="p-5 sm:p-6">
+            <div className="flex items-center gap-3.5">
+              <AlertCircle className="w-5 h-5 text-primary shrink-0" />
               <div>
-                <p className="font-semibold text-xs sm:text-sm text-foreground">No Profile Loaded</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="font-semibold text-sm sm:text-base text-foreground">No Profile Loaded</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                   Upload your resume in the Resume Studio to unlock automated role matching with compatibility scores.
                 </p>
               </div>
@@ -736,10 +736,10 @@ export default function Jobs() {
       {/* Error Display */}
       {error && (
         <Card className="border-destructive/30 bg-destructive/5">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
               <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
-              <p className="text-xs text-destructive">{error}</p>
+              <p className="text-xs sm:text-sm text-destructive">{error}</p>
             </div>
           </CardContent>
         </Card>
@@ -748,12 +748,12 @@ export default function Jobs() {
       {/* Mobile Collapsible Filter Toggle */}
       <div className="lg:hidden">
         <Card className="border-border/80 overflow-hidden">
-          <CardHeader className="py-2.5 px-3.5 flex flex-row items-center justify-between cursor-pointer select-none" onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}>
+          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between cursor-pointer select-none" onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}>
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
-              <CardTitle className="text-xs font-semibold">Filter Jobs</CardTitle>
+              <SlidersHorizontal className="w-4 h-4 text-primary" />
+              <CardTitle className="text-xs sm:text-sm font-semibold">Filter Jobs</CardTitle>
               {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                <Badge variant="secondary" className="text-xs px-2 py-0.5">
                   {activeFilterCount} Active
                 </Badge>
               )}
@@ -770,13 +770,13 @@ export default function Jobs() {
                     setSelectedJobTypes([]);
                     setShowExpired(false);
                   }}
-                  className="text-[11px] h-6 px-1.5 text-muted-foreground hover:text-foreground"
+                  className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
                 >
                   Reset
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-                {isMobileFilterOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
+                {isMobileFilterOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </div>
           </CardHeader>
@@ -792,10 +792,10 @@ export default function Jobs() {
         {/* Filters Sidebar (Desktop) */}
         <div className="hidden lg:block lg:col-span-3 space-y-4">
           <Card className="border-border/80 overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b border-border/60">
+            <CardHeader className="flex flex-row items-center justify-between py-3.5 px-5 border-b border-border/60">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
-                <CardTitle className="text-xs sm:text-sm font-semibold">Filters</CardTitle>
+                <SlidersHorizontal className="w-4 h-4 text-primary" />
+                <CardTitle className="text-sm font-semibold">Filters</CardTitle>
               </div>
               {activeFilterCount > 0 && (
                 <Button 
@@ -807,7 +807,7 @@ export default function Jobs() {
                     setSelectedJobTypes([]);
                     setShowExpired(false);
                   }}
-                  className="text-[11px] h-6 px-1.5 text-muted-foreground hover:text-foreground"
+                  className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
                 >
                   Reset
                 </Button>
@@ -819,10 +819,10 @@ export default function Jobs() {
           {/* Stats Card */}
           {jobs.length > 0 && (
             <Card className="border-border/80 overflow-hidden">
-              <CardHeader className="py-2.5 px-4 border-b border-border/60">
-                <CardTitle className="text-xs font-semibold">Feed Summary</CardTitle>
+              <CardHeader className="py-3 px-5 border-b border-border/60">
+                <CardTitle className="text-xs sm:text-sm font-semibold">Feed Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1.5 text-xs p-4">
+              <CardContent className="space-y-2 text-xs sm:text-sm p-5">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Listings</span>
                   <span className="font-semibold text-foreground">{jobs.length}</span>
@@ -843,15 +843,15 @@ export default function Jobs() {
         </div>
 
         {/* Job Feed */}
-        <div className="lg:col-span-9 space-y-4">
+        <div className="lg:col-span-9 space-y-4 sm:space-y-5">
           {/* Loading State */}
           {loading && (
-            <Card className="h-[240px] flex items-center justify-center border-dashed">
+            <Card className="h-[280px] flex items-center justify-center border-dashed">
               <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 <div>
-                  <p className="text-xs sm:text-sm font-semibold text-foreground">Searching active verified listings...</p>
-                  <p className="text-[11px] text-muted-foreground">Applying Anti-Expired Shield & candidate matching filters</p>
+                  <p className="text-sm sm:text-base font-semibold text-foreground">Searching active verified listings...</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Applying Anti-Expired Shield & candidate matching filters</p>
                 </div>
               </CardContent>
             </Card>
@@ -859,18 +859,18 @@ export default function Jobs() {
 
           {/* Empty State */}
           {!loading && hasSearched && filteredJobs.length === 0 && (
-            <Card className="h-[260px] flex items-center justify-center border-dashed">
-              <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-2.5">
-                <Briefcase className="w-8 h-8 text-muted-foreground/30 mx-auto" />
-                <h3 className="font-semibold text-xs sm:text-sm text-foreground">No Jobs Match Current Filters</h3>
-                <p className="text-xs text-muted-foreground max-w-sm">
+            <Card className="h-[300px] flex items-center justify-center border-dashed">
+              <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
+                <Briefcase className="w-9 h-9 text-muted-foreground/30 mx-auto" />
+                <h3 className="font-semibold text-sm sm:text-base text-foreground">No Jobs Match Current Filters</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-sm">
                   {jobs.length > 0 
                     ? "Try adjusting your score thresholds or location filters."
                     : "Try a different search keyword or discover opportunities based on your profile."}
                 </p>
                 {userProfile && (
-                  <Button size="sm" onClick={discoverJobs} className="text-xs h-8 mt-1">
-                    <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                  <Button size="default" onClick={discoverJobs} className="text-xs sm:text-sm h-9 mt-1">
+                    <RefreshCw className="w-4 h-4 mr-2" />
                     Discover Jobs for Me
                   </Button>
                 )}
@@ -880,18 +880,18 @@ export default function Jobs() {
 
           {/* Initial State */}
           {!loading && !hasSearched && (
-            <Card className="h-[280px] flex items-center justify-center border-dashed">
+            <Card className="h-[320px] flex items-center justify-center border-dashed">
               <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
-                <Search className="w-8 h-8 text-muted-foreground/30 mx-auto" />
-                <h3 className="font-semibold text-xs sm:text-sm text-foreground">Ready to Discover Active Opportunities</h3>
-                <p className="text-xs text-muted-foreground max-w-sm">
+                <Search className="w-9 h-9 text-muted-foreground/30 mx-auto" />
+                <h3 className="font-semibold text-sm sm:text-base text-foreground">Ready to Discover Active Opportunities</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-md">
                   {userProfile 
                     ? 'Click "Discover Jobs for Me" to query verified positions tailored to your skill matrix.'
                     : "Search for job titles or upload your resume for tailored recommendations."}
                 </p>
                 {userProfile && (
-                  <Button size="sm" onClick={discoverJobs} className="text-xs h-8 font-semibold">
-                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                  <Button size="default" onClick={discoverJobs} className="text-xs sm:text-sm h-10 font-semibold px-5">
+                    <Sparkles className="w-4 h-4 mr-2 text-primary" />
                     Discover Jobs for Me
                   </Button>
                 )}
@@ -912,88 +912,88 @@ export default function Jobs() {
                   transition={{ delay: index * 0.03 }}
                 >
                   <Card className={`overflow-hidden border-border/80 bg-card hover:border-primary/40 transition-colors ${expired ? 'opacity-50' : ''}`}>
-                    <CardHeader className="p-4 pb-2 space-y-2">
-                      <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
-                        <div className="flex items-start gap-3 min-w-0 w-full sm:w-auto">
-                          <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center text-sm font-bold text-secondary-foreground shrink-0">
+                    <CardHeader className="p-4 sm:p-5 pb-2.5 space-y-2.5">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                        <div className="flex items-start gap-3.5 min-w-0 w-full sm:w-auto">
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-secondary flex items-center justify-center text-base sm:text-lg font-bold text-secondary-foreground shrink-0">
                             {job.company.charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1 space-y-0.5">
-                            <CardTitle className="text-sm sm:text-base font-bold hover:text-primary transition-colors leading-snug break-words">
+                            <CardTitle className="text-base sm:text-lg md:text-xl font-bold hover:text-primary transition-colors leading-snug break-words">
                               {job.title}
                             </CardTitle>
-                            <CardDescription className="text-xs truncate font-medium text-foreground/80">
+                            <CardDescription className="text-xs sm:text-sm truncate font-medium text-foreground/80">
                               {job.company}
                             </CardDescription>
                           </div>
                         </div>
-                        <div className="flex flex-wrap sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto gap-1 shrink-0">
+                        <div className="flex flex-wrap sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto gap-1.5 shrink-0">
                           {job.matchScore > 0 && (
-                            <Badge variant="secondary" className="text-[10px] font-semibold">
+                            <Badge variant="secondary" className="text-xs font-semibold px-2.5 py-0.5">
                               {job.matchScore}% Match
                             </Badge>
                           )}
                           {expired ? (
-                            <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive">
+                            <Badge variant="outline" className="text-xs border-destructive/30 text-destructive px-2 py-0.5">
                               Closed
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
-                              <Check className="w-2.5 h-2.5 mr-1" /> Active
+                            <Badge variant="outline" className="text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5">
+                              <Check className="w-3 h-3 mr-1" /> Active
                             </Badge>
                           )}
-                          <span className="text-[10px] text-muted-foreground">{formatDate(job.postedAt, job.postedAtText)}</span>
+                          <span className="text-xs text-muted-foreground">{formatDate(job.postedAt, job.postedAtText)}</span>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4 pt-0 pb-3 space-y-2.5 text-xs">
-                      <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground">
-                        <Badge variant="outline" className="text-[10px] font-normal gap-1">
-                          <MapPin className="w-3 h-3 text-primary shrink-0" /> {job.location || "Remote"}
+                    <CardContent className="p-4 sm:p-5 pt-0 pb-4 space-y-3 text-xs sm:text-sm">
+                      <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
+                        <Badge variant="outline" className="text-xs font-normal gap-1 px-2.5 py-0.5">
+                          <MapPin className="w-3.5 h-3.5 text-primary shrink-0" /> {job.location || "Remote"}
                         </Badge>
                         {job.salary && (
-                          <Badge variant="outline" className="text-[10px] font-normal text-foreground">
+                          <Badge variant="outline" className="text-xs font-normal text-foreground px-2.5 py-0.5">
                             💰 {job.salary}
                           </Badge>
                         )}
-                        <Badge variant="outline" className="text-[10px] font-normal">
+                        <Badge variant="outline" className="text-xs font-normal px-2.5 py-0.5">
                           {job.jobType}
                         </Badge>
-                        <Badge variant="secondary" className="text-[10px] font-normal">
+                        <Badge variant="secondary" className="text-xs font-normal px-2.5 py-0.5">
                           {job.sourcePlatform}
                         </Badge>
                       </div>
                       
-                      <p className="text-muted-foreground line-clamp-2 leading-relaxed break-words">
-                        {job.description.substring(0, 200)}...
+                      <p className="text-muted-foreground line-clamp-2 leading-relaxed break-words text-xs sm:text-sm">
+                        {job.description.substring(0, 240)}...
                       </p>
 
                       {/* Skills */}
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {job.skills.slice(0, 8).map((skill, i) => (
                           <Badge 
                             key={i} 
                             variant={job.matchedSkills.includes(skill) ? "secondary" : "outline"}
-                            className="text-[10px] font-normal px-2 py-0"
+                            className="text-xs font-normal px-2.5 py-0.5"
                           >
                             {skill}
                           </Badge>
                         ))}
                         {job.skills.length > 8 && (
-                          <Badge variant="outline" className="text-[10px] font-normal px-1.5 py-0 text-muted-foreground">
-                            +{job.skills.length - 8}
+                          <Badge variant="outline" className="text-xs font-normal px-2 py-0.5 text-muted-foreground">
+                            +{job.skills.length - 8} more
                           </Badge>
                         )}
                       </div>
 
                       {/* Why it matches */}
                       {job.matchReasons.length > 0 && (
-                        <div className="bg-muted/30 p-2.5 rounded-md border border-border/40 space-y-1">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Why you match</p>
-                          <div className="flex flex-wrap gap-1">
+                        <div className="bg-muted/30 p-3 rounded-lg border border-border/40 space-y-1.5">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Why you match</p>
+                          <div className="flex flex-wrap gap-1.5">
                             {job.matchReasons.map((reason, i) => (
-                              <div key={i} className="flex items-center gap-1 text-[11px] text-foreground/90 bg-card px-2 py-0.5 rounded border border-border/50">
-                                <Star className="w-2.5 h-2.5 text-amber-500 shrink-0" />
+                              <div key={i} className="flex items-center gap-1.5 text-xs text-foreground/90 bg-card px-2.5 py-1 rounded border border-border/50">
+                                <Star className="w-3 h-3 text-amber-500 shrink-0" />
                                 <span>{reason}</span>
                               </div>
                             ))}
@@ -1001,21 +1001,21 @@ export default function Jobs() {
                         </div>
                       )}
                     </CardContent>
-                    <CardFooter className="p-3 sm:p-4 pt-2.5 flex flex-col sm:flex-row gap-2 sm:items-center justify-between border-t border-border/60">
-                      <span className="text-[10px] text-muted-foreground">
+                    <CardFooter className="p-3 sm:p-5 pt-3 flex flex-col sm:flex-row gap-2.5 sm:items-center justify-between border-t border-border/60">
+                      <span className="text-xs text-muted-foreground">
                         Source: <span className="font-medium text-foreground">{job.sourcePlatform}</span>
                       </span>
-                      <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         <Button 
                           variant="ghost"
                           size="sm"
                           onClick={() => {
                             window.location.href = `/resume?tab=tailor&title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`;
                           }}
-                          className="flex-1 sm:flex-none text-[11px] h-8 px-2"
+                          className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9 px-3"
                           title="Generate ATS-tailored resume variant for this role"
                         >
-                          <Wand2 className="mr-1 w-3 h-3 text-primary" /> Tailor Resume
+                          <Wand2 className="mr-1.5 w-3.5 h-3.5 text-primary" /> Tailor Resume
                         </Button>
                         <Button 
                           variant="ghost"
@@ -1023,16 +1023,16 @@ export default function Jobs() {
                           onClick={() => {
                             window.location.href = `/resume?tab=cover-letter&title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`;
                           }}
-                          className="flex-1 sm:flex-none text-[11px] h-8 px-2"
+                          className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9 px-3"
                           title="Generate Cover Letter or Outreach message"
                         >
-                          <Send className="mr-1 w-3 h-3 text-primary" /> Cover Letter
+                          <Send className="mr-1.5 w-3.5 h-3.5 text-primary" /> Cover Letter
                         </Button>
                         <Button 
                           variant={isJobSaved(job) ? "default" : "outline"} 
                           size="sm"
                           onClick={() => saveJob(job)}
-                          className="flex-1 sm:flex-none text-xs h-8"
+                          className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9 px-3.5"
                         >
                           {isJobSaved(job) ? (
                             <>
@@ -1044,7 +1044,7 @@ export default function Jobs() {
                             </>
                           )}
                         </Button>
-                        <Button size="sm" asChild className="flex-1 sm:flex-none text-xs h-8">
+                        <Button size="sm" asChild className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9 px-4">
                           <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer">
                             Apply <ExternalLink className="ml-1.5 w-3.5 h-3.5" />
                           </a>
