@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="client/public/favicon.png" alt="JobJourneyAI Logo" width="76" height="76" style="border-radius: 16px; margin-bottom: 12px;" />
-
 ```
    ██╗ ██████╗ ██████╗     ██╗ ██████╗ ██╗   ██╗██████╗ ███╗   ██╗███████╗██╗   ██╗     █████╗ ██╗
    ██║██╔═══██╗██╔══██╗    ██║██╔═══██╗██║   ██║██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝    ██╔══██╗██║
