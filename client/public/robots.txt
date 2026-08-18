@@ -7,4 +7,4 @@ Allow: /register
 # Disallow authenticated private dashboard endpoints from indexing
 Disallow: /api/
 
-Sitemap: https://jobjorneyai.tech/sitemap.xml
+Sitemap: https://jobjourneyai.tech/sitemap.xml

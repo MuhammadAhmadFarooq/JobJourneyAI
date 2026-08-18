@@ -14,7 +14,7 @@ interface SEOProps {
 const DEFAULT_TITLE = "JobJourneyAI - AI-Powered Job Matching, Resume Tailor & Interview Prep";
 const DEFAULT_DESCRIPTION = "Accelerate your career with JobJourneyAI. Intelligent job discovery with live anti-expired shields, AI resume parsing & tailoring, cover letter generator, and role-specific interview coaching.";
 const DEFAULT_KEYWORDS = "AI job search, resume tailor, ATS resume builder, cover letter generator, interview prep coach, tech jobs, remote jobs, AI career navigator";
-const BASE_URL = "https://jobjorneyai.tech";
+const BASE_URL = "https://jobjourneyai.tech";
 
 export function SEO({
   title,
