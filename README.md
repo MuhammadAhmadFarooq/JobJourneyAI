@@ -1,153 +1,203 @@
-# 🚀 JobJourneyAI
+<div align="center">
 
-An AI-powered, real-time job discovery platform, resume intelligence engine, and automated interview preparation assistant. Built with **React 19**, **Vite**, **Tailwind CSS**, **Node.js**, **Express**, **MongoDB**, **Groq AI Engine** (high-speed LLM inference), and **Google Gemini AI** (fallback).
+```
+  ██████╗  ██████╗ ██████╗       ██╗ ██████╗ ██╗   ██╗██████╗ ███╗   ██╗███████╗██╗   ██╗ █████╗ ██╗
+  ██╔═══██╗██╔═══██╗██╔══██╗      ██║██╔═══██╗██║   ██║██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██║
+  ██║   ██║██║   ██║██████╔╝      ██║██║   ██║██║   ██║██████╔╝██╔██╗ ██║█████╗   ╚████╔╝ ███████║██║
+  ██║   ██║██║   ██║██╔══██╗ ██   ██║██║   ██║██║   ██║██╔══██╗██║╚██╗██║██╔══╝    ╚██╔╝  ██╔══██║██║
+  ╚██████╔╝╚██████╔╝██████╔╝ ╚█████╔╝╚██████╔╝╚██████╔╝██║  ██║██║ ╚████║███████╗   ██║   ██║  ██║██║
+   ╚═════╝  ╚═════╝ ╚═════╝   ╚════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝
+```
 
----
+### ⚡ Next-Generation AI Career Navigation & Job Matchmaking Ecosystem ⚡
 
-## 🌟 Key Platform Capabilities
+[![Production Live](https://img.shields.io/badge/LIVE%20DEMO-jobjourneyai.tech-2563eb?style=for-the-badge&logo=vercel&logoColor=white)](https://jobjourneyai.tech)
+[![React 19](https://img.shields.io/badge/React%2019-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Groq AI Engine](https://img.shields.io/badge/Groq%20LPU-Ultra--Fast%20LLM-F05A28?style=for-the-badge&logo=openai&logoColor=white)](https://groq.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![MongoDB Atlas](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-### 🌐 High-Volume Multi-Platform Job Aggregation Engine
-JobJourneyAI pools and aggregates active job opportunities from multiple tier-1 platforms and job APIs in parallel:
-- **LinkedIn (Fresh Weekly Filter `tbs: "qdr:w"`)**: Queries Google Serper search index constrained exclusively to listings posted or updated within the last 7 days.
-- **Indeed & Direct Company Portals**: Captures active listings across major platforms.
-- **Remotive, Arbeitnow, & Jobicy API Pooling**: Fetches verified active remote and global engineering positions with working direct apply links.
-
-### 🛡️ Reverse Availability & Anti-Expired Job Protection
-Unlike standard job aggregators that display expired or closed links, JobJourneyAI implements a strict **Reverse Verification Pipeline**:
-- **LinkedIn Guest API Availability Check**: Verifies live Guest API endpoints (`https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/<jobId>`) for HTTP 404/410/403/999 status codes and closed tags (`topcard__flavor--closed`).
-- **Mandatory Apply Button Verification**: Ensures a job posting contains an active Apply option (`topcard__btn--apply`, `easy apply`, or offsite apply link). If LinkedIn removes the apply button, the listing is automatically flagged as closed and excluded.
-- **Strict 14-Day Age Cutoff**: Parses relative date strings (`"1 month ago"`, `"3 weeks ago"`, `"2 weeks ago"`) and live HTML date tags. Any job posted 14+ days ago is automatically excluded from your feed.
-- **Indeed & API Preservation**: Bypasses network blocks on Indeed and API-driven job boards to guarantee 100% of open Indeed listings remain visible.
-
-### 📊 Multi-Factor Profile Strength Matrix (100-Point Scoring)
-Evaluates applicant profile completeness and competitiveness using a transparent 8-factor weighted matrix:
-| Category | Max Score | Criteria |
-| :--- | :--- | :--- |
-| 🛠️ **Technical Skills** | **20 pts** | 15+ verified skills = 20 pts (10+ = 15 pts, 5+ = 10 pts) |
-| 💼 **Work Experience** | **20 pts** | 4+ documented roles = 20 pts (3 roles = 16 pts, 2 roles = 12 pts) |
-| 📇 **Contact & Socials** | **15 pts** | Name, Email, Location, Phone & LinkedIn/GitHub/Portfolio URLs |
-| 📄 **Resume File** | **10 pts** | Valid parsed PDF/DOCX resume file uploaded |
-| 🎓 **Education & Degrees** | **10 pts** | 2+ degrees/certifications = 10 pts (1 degree = 7 pts) |
-| 📝 **Professional Summary** | **10 pts** | Detailed executive bio (>150 characters) |
-| 🎯 **Job Preferences** | **10 pts** | Configured target roles, preferred locations, and remote preferences |
-| 🚀 **Projects & Portfolio** | **5 pts** | 3+ built projects with technology tags |
-
-### 🎛️ Precision Job Filtering & Search
-- **Match Score Thresholds**: Filter jobs by compatibility (**80%+ Match**, **60%+ Match**, **All Scores**).
-- **Location Filter (Remote Only)**: Inspects location, job type, title, and description for `"remote"`, `"anywhere"`, `"work from home"`, and `"wfh"`.
-- **Normalized Job Types**: Standardizes job types (`Full-time`, `Part-time`, `Contract`, `Internship`, `Remote`) across different job board formats.
-- **Instant Reset**: One-click filter reset control.
-
-### 📄 Resume Intelligence & AI Interview Preparation
-- **PDF & DOCX Parsing**: Extracts skills, experience timeline, education, and contact details via `pdfjs-dist` and **Groq AI Engine**.
-- **Tailored Interview Prep**: Generates role-specific technical, behavioral, and situational questions, hints, sample answers, and company insights using Groq API.
+<p align="center">
+  <b>Live Production Platform:</b> <a href="https://jobjourneyai.tech">https://jobjourneyai.tech</a>
+</p>
 
 ---
 
-## 🛠️ Tech Stack
+</div>
 
-### Frontend
-- **Framework**: React 19 + Vite
-- **Styling**: Vanilla CSS + Tailwind CSS + Radix UI + Framer Motion
-- **Routing**: Wouter
-- **Data Visualizations**: Recharts
-- **Icons**: Lucide React
+## 🌌 Overview
 
-### Backend
-- **Runtime**: Node.js + Express (TypeScript)
-- **Database**: MongoDB (via Mongoose)
-- **AI Models**: **Groq API** (`openai/gpt-oss-120b` high-speed LLM) + **Google Gemini AI** (fallback)
-- **Scraper & Fetchers**: Axios + Cheerio + Serper API
-- **Document Parsing**: `pdfjs-dist` + `mammoth`
+**JobJourneyAI** is a futuristic, full-stack career platform engineered to eliminate friction from the modern job search. Powered by high-speed **Groq LPU AI inference** (`openai/gpt-oss-120b`), real-time job availability verification, and intelligent document generation, JobJourneyAI acts as your 24/7 personal career co-pilot.
+
+Whether parsing complex resumes, neutralizing expired job listings, tailoring application variants for ATS filters, drafting high-converting outreach emails, or generating interactive interview coaching kits with integrated **YouTube video masterclasses**, JobJourneyAI delivers state-of-the-art results in seconds.
 
 ---
 
-## ⚙️ Environment Variables
+## ⚡ Key Capabilities & Feature Matrix
+
+```
+                      ┌────────────────────────────────────────┐
+                      │        JobJourneyAI Core Engine        │
+                      └───────────────────┬────────────────────┘
+                                          │
+        ┌───────────────────┬─────────────┴───────┬───────────────────┐
+        ▼                   ▼                     ▼                   ▼
+┌───────────────┐   ┌───────────────┐     ┌───────────────┐   ┌───────────────┐
+│  Live Job Feed│   │  ATS Resume   │     │  AI Outreach  │   │  AI Interview │
+│  & Shield API │   │ Tailor Studio │     │  & Cover Letter│   │ Coach & Videos│
+└───────────────┘   └───────────────┘     └───────────────┘   └───────────────┘
+```
+
+### 🛡️ 1. Anti-Expired Job Shield & Multi-Platform Aggregation
+Never waste time applying to dead or closed postings again.
+- **LinkedIn Guest API Verification**: Inspects live status codes (`404/410/403/999`) and DOM elements (`topcard__flavor--closed`) in real-time.
+- **Mandatory Apply Button Check**: Validates that active apply buttons (`topcard__btn--apply`, `easy apply`) are present before displaying a job.
+- **Strict 14-Day Age Cutoff**: Eliminates stale listings posted weeks ago.
+- **Multi-Source Aggregation**: Integrates LinkedIn (Google Serper weekly index `tbs: "qdr:w"`), Indeed, Remotive, Arbeitnow, and Jobicy APIs.
+
+### 📄 2. Master Resume Intelligence & Skill Competency Matrix
+- **PDF & TXT Parsing**: High-fidelity text extraction via `pdfjs-dist` coupled with resilient AI JSON restructuring.
+- **Skill Competency Matrix**: Automatically breaks down candidate skills with proficiency ratings.
+- **Full History Extraction**: Surfaces work experience timelines, education degrees, verified certifications, portfolio projects, and AI-suggested target roles.
+- **100-Point Profile Strength Evaluator**: Real-time 8-factor completeness metric to maximize search matching.
+
+### 🎯 3. AI Resume Tailor (Job-Specific Variant Generator)
+- **ATS Alignment Scoring**: Calculates baseline compatibility vs. tailored match score (e.g. `62% ➔ 94%`).
+- **Targeted Bullet-Point Rewriting**: Re-engineers role accomplishments and impact metrics around target job keywords.
+- **Keyword Match Breakdown**: Displays verified checklist of matched ATS keywords.
+- **1-Click Export**: Download tailored variants instantly as `.txt` files.
+
+### ✉️ 4. AI Cover Letter & Cold Outreach Studio
+Generate high-converting personalized application documents:
+- **3 Document Modes**:
+  - 📄 *Full Cover Letter* (Formal, structured, and recruiter-ready)
+  - ✉️ *Recruiter Cold Email* (Punchy, metric-driven, and high-converting)
+  - 💬 *LinkedIn Connection Note* (Direct 300-character networking message)
+- **4 Selectable Tones**: *Professional*, *Enthusiastic*, *Executive*, *Direct*.
+- **Pre-Fill Integration**: 1-click auto-fill directly from your saved jobs drawer.
+
+### 🎙️ 5. Role-Specific AI Interview Prep Kit & YouTube Tutorial Coach
+- **Company & Role Intelligence**: AI-researched company culture, interview stages, responsibilities, and compensation benchmarks.
+- **Key Question Modules & Frameworks**: Situational, behavioral, and technical questions complete with *"Why This Is Asked"* breakdowns and ideal answer frameworks.
+- **📺 Integrated YouTube Tutorial Search**: Dynamically searches and matches relevant YouTube technical video guides and tutorials for every question module.
+- **2-Week Structured Study Timeline**: Week 1 Fundamentals, Week 2 Applied Practice, and a dedicated Final 48-Hour Checklist.
+
+### 🌐 6. Production SEO Suite & Minimalist Mobile Experience
+- **Full SEO Engine**: `react-helmet-async` dynamic metadata, OpenGraph, Twitter cards, and Schema.org `WebApplication` JSON-LD structured data.
+- **Crawler Optimization**: `robots.txt` and auto-generated XML `sitemap.xml` mapped to [`https://jobjourneyai.tech`](https://jobjourneyai.tech).
+- **Mobile-Responsive SaaS UI**: Clean, glassmorphic card borders, mobile Sheet navigation, and touch-optimized action buttons.
+
+---
+
+## 🛠️ Architecture & Tech Stack
+
+### Client Layer
+| Technology | Description |
+|---|---|
+| **React 19 + Vite** | Ultra-fast client build and reactive UI engine |
+| **Tailwind CSS + Radix UI** | Modern SaaS design system with light/dark theme toggle |
+| **Wouter** | Lightweight client-side routing |
+| **Framer Motion** | Smooth micro-animations and transition states |
+| **react-helmet-async** | Dynamic per-route SEO meta tag injector |
+| **pdfjs-dist** | Client-side binary PDF text parsing worker |
+
+### Server & Database Layer
+| Technology | Description |
+|---|---|
+| **Node.js + Express** | TypeScript REST backend architecture |
+| **MongoDB Atlas + Mongoose** | Persistent storage for UserProfiles, saved jobs, and cache |
+| **Groq AI LPU Engine** | Primary high-speed inference (`openai/gpt-oss-120b`, `openai/gpt-oss-20b`) |
+| **Google Gemini AI** | High-capacity fallback provider |
+| **Cheerio + Axios** | Reverse-verification live link status checking |
+| **Serper API** | Google Search job indexing service |
+
+---
+
+## ⚙️ Environment Configuration
 
 Create a `.env` file in the project root directory:
 
-```bash
+```env
+# Server Port & Session Encryption
 PORT=5000
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/jobjourneyai
-SESSION_SECRET=your_super_secret_session_key
-GROQ_API_KEY=your_groq_api_key
-GEMINI_API_KEY=your_google_gemini_api_key_optional
-SERPER_API_KEY=your_serper_dev_api_key
-```
+SESSION_SECRET=your_super_secret_session_key_here
 
-| Variable | Description |
-|---|---|
-| `PORT` | Web server port (Default: `5000`) |
-| `MONGODB_URI` | Connection URI for MongoDB database |
-| `SESSION_SECRET` | Secret key for Express session encryption |
-| `GROQ_API_KEY` | Groq API Key for primary AI inference ([Get API Key](https://console.groq.com)) |
-| `GEMINI_API_KEY` | Google Gemini API key (Optional fallback, [Get API Key](https://aistudio.google.com/)) |
-| `SERPER_API_KEY` | Serper API key for Google job search indexing ([Get API Key](https://serper.dev)) |
+# MongoDB Connection
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/jobjourneyai?retryWrites=true&w=majority
+
+# Groq AI Primary Inference (Required)
+GROQ_API_KEY=gsk_your_groq_api_key_here
+
+# Google Serper Job Indexing (Required for live LinkedIn/Web jobs)
+SERPER_API_KEY=your_serper_dev_api_key_here
+
+# Google Gemini AI (Optional Fallback)
+GEMINI_API_KEY=your_google_gemini_api_key_here
+```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quickstart & Local Development
 
 ### 1. Prerequisites
-- **Node.js**: v18.x or higher
-- **npm**: v9.x or higher
-- **MongoDB**: Local instance or MongoDB Atlas cluster
+- **Node.js**: `v20.x` or higher
+- **npm**: `v10.x` or higher
+- **MongoDB**: Local MongoDB instance or free MongoDB Atlas URI
 
 ### 2. Installation
-
-Clone the repository and install dependencies:
-
 ```bash
+# Clone the repository
 git clone https://github.com/MuhammadAhmadFarooq/JobJourneyAI.git
 cd JobJourneyAI
+
+# Install project dependencies
 npm install
 ```
 
-### 3. Running Development Server
-
-Start both Express backend server and React Vite dev server concurrently:
-
+### 3. Start Development Server
 ```bash
 npm run dev
 ```
+The server will boot concurrently on **`http://localhost:5000`** with live hot-reloading for both backend and frontend.
 
-Open your browser at `http://localhost:5000`.
+### 4. Build for Production
+```bash
+# Verify TypeScript types
+npm run check
+
+# Build client and server bundles
+npm run build
+
+# Start production server
+npm start
+```
 
 ---
 
-## 📜 Available Scripts
+## 🧭 REST API Endpoints Overview
 
-- `npm run dev`: Starts Express server and Vite frontend concurrently using `tsx watch`.
-- `npm run build`: Compiles TypeScript and builds production asset bundles.
-- `npm run start`: Starts the compiled production server (`dist/index.cjs`).
-- `npm run check`: Performs TypeScript compilation type-checking (`npx tsc --noEmit`).
-
----
-
-## 📁 Project Structure
-
-```
-JobJourneyAI/
-├── client/                 # React 19 Frontend Application
-│   ├── src/
-│   │   ├── components/     # Radix UI & Tailwind components
-│   │   ├── contexts/       # Auth context and state providers
-│   │   ├── pages/          # Dashboard, Jobs, Resume, Interview, Auth
-│   │   └── App.tsx         # Router & root layout
-├── server/                 # Express TypeScript Backend
-│   ├── models/             # Mongoose schemas (UserProfile, Job, SavedJobs)
-│   ├── routes/             # REST endpoints (auth, profile, jobs, interview)
-│   ├── services/           # Groq AI, Gemini fallback, Serper scraper & availability checker
-│   ├── db.ts               # Resilient MongoDB connection manager
-│   └── index.ts            # Server entry point
-├── shared/                 # Shared TypeScript types and schemas
-├── .env.example            # Environment variables template
-├── package.json            # Dependencies & scripts
-└── vite.config.ts          # Vite bundler configuration
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Create a new user account |
+| `POST` | `/api/auth/login` | Authenticate user session |
+| `POST` | `/api/auth/logout` | Terminate session |
+| `GET` | `/api/profile` | Retrieve active candidate profile and stats |
+| `PUT` | `/api/profile` | Update profile fields and resume data |
+| `POST` | `/api/resumes/parse` | AI parsing of raw resume text |
+| `POST` | `/api/profile/tailor-resume` | Generate ATS-optimized tailored resume variant |
+| `POST` | `/api/profile/cover-letter` | Generate AI cover letter / cold email / LinkedIn note |
+| `GET` | `/api/jobs/discover` | Query live verified job feed |
+| `POST` | `/api/jobs/save` | Save target job opportunity |
+| `POST` | `/api/interview/generate` | Generate complete interview prep kit & YouTube video links |
 
 ---
 
 ## 📄 License
 
-Distributed under the [MIT License](LICENSE).
+Distributed under the **MIT License**. See `LICENSE` for more information.
+
+<div align="center">
+  <sub>Engineered with precision for the modern global job seeker • <a href="https://jobjourneyai.tech">JobJourneyAI.tech</a></sub>
+</div>
