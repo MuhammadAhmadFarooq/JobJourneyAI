@@ -788,7 +788,7 @@ export default function Jobs() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
+      <div className="grid gap-6 lg:grid-cols-12 w-full min-w-0">
         {/* Filters Sidebar (Desktop) */}
         <div className="hidden lg:block lg:col-span-3 space-y-4">
           <Card className="border-border/80 overflow-hidden">
@@ -843,10 +843,10 @@ export default function Jobs() {
         </div>
 
         {/* Job Feed */}
-        <div className="lg:col-span-9 space-y-4 sm:space-y-5">
+        <div className="lg:col-span-9 space-y-4 sm:space-y-5 w-full min-w-0">
           {/* Loading State */}
           {loading && (
-            <Card className="h-[280px] flex items-center justify-center border-dashed">
+            <Card className="h-[280px] flex items-center justify-center border-dashed w-full min-w-0">
               <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 <div>
@@ -859,7 +859,7 @@ export default function Jobs() {
 
           {/* Empty State */}
           {!loading && hasSearched && filteredJobs.length === 0 && (
-            <Card className="h-[300px] flex items-center justify-center border-dashed">
+            <Card className="h-[300px] flex items-center justify-center border-dashed w-full min-w-0">
               <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
                 <Briefcase className="w-9 h-9 text-muted-foreground/30 mx-auto" />
                 <h3 className="font-semibold text-sm sm:text-base text-foreground">No Jobs Match Current Filters</h3>
@@ -880,7 +880,7 @@ export default function Jobs() {
 
           {/* Initial State */}
           {!loading && !hasSearched && (
-            <Card className="h-[320px] flex items-center justify-center border-dashed">
+            <Card className="h-[320px] flex items-center justify-center border-dashed w-full min-w-0">
               <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
                 <Search className="w-9 h-9 text-muted-foreground/30 mx-auto" />
                 <h3 className="font-semibold text-sm sm:text-base text-foreground">Ready to Discover Active Opportunities</h3>
@@ -910,11 +910,12 @@ export default function Jobs() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ delay: index * 0.03 }}
+                  className="w-full min-w-0"
                 >
-                  <Card className={`overflow-hidden border-border/80 bg-card hover:border-primary/40 transition-colors ${expired ? 'opacity-50' : ''}`}>
-                    <CardHeader className="p-4 sm:p-5 pb-2.5 space-y-2.5">
-                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
-                        <div className="flex items-start gap-3.5 min-w-0 w-full sm:w-auto">
+                  <Card className={`overflow-hidden border-border/80 bg-card hover:border-primary/40 transition-colors w-full min-w-0 ${expired ? 'opacity-50' : ''}`}>
+                    <CardHeader className="p-4 sm:p-5 pb-2.5 space-y-2.5 w-full min-w-0">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3 w-full min-w-0">
+                        <div className="flex items-start gap-3.5 min-w-0 w-full sm:w-auto flex-1">
                           <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-secondary flex items-center justify-center text-base sm:text-lg font-bold text-secondary-foreground shrink-0">
                             {job.company.charAt(0).toUpperCase()}
                           </div>
@@ -946,7 +947,7 @@ export default function Jobs() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4 sm:p-5 pt-0 pb-4 space-y-3 text-xs sm:text-sm">
+                    <CardContent className="p-4 sm:p-5 pt-0 pb-4 space-y-3 text-xs sm:text-sm w-full min-w-0 overflow-hidden">
                       <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
                         <Badge variant="outline" className="text-xs font-normal gap-1 px-2.5 py-0.5">
                           <MapPin className="w-3.5 h-3.5 text-primary shrink-0" /> {job.location || "Remote"}
@@ -969,7 +970,7 @@ export default function Jobs() {
                       </p>
 
                       {/* Skills */}
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1.5 min-w-0">
                         {job.skills.slice(0, 8).map((skill, i) => (
                           <Badge 
                             key={i} 
@@ -988,20 +989,20 @@ export default function Jobs() {
 
                       {/* Why it matches */}
                       {job.matchReasons.length > 0 && (
-                        <div className="bg-muted/30 p-3 rounded-lg border border-border/40 space-y-1.5">
+                        <div className="bg-muted/30 p-3 rounded-lg border border-border/40 space-y-1.5 overflow-hidden">
                           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Why you match</p>
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex flex-wrap gap-1.5 min-w-0">
                             {job.matchReasons.map((reason, i) => (
-                              <div key={i} className="flex items-center gap-1.5 text-xs text-foreground/90 bg-card px-2.5 py-1 rounded border border-border/50">
+                              <div key={i} className="flex items-center gap-1.5 text-xs text-foreground/90 bg-card px-2.5 py-1 rounded border border-border/50 break-words max-w-full">
                                 <Star className="w-3 h-3 text-amber-500 shrink-0" />
-                                <span>{reason}</span>
+                                <span className="break-words">{reason}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
                     </CardContent>
-                    <CardFooter className="p-3.5 sm:p-5 pt-3 flex flex-col sm:flex-row gap-3 sm:items-center justify-between border-t border-border/60">
+                    <CardFooter className="p-3.5 sm:p-5 pt-3 flex flex-col sm:flex-row gap-3 sm:items-center justify-between border-t border-border/60 w-full min-w-0">
                       <span className="text-xs text-muted-foreground">
                         Source: <span className="font-medium text-foreground">{job.sourcePlatform}</span>
                       </span>
