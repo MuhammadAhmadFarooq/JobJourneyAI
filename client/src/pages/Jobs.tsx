@@ -486,10 +486,10 @@ export default function Jobs() {
   });
 
   const getMatchScoreColor = (score: number) => {
-    if (score >= 80) return "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-100 dark:border-green-900/50";
-    if (score >= 60) return "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-100 dark:border-blue-900/50";
-    if (score >= 40) return "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-100 dark:border-yellow-900/50";
-    return "bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 border-gray-100 dark:border-gray-900/50";
+    if (score >= 80) return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20";
+    if (score >= 60) return "bg-primary/10 text-primary border-primary/20";
+    if (score >= 40) return "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20";
+    return "bg-muted text-muted-foreground border-border";
   };
 
   const formatDate = (date?: string | Date, postedAtText?: string) => {
@@ -509,12 +509,12 @@ export default function Jobs() {
   const activeFilterCount = (minMatchScore > 0 ? 1 : 0) + (showRemoteOnly ? 1 : 0) + selectedJobTypes.length + (showExpired ? 1 : 0);
 
   const FilterContent = () => (
-    <CardContent className="space-y-5 p-4 sm:p-6">
+    <CardContent className="space-y-4 p-4 text-xs">
       {/* Match Score */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">Match Score</label>
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+        <label className="text-xs font-semibold text-foreground">Match Score</label>
+        <div className="flex flex-col gap-1.5 text-muted-foreground">
+          <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
             <input 
               type="radio" 
               name="matchScore"
@@ -524,7 +524,7 @@ export default function Jobs() {
             />
             <span>All Match Scores</span>
           </label>
-          <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+          <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
             <input 
               type="radio" 
               name="matchScore"
@@ -532,9 +532,9 @@ export default function Jobs() {
               onChange={() => setMinMatchScore(80)}
               className="accent-primary" 
             />
-            <span className="font-medium text-green-600 dark:text-green-400">80%+ Match</span>
+            <span className="font-medium text-emerald-600 dark:text-emerald-400">80%+ Match</span>
           </label>
-          <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+          <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
             <input 
               type="radio" 
               name="matchScore"
@@ -542,18 +542,18 @@ export default function Jobs() {
               onChange={() => setMinMatchScore(60)}
               className="accent-primary" 
             />
-            <span className="font-medium text-blue-600 dark:text-blue-400">60%+ Match</span>
+            <span className="font-medium text-primary">60%+ Match</span>
           </label>
         </div>
       </div>
 
       {/* Location */}
       <div className="space-y-2 pt-3 border-t border-border/60">
-        <label className="text-sm font-medium text-foreground">Location</label>
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+        <label className="text-xs font-semibold text-foreground">Location</label>
+        <div className="flex flex-col gap-1.5 text-muted-foreground">
+          <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
             <input 
-              type="checkbox"
+              type="checkbox" 
               checked={showRemoteOnly}
               onChange={(e) => setShowRemoteOnly(e.target.checked)}
               className="rounded accent-primary" 
@@ -565,12 +565,12 @@ export default function Jobs() {
 
       {/* Job Type */}
       <div className="space-y-2 pt-3 border-t border-border/60">
-        <label className="text-sm font-medium text-foreground">Job Type</label>
-        <div className="flex flex-col gap-2">
+        <label className="text-xs font-semibold text-foreground">Job Type</label>
+        <div className="flex flex-col gap-1.5 text-muted-foreground">
           {["Full-time", "Part-time", "Contract", "Internship", "Remote"].map((type) => (
-            <label key={type} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+            <label key={type} className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
               <input 
-                type="checkbox"
+                type="checkbox" 
                 checked={selectedJobTypes.includes(type)}
                 onChange={(e) => {
                   if (e.target.checked) {
@@ -589,16 +589,16 @@ export default function Jobs() {
 
       {/* Status */}
       <div className="space-y-2 pt-3 border-t border-border/60">
-        <label className="text-sm font-medium text-foreground">Status</label>
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+        <label className="text-xs font-semibold text-foreground">Status</label>
+        <div className="flex flex-col gap-1.5 text-muted-foreground">
+          <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
             <input 
-              type="checkbox"
+              type="checkbox" 
               checked={showExpired}
               onChange={(e) => setShowExpired(e.target.checked)}
               className="rounded accent-primary" 
             />
-            <span className="text-xs text-muted-foreground">Show Closed / Expired Jobs</span>
+            <span>Show Closed / Expired Jobs</span>
           </label>
         </div>
       </div>
@@ -606,59 +606,74 @@ export default function Jobs() {
   );
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-6xl mx-auto px-1 sm:px-0">
+    <div className="space-y-6 max-w-6xl mx-auto px-2 sm:px-4 pb-8 overflow-x-hidden">
       <SEO 
         title="Job Discovery & AI Matcher" 
         description="Search active tech and remote job listings with real-time Anti-Expired Shield verification, compatibility ratings, and 1-click resume tailoring." 
         canonical="/jobs"
         keywords="live job board, anti-expired jobs, verified tech jobs, remote engineering jobs, job compatibility score"
       />
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Job Discovery</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            {userProfile 
-              ? "Opportunities curated based on your profile analysis."
-              : "Upload your resume first for personalized job matching."}
-          </p>
+
+      {/* Header Banner - Minimalist & Clean */}
+      <div className="pb-4 border-b border-border/60">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-secondary-foreground mb-2">
+          <Briefcase className="w-3 h-3 text-primary shrink-0" /> Live Opportunity Feed
         </div>
-        <div className="flex w-full sm:w-auto items-center space-x-2">
-          <div className="relative flex-1 sm:w-[260px] md:w-[300px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search roles, skills..."
-              className="pl-8 bg-background text-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && searchJobs()}
-            />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground break-words">
+              Job Discovery
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed break-words">
+              {userProfile 
+                ? "Real-time verified opportunities matching your candidate profile & ATS compatibility."
+                : "Upload your resume in Resume Studio for personalized job matching."}
+            </p>
           </div>
-          <Button onClick={searchJobs} disabled={loading} className="shrink-0 text-sm">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
-          </Button>
+          <div className="flex w-full sm:w-auto items-center space-x-2 shrink-0">
+            <div className="relative flex-1 sm:w-[220px] md:w-[260px]">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search roles, skills..."
+                className="pl-8 bg-background text-xs sm:text-sm h-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && searchJobs()}
+              />
+            </div>
+            <Button onClick={searchJobs} disabled={loading} size="sm" className="shrink-0 text-xs h-9 font-semibold">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Profile Status & Discover Button */}
+      {/* Profile Status & Discover Banner */}
       {userProfile && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <Card className="border-border/80 bg-card overflow-hidden">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-start sm:items-center gap-3 min-w-0">
-                <div className="p-2 bg-primary/10 rounded-full shrink-0">
-                  <Briefcase className="w-5 h-5 text-primary" />
+                <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                  <Briefcase className="w-4 h-4 text-primary" />
                 </div>
                 <div className="min-w-0 space-y-0.5">
-                  <p className="font-semibold text-sm sm:text-base text-foreground break-words">Profile Loaded {userProfile.name && `- ${userProfile.name}`}</p>
-                  <p className="text-xs text-muted-foreground break-words">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-xs sm:text-sm text-foreground truncate">Candidate Profile Loaded</p>
+                    {userProfile.name && (
+                      <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">
+                        {userProfile.name}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground truncate">
                     {userProfile.skills.length} skills • {userProfile.experience.length} experiences
                     {userProfile.location && ` • 📍 ${userProfile.location}`}
                   </p>
                   {(jobPreferences.targetRoles.length > 0 || userProfile.suggestedRoles?.length > 0) && (
-                    <p className="text-xs text-muted-foreground break-words">
-                      <span className="font-medium text-foreground">Looking for:</span> {(jobPreferences.targetRoles.length > 0 
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      <span className="font-medium text-foreground">Target:</span> {(jobPreferences.targetRoles.length > 0 
                         ? jobPreferences.targetRoles 
                         : userProfile.suggestedRoles
                       ).slice(0, 3).join(", ")}
@@ -670,21 +685,27 @@ export default function Jobs() {
               <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto shrink-0">
                 <Button 
                   variant="outline" 
+                  size="sm"
                   onClick={() => setShowPreferencesModal(true)}
-                  className="flex-1 sm:flex-none text-xs sm:text-sm"
+                  className="flex-1 sm:flex-none text-xs h-8"
                 >
-                  <Settings2 className="w-4 h-4 mr-2" />
+                  <Settings2 className="w-3.5 h-3.5 mr-1.5" />
                   Preferences
                 </Button>
-                <Button onClick={discoverJobs} disabled={loading} className="flex-1 sm:flex-none text-xs sm:text-sm">
+                <Button 
+                  size="sm"
+                  onClick={discoverJobs} 
+                  disabled={loading} 
+                  className="flex-1 sm:flex-none text-xs h-8 font-semibold"
+                >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                       Searching...
                     </>
                   ) : (
                     <>
-                      <RefreshCw className="w-4 h-4 mr-2" />
+                      <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                       Discover Jobs
                     </>
                   )}
@@ -697,14 +718,14 @@ export default function Jobs() {
 
       {/* No Profile Warning */}
       {!userProfile && (
-        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-900">
-          <CardContent className="py-4 p-4 sm:p-6">
+        <Card className="border-border/80 bg-muted/20">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-primary shrink-0" />
               <div>
-                <p className="font-medium text-sm sm:text-base text-yellow-800 dark:text-yellow-200">No Profile Found</p>
-                <p className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-300">
-                  Go to the Resume page and upload your resume to get personalized job matches with compatibility scores.
+                <p className="font-semibold text-xs sm:text-sm text-foreground">No Profile Loaded</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Upload your resume in the Resume Studio to unlock automated role matching with compatibility scores.
                 </p>
               </div>
             </div>
@@ -714,11 +735,11 @@ export default function Jobs() {
 
       {/* Error Display */}
       {error && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900">
-          <CardContent className="py-4 p-4 sm:p-6">
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
-              <p className="text-xs sm:text-sm text-red-800 dark:text-red-200">{error}</p>
+              <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+              <p className="text-xs text-destructive">{error}</p>
             </div>
           </CardContent>
         </Card>
@@ -726,13 +747,13 @@ export default function Jobs() {
 
       {/* Mobile Collapsible Filter Toggle */}
       <div className="lg:hidden">
-        <Card className="border-border/80">
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between cursor-pointer select-none" onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}>
+        <Card className="border-border/80 overflow-hidden">
+          <CardHeader className="py-2.5 px-3.5 flex flex-row items-center justify-between cursor-pointer select-none" onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}>
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4 text-primary" />
-              <CardTitle className="text-sm font-semibold">Filter Jobs</CardTitle>
+              <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+              <CardTitle className="text-xs font-semibold">Filter Jobs</CardTitle>
               {activeFilterCount > 0 && (
-                <Badge variant="default" className="text-[10px] px-1.5 py-0.2 h-5">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
                   {activeFilterCount} Active
                 </Badge>
               )}
@@ -749,13 +770,13 @@ export default function Jobs() {
                     setSelectedJobTypes([]);
                     setShowExpired(false);
                   }}
-                  className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
+                  className="text-[11px] h-6 px-1.5 text-muted-foreground hover:text-foreground"
                 >
                   Reset
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
-                {isMobileFilterOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                {isMobileFilterOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </Button>
             </div>
           </CardHeader>
@@ -769,12 +790,12 @@ export default function Jobs() {
 
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Filters Sidebar (Desktop) */}
-        <div className="hidden lg:block lg:col-span-3 space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+        <div className="hidden lg:block lg:col-span-3 space-y-4">
+          <Card className="border-border/80 overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b border-border/60">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-primary" />
-                <CardTitle className="text-base">Filters</CardTitle>
+                <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                <CardTitle className="text-xs sm:text-sm font-semibold">Filters</CardTitle>
               </div>
               {activeFilterCount > 0 && (
                 <Button 
@@ -786,7 +807,7 @@ export default function Jobs() {
                     setSelectedJobTypes([]);
                     setShowExpired(false);
                   }}
-                  className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
+                  className="text-[11px] h-6 px-1.5 text-muted-foreground hover:text-foreground"
                 >
                   Reset
                 </Button>
@@ -797,22 +818,22 @@ export default function Jobs() {
 
           {/* Stats Card */}
           {jobs.length > 0 && (
-            <Card>
-              <CardHeader className="py-3 px-4">
-                <CardTitle className="text-base">Results</CardTitle>
+            <Card className="border-border/80 overflow-hidden">
+              <CardHeader className="py-2.5 px-4 border-b border-border/60">
+                <CardTitle className="text-xs font-semibold">Feed Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm p-4 pt-0">
+              <CardContent className="space-y-1.5 text-xs p-4">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Jobs</span>
-                  <span className="font-medium">{jobs.length}</span>
+                  <span className="text-muted-foreground">Total Listings</span>
+                  <span className="font-semibold text-foreground">{jobs.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Showing</span>
-                  <span className="font-medium">{filteredJobs.length}</span>
+                  <span className="font-semibold text-foreground">{filteredJobs.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">80%+ Match</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                     {jobs.filter(j => j.matchScore >= 80).length}
                   </span>
                 </div>
@@ -822,32 +843,34 @@ export default function Jobs() {
         </div>
 
         {/* Job Feed */}
-        <div className="lg:col-span-9 space-y-6">
+        <div className="lg:col-span-9 space-y-4">
           {/* Loading State */}
           {loading && (
-            <div className="flex flex-col items-center justify-center py-12 space-y-4">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <div className="text-center">
-                <p className="font-medium">Searching for jobs...</p>
-                <p className="text-sm text-muted-foreground">Scraping multiple job boards</p>
-              </div>
-            </div>
+            <Card className="h-[240px] flex items-center justify-center border-dashed">
+              <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-foreground">Searching active verified listings...</p>
+                  <p className="text-[11px] text-muted-foreground">Applying Anti-Expired Shield & candidate matching filters</p>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Empty State */}
           {!loading && hasSearched && filteredJobs.length === 0 && (
-            <Card className="py-12">
-              <CardContent className="text-center">
-                <Briefcase className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-semibold text-lg mb-2">No Jobs Found</h3>
-                <p className="text-muted-foreground mb-4">
+            <Card className="h-[260px] flex items-center justify-center border-dashed">
+              <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-2.5">
+                <Briefcase className="w-8 h-8 text-muted-foreground/30 mx-auto" />
+                <h3 className="font-semibold text-xs sm:text-sm text-foreground">No Jobs Match Current Filters</h3>
+                <p className="text-xs text-muted-foreground max-w-sm">
                   {jobs.length > 0 
-                    ? "Try adjusting your filters to see more results."
-                    : "Try a different search query or discover jobs based on your profile."}
+                    ? "Try adjusting your score thresholds or location filters."
+                    : "Try a different search keyword or discover opportunities based on your profile."}
                 </p>
                 {userProfile && (
-                  <Button onClick={discoverJobs}>
-                    <RefreshCw className="w-4 h-4 mr-2" />
+                  <Button size="sm" onClick={discoverJobs} className="text-xs h-8 mt-1">
+                    <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                     Discover Jobs for Me
                   </Button>
                 )}
@@ -857,18 +880,18 @@ export default function Jobs() {
 
           {/* Initial State */}
           {!loading && !hasSearched && (
-            <Card className="py-12">
-              <CardContent className="text-center">
-                <Search className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-semibold text-lg mb-2">Ready to Find Your Next Role?</h3>
-                <p className="text-muted-foreground mb-4">
+            <Card className="h-[280px] flex items-center justify-center border-dashed">
+              <CardContent className="flex flex-col items-center justify-center p-6 text-center space-y-3">
+                <Search className="w-8 h-8 text-muted-foreground/30 mx-auto" />
+                <h3 className="font-semibold text-xs sm:text-sm text-foreground">Ready to Discover Active Opportunities</h3>
+                <p className="text-xs text-muted-foreground max-w-sm">
                   {userProfile 
-                    ? 'Click "Discover Jobs for Me" to find opportunities matching your profile, or search for specific roles.'
-                    : "Search for jobs or upload your resume for personalized matches."}
+                    ? 'Click "Discover Jobs for Me" to query verified positions tailored to your skill matrix.'
+                    : "Search for job titles or upload your resume for tailored recommendations."}
                 </p>
                 {userProfile && (
-                  <Button onClick={discoverJobs}>
-                    <Sparkles className="w-4 h-4 mr-2" />
+                  <Button size="sm" onClick={discoverJobs} className="text-xs h-8 font-semibold">
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
                     Discover Jobs for Me
                   </Button>
                 )}
@@ -883,100 +906,94 @@ export default function Jobs() {
               return (
                 <motion.div
                   key={`${job.title}-${job.company}-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: index * 0.05 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ delay: index * 0.03 }}
                 >
-                  <Card className={`overflow-hidden transition-all duration-300 group border-l-4 ${expired ? 'opacity-55 border-l-muted-foreground/30 bg-muted/30' : 'border-l-transparent hover:border-l-primary hover:shadow-md'}`}>
-                    <CardHeader className="p-4 sm:p-6 pb-3">
-                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
-                        <div className="flex items-start gap-3 sm:gap-4 min-w-0 w-full sm:w-auto">
-                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-secondary flex items-center justify-center text-base sm:text-lg font-bold text-secondary-foreground shrink-0 shadow-xs">
+                  <Card className={`overflow-hidden border-border/80 bg-card hover:border-primary/40 transition-colors ${expired ? 'opacity-50' : ''}`}>
+                    <CardHeader className="p-4 pb-2 space-y-2">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                        <div className="flex items-start gap-3 min-w-0 w-full sm:w-auto">
+                          <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center text-sm font-bold text-secondary-foreground shrink-0">
                             {job.company.charAt(0).toUpperCase()}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <CardTitle className="text-lg sm:text-xl group-hover:text-primary transition-colors leading-snug break-words">
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <CardTitle className="text-sm sm:text-base font-bold hover:text-primary transition-colors leading-snug break-words">
                               {job.title}
                             </CardTitle>
-                            <CardDescription className="text-sm sm:text-base mt-0.5 truncate">
+                            <CardDescription className="text-xs truncate font-medium text-foreground/80">
                               {job.company}
                             </CardDescription>
                           </div>
                         </div>
-                        <div className="flex flex-wrap sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                        <div className="flex flex-wrap sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto gap-1 shrink-0">
                           {job.matchScore > 0 && (
-                            <div className={`flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold border shadow-xs ${getMatchScoreColor(job.matchScore)}`}>
-                              <Sparkles className="w-3.5 h-3.5" />
+                            <Badge variant="secondary" className="text-[10px] font-semibold">
                               {job.matchScore}% Match
-                            </div>
+                            </Badge>
                           )}
                           {expired ? (
-                            <div className="flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[11px] sm:text-xs font-semibold border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50">
-                              <AlertCircle className="w-3 h-3" />
+                            <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive">
                               Closed
-                            </div>
+                            </Badge>
                           ) : (
-                            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium border border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/40">
-                              <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
-                              Accepting Applications
-                            </div>
+                            <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                              <Check className="w-2.5 h-2.5 mr-1" /> Active
+                            </Badge>
                           )}
-                          <span className="text-[11px] sm:text-xs text-muted-foreground">{formatDate(job.postedAt, job.postedAtText)}</span>
+                          <span className="text-[10px] text-muted-foreground">{formatDate(job.postedAt, job.postedAtText)}</span>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4 sm:p-6 pt-0 pb-3">
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
-                        <div className="flex items-center gap-1 bg-secondary/40 px-2 py-1 rounded text-foreground/80">
-                          <MapPin className="w-3.5 h-3.5 text-primary shrink-0" /> <span className="truncate max-w-[140px] sm:max-w-none">{job.location}</span>
-                        </div>
-                        {job.salary && (
-                          <div className="flex items-center gap-1 bg-secondary/40 px-2 py-1 rounded text-foreground/80">
-                            <DollarSign className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {job.salary}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1 bg-secondary/40 px-2 py-1 rounded text-foreground/80">
-                          <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" /> {job.jobType}
-                        </div>
-                        <Badge variant="outline" className="text-[11px]">
-                          {job.experienceLevel}
+                    <CardContent className="p-4 pt-0 pb-3 space-y-2.5 text-xs">
+                      <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground">
+                        <Badge variant="outline" className="text-[10px] font-normal gap-1">
+                          <MapPin className="w-3 h-3 text-primary shrink-0" /> {job.location || "Remote"}
                         </Badge>
-                        <Badge variant="secondary" className="text-[11px]">
+                        {job.salary && (
+                          <Badge variant="outline" className="text-[10px] font-normal text-foreground">
+                            💰 {job.salary}
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-[10px] font-normal">
+                          {job.jobType}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[10px] font-normal">
                           {job.sourcePlatform}
                         </Badge>
                       </div>
                       
-                      <p className="text-xs sm:text-sm text-foreground/90 line-clamp-3 sm:line-clamp-2 mb-3 sm:mb-4 leading-relaxed">
+                      <p className="text-muted-foreground line-clamp-2 leading-relaxed break-words">
                         {job.description.substring(0, 200)}...
                       </p>
 
                       {/* Skills */}
-                      <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3 sm:mb-4">
+                      <div className="flex flex-wrap gap-1">
                         {job.skills.slice(0, 8).map((skill, i) => (
                           <Badge 
                             key={i} 
-                            variant={job.matchedSkills.includes(skill) ? "default" : "outline"}
-                            className="text-[10px] sm:text-xs px-2 py-0.5"
+                            variant={job.matchedSkills.includes(skill) ? "secondary" : "outline"}
+                            className="text-[10px] font-normal px-2 py-0"
                           >
                             {skill}
                           </Badge>
                         ))}
                         {job.skills.length > 8 && (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-2 py-0.5">
-                            +{job.skills.length - 8} more
+                          <Badge variant="outline" className="text-[10px] font-normal px-1.5 py-0 text-muted-foreground">
+                            +{job.skills.length - 8}
                           </Badge>
                         )}
                       </div>
 
                       {/* Why it matches */}
                       {job.matchReasons.length > 0 && (
-                        <div className="bg-secondary/40 p-2.5 sm:p-3 rounded-lg space-y-1.5">
-                          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Why you're a match</p>
-                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                        <div className="bg-muted/30 p-2.5 rounded-md border border-border/40 space-y-1">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Why you match</p>
+                          <div className="flex flex-wrap gap-1">
                             {job.matchReasons.map((reason, i) => (
-                              <div key={i} className="flex items-center gap-1.5 text-[11px] sm:text-xs bg-background px-2 py-1 rounded shadow-2xs border border-border/60">
-                                <Star className="w-3 h-3 text-amber-500 shrink-0" />
+                              <div key={i} className="flex items-center gap-1 text-[11px] text-foreground/90 bg-card px-2 py-0.5 rounded border border-border/50">
+                                <Star className="w-2.5 h-2.5 text-amber-500 shrink-0" />
                                 <span>{reason}</span>
                               </div>
                             ))}
@@ -984,21 +1001,21 @@ export default function Jobs() {
                         </div>
                       )}
                     </CardContent>
-                    <CardFooter className="bg-muted/20 p-3 sm:p-4 pt-3 flex flex-col sm:flex-row gap-3 sm:items-center justify-between border-t border-border/40">
-                      <span className="text-[11px] sm:text-xs text-muted-foreground">
-                        via <span className="font-medium text-foreground">{job.sourcePlatform}</span>
+                    <CardFooter className="p-3 sm:p-4 pt-2.5 flex flex-col sm:flex-row gap-2 sm:items-center justify-between border-t border-border/60">
+                      <span className="text-[10px] text-muted-foreground">
+                        Source: <span className="font-medium text-foreground">{job.sourcePlatform}</span>
                       </span>
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+                      <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
                         <Button 
                           variant="ghost"
                           size="sm"
                           onClick={() => {
                             window.location.href = `/resume?tab=tailor&title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`;
                           }}
-                          className="flex-1 sm:flex-none text-[11px] h-8 px-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                          className="flex-1 sm:flex-none text-[11px] h-8 px-2"
                           title="Generate ATS-tailored resume variant for this role"
                         >
-                          <Wand2 className="mr-1 w-3 h-3 text-indigo-500" /> Tailor Resume
+                          <Wand2 className="mr-1 w-3 h-3 text-primary" /> Tailor Resume
                         </Button>
                         <Button 
                           variant="ghost"
@@ -1006,10 +1023,10 @@ export default function Jobs() {
                           onClick={() => {
                             window.location.href = `/resume?tab=cover-letter&title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}`;
                           }}
-                          className="flex-1 sm:flex-none text-[11px] h-8 px-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                          className="flex-1 sm:flex-none text-[11px] h-8 px-2"
                           title="Generate Cover Letter or Outreach message"
                         >
-                          <Send className="mr-1 w-3 h-3 text-emerald-500" /> Cover Letter
+                          <Send className="mr-1 w-3 h-3 text-primary" /> Cover Letter
                         </Button>
                         <Button 
                           variant={isJobSaved(job) ? "default" : "outline"} 
@@ -1019,7 +1036,7 @@ export default function Jobs() {
                         >
                           {isJobSaved(job) ? (
                             <>
-                              <BookmarkCheck className="mr-1.5 w-3.5 h-3.5 text-emerald-400" /> Saved
+                              <BookmarkCheck className="mr-1.5 w-3.5 h-3.5" /> Saved
                             </>
                           ) : (
                             <>
