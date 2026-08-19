@@ -210,12 +210,25 @@ export default function Interview() {
       clearTimeout(stepTimer3);
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to generate interview prep kit");
+        let errorMsg = "Failed to generate interview prep kit";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch {
+          const errorText = await response.text();
+          errorMsg = errorText || errorMsg;
+        }
+        throw new Error(errorMsg);
       }
 
-      const result = await response.json();
-      const generatedPrep = result.prepData || result;
+      let result: any;
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error("Invalid response format received from server.");
+      }
+
+      const generatedPrep = result.prepData || result.data || result;
       setPrepData(generatedPrep);
       setSavedPreps(prev => ({ ...prev, [job.id]: generatedPrep }));
 

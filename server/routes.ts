@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { parseResumeWithGemini } from "./services/gemini";
 import { searchAndMatchJobs, scrapeJobs } from "./services/jobScraper";
 import { generateInterviewPrep, generateQuickPrep } from "./services/interviewPrep";
+import { UserProfile } from "./models";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -238,42 +239,135 @@ export async function registerRoutes(
 
   // ==================== Interview Prep Routes ====================
   
-  // Generate comprehensive interview prep
-  app.post("/api/interview-prep/generate", async (req, res) => {
+  // Generate comprehensive interview prep (supports both /api/interview/generate and /api/interview-prep/generate)
+  app.post(["/api/interview/generate", "/api/interview-prep/generate"], async (req, res) => {
     try {
-      const { job, userProfile } = req.body;
-      
-      if (!job || !job.title || !job.company) {
-        return res.status(400).json({ message: "Job details are required" });
+      const jobId = req.body.jobId || req.body.job?.id || req.body.job?._id || "";
+      const jobTitle = req.body.jobTitle || req.body.job?.title || "";
+      const company = req.body.company || req.body.job?.company || "";
+      const description = req.body.description || req.body.job?.description || "";
+      const skills = req.body.skills || req.body.job?.skills || [];
+      const location = req.body.location || req.body.job?.location || "Remote";
+
+      if (!jobTitle || !company) {
+        return res.status(400).json({ message: "Job title and company are required" });
       }
+
+      const job = {
+        title: jobTitle,
+        company,
+        description,
+        skills: Array.isArray(skills) ? skills : [],
+        location,
+      };
+
+      // Get userProfile from request or database or fallback
+      let userProfile = req.body.userProfile;
+      const userId = (req.session as any)?.userId;
       
-      if (!userProfile || !userProfile.skills) {
-        return res.status(400).json({ message: "User profile with skills is required" });
+      if (!userProfile && userId) {
+        try {
+          const profile = await UserProfile.findOne({ userId });
+          if (profile) {
+            userProfile = {
+              skills: profile.skills || [],
+              experience: profile.experience || [],
+              education: profile.education || [],
+              yearsOfExperience: profile.experience?.length || 0,
+            };
+          }
+        } catch (dbErr) {
+          console.warn("Could not fetch user profile for interview prep:", dbErr);
+        }
+      }
+
+      if (!userProfile || !Array.isArray(userProfile.skills)) {
+        userProfile = {
+          skills: (job.skills || []).map((s: string) => ({ name: s, level: 3, category: "Technical" })),
+          experience: [],
+        };
       }
 
       console.log(`\n🎯 Generating interview prep for ${job.title} at ${job.company}`);
       
       const prepResult = await generateInterviewPrep(job, userProfile);
       
+      const fullPrepData = {
+        jobId: jobId || `${job.title}-${job.company}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        ...prepResult,
+        generatedAt: new Date(),
+      };
+
+      // Automatically persist to user's profile if authenticated
+      if (userId) {
+        try {
+          let profile = await UserProfile.findOne({ userId });
+          if (profile) {
+            if (!profile.interviewPreps) {
+              profile.interviewPreps = [];
+            }
+            const existingIndex = profile.interviewPreps.findIndex(p => p.jobId === fullPrepData.jobId);
+            if (existingIndex >= 0) {
+              profile.interviewPreps[existingIndex] = fullPrepData as any;
+            } else {
+              profile.interviewPreps.push(fullPrepData as any);
+            }
+            await profile.save();
+            console.log(`💾 Saved interview prep for job ${fullPrepData.jobId} to user profile`);
+          }
+        } catch (saveErr) {
+          console.warn("Could not auto-save interview prep to user profile:", saveErr);
+        }
+      }
+
       console.log(`✅ Interview prep generated successfully`);
       
       res.json({
         success: true,
-        data: prepResult,
+        prepData: fullPrepData,
+        data: fullPrepData,
       });
     } catch (error: any) {
       console.error("❌ Interview prep generation error:", error);
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message || "Failed to generate interview prep kit" });
     }
   });
 
   // Generate quick prep (15-minute version)
-  app.post("/api/interview-prep/quick", async (req, res) => {
+  app.post(["/api/interview/quick", "/api/interview-prep/quick"], async (req, res) => {
     try {
-      const { job, userProfile } = req.body;
-      
-      if (!job || !job.title) {
-        return res.status(400).json({ message: "Job details are required" });
+      const jobTitle = req.body.jobTitle || req.body.job?.title || "";
+      const company = req.body.company || req.body.job?.company || "Target Company";
+      const description = req.body.description || req.body.job?.description || "";
+      const skills = req.body.skills || req.body.job?.skills || [];
+      const location = req.body.location || req.body.job?.location || "Remote";
+
+      if (!jobTitle) {
+        return res.status(400).json({ message: "Job title is required" });
+      }
+
+      const job = {
+        title: jobTitle,
+        company,
+        description,
+        skills: Array.isArray(skills) ? skills : [],
+        location,
+      };
+
+      let userProfile = req.body.userProfile;
+      const userId = (req.session as any)?.userId;
+      if (!userProfile && userId) {
+        try {
+          const profile = await UserProfile.findOne({ userId });
+          if (profile) {
+            userProfile = {
+              skills: profile.skills || [],
+              experience: profile.experience || [],
+            };
+          }
+        } catch (dbErr) {
+          console.warn("Could not fetch user profile for quick prep:", dbErr);
+        }
       }
 
       console.log(`\n⚡ Generating quick prep for ${job.title}`);
@@ -286,7 +380,7 @@ export async function registerRoutes(
       });
     } catch (error: any) {
       console.error("❌ Quick prep error:", error);
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message || "Failed to generate quick prep" });
     }
   });
 
